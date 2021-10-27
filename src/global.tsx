@@ -35,7 +35,7 @@ if (pwa) {
 				worker.postMessage({ type: "skip-waiting" }, [channel.port2]);
 			});
 			// Refresh current page to use the updated HTML and other assets after SW has skiped waiting
-			window.location.reload(true);
+			window.location.reload();
 			return true;
 		};
 		const key = `open${Date.now()}`;
@@ -68,18 +68,17 @@ if (pwa) {
 	// unregister service worker
 	const { serviceWorker } = navigator;
 	if (serviceWorker.getRegistrations) {
-		serviceWorker.getRegistrations().then((sws) => {
-			sws.forEach((sw) => {
-				sw.unregister();
-			});
+		serviceWorker.getRegistrations().then(sws => {
+			sws.forEach(sw => sw.unregister());
 		});
 	}
-	serviceWorker.getRegistration().then((sw) => {
-		if (sw) sw.unregister();
+	serviceWorker.getRegistration().then(sw => {
+		if (sw)
+			sw.unregister();
 	});
 
 	// remove all caches
-	if (window.caches && window.caches.keys()) {
+	if (window.caches?.keys()) {
 		caches.keys().then((keys) => {
 			keys.forEach((key) => {
 				caches.delete(key);

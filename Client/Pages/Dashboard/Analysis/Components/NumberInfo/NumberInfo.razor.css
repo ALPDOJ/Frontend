@@ -1,0 +1,65 @@
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
+.numberInfo .suffix {
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 16px;
+    font-style: normal;
+    margin-left: 4px;
+}
+
+.numberInfo .numberInfoTitle {
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+}
+
+.numberInfo .numberInfoSubTitle {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    height: 22px;
+    line-height: 22px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.numberInfo .numberInfoValue {
+    font-size: 0;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.numberInfo .numberInfoValue > span {
+    color: rgba(0, 0, 0, 0.85);
+    display: inline-block;
+    font-size: 24px;
+    height: 32px;
+    line-height: 32px;
+    margin-right: 32px;
+}
+
+.numberInfo .numberInfoValue .subTotal {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 16px;
+    margin-right: 0;
+    vertical-align: top;
+}
+
+.numberInfo .numberInfoValue .subTotal .anticon {
+    font-size: 12px;
+    margin-left: 4px;
+    transform: scale(0.82);
+}
+
+.numberInfo .numberInfoValue .subTotal :global .anticon-caret-up { color: #f5222d; }
+
+.numberInfo .numberInfoValue .subTotal :global .anticon-caret-down { color: #52c41a; }
+
+.numberInfolight .numberInfoValue > span { color: rgba(0, 0, 0, 0.85); }

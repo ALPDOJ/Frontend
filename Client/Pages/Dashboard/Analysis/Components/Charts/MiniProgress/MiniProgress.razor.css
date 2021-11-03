@@ -1,0 +1,44 @@
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
+.miniProgress {
+    padding: 5px 0;
+    position: relative;
+    width: 100%;
+}
+
+.miniProgress .progressWrap {
+    background-color: #f5f5f5;
+    position: relative;
+}
+
+.miniProgress .progress {
+    background-color: #1890ff;
+    border-radius: 1px 0 0 1px;
+    height: 100%;
+    transition: all 0.4s cubic-bezier(0.08, 0.82, 0.17, 1) 0s;
+    width: 0;
+}
+
+.miniProgress .target {
+    bottom: 0;
+    position: absolute;
+    top: 0;
+    width: 20px;
+    z-index: 9;
+}
+
+.miniProgress .target span {
+    border-radius: 100px;
+    height: 4px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 2px;
+}
+
+.miniProgress .target span:last-child {
+    bottom: 0;
+    top: auto;
+}

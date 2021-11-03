@@ -1,0 +1,90 @@
+﻿@namespace Client.Pages.List
+@layout SearchList
+@page "/list/search/articles"
+
+<Card>
+	<Form Layout="inline"
+		Model="_model">
+		<standardformrow Block Style="padding-bottom: 11px;" Title="Category">
+			<TagSelect Expandable>
+				<TagSelectOption Value="cat1">Category 1</TagSelectOption>
+				<TagSelectOption Value="cat2">Category 2</TagSelectOption>
+				<TagSelectOption Value="cat3">Category 3</TagSelectOption>
+				<TagSelectOption Value="cat4">Category 4</TagSelectOption>
+				<TagSelectOption Value="cat5">Category 5</TagSelectOption>
+				<TagSelectOption Value="cat6">Category 6</TagSelectOption>
+				<TagSelectOption Value="cat7">Category 7</TagSelectOption>
+				<TagSelectOption Value="cat8">Category 8</TagSelectOption>
+				<TagSelectOption Value="cat9">Category 9</TagSelectOption>
+				<TagSelectOption Value="cat10">Category 10</TagSelectOption>
+				<TagSelectOption Value="cat11">Category 11</TagSelectOption>
+				<TagSelectOption Value="cat12">Category 12</TagSelectOption>
+			</TagSelect>
+		</standardformrow>
+		<standardformrow Grid Title="Author">
+			<Select @bind-Value="_model.Owner"
+				DefaultValues="_defaultOwners"
+				Mode="multiple"
+				Placeholder="Select Author"
+				Style="width: inherit"
+				TItem="string"
+				TItemValue="string">
+				<SelectOptions>
+					@foreach (var owner in _owners) {
+						<SelectOption Label="@owner.Name" TItem="string" TItemValue="string" Value="@owner.Id" />
+					}
+				</SelectOptions>
+			</Select>
+			<a class="selfTrigger" @onclick="SetOwner">
+				Only Me
+			</a>
+		</standardformrow>
+		<standardformrow Grid Last Title="Other Options">
+			<Row Gutter="16">
+				<AntDesign.Col Lg="8" Md="10" Sm="10" Xs="24">
+					<FormItem Label="Active User">
+						<Select @bind-Value="_model.ActiveUser"
+							Placeholder="All"
+							Style="max-width: 200px; width: 100%;"
+							TItem="string"
+							TItemValue="string">
+							<SelectOptions>
+								<SelectOption Label="Li San" TItem="string" TItemValue="string" Value="@("lisa")" />
+							</SelectOptions>
+						</Select>
+					</FormItem>
+				</AntDesign.Col>
+				<AntDesign.Col Lg="8" Md="10" Sm="10" Xs="24">
+					<FormItem Label="Rating">
+						<Select @bind-Value="_model.Satisfaction"
+							Placeholder="All"
+							Style="max-width: 200px; width: 100%;"
+							TItem="string"
+							TItemValue="string">
+							<SelectOptions>
+								<SelectOption Label="Excellent" TItem="string" TItemValue="string" Value="@("good")" />
+							</SelectOptions>
+						</Select>
+					</FormItem>
+				</AntDesign.Col>
+			</Row>
+		</standardformrow>
+	</Form>
+</Card>
+<Card BodyStyle="padding: 8px 32px 32px 32px;"
+	Style="margin-top: 24px;">
+	<AntList Class="articleList"
+		DataSource="_fakeList"
+		ItemLayout="ListItemLayout.Vertical"
+		Size="large"
+		TItem="ListItemDataType">
+		<ListItem NoFlex>
+			<ListItemMeta Description="">
+				<TitleTemplate>
+					<a href="https://ng.ant.design">@context.Title</a>
+				</TitleTemplate>
+			</ListItemMeta>
+			<Client.Pages.Account.Center.ArticleListContent Data="@context" />
+		</ListItem>
+	</AntList>
+</Card>

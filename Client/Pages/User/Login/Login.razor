@@ -1,0 +1,70 @@
+﻿@namespace Client.Pages.User
+@layout UserLayout
+@page "/user/login"
+
+<div class="main__b__0">
+	<div class="login">
+		<Form Model="@_model" OnFinish="HandleSubmit">
+			<Tabs ActiveKey="@context.LoginType">
+				<TabPane Key="1" Tab="Account Login">
+					<FormItem>
+						<AntDesign.Input @bind-Value="@context.UserName" Placeholder="Username: admin or user"
+							Size="large">
+							<Prefix>
+								<Icon Type="user" />
+							</Prefix>
+						</AntDesign.Input>
+					</FormItem>
+					<FormItem>
+						<AntDesign.Input @bind-Value="@context.Password" Placeholder="Password: ant.design" Size="large"
+							Type="password">
+							<Prefix>
+								<Icon Type="lock" />
+							</Prefix>
+						</AntDesign.Input>
+					</FormItem>
+				</TabPane>
+				<TabPane Key="2" Tab="Mobile Login">
+					<FormItem>
+						<AntDesign.Input @bind-Value="@context.Mobile" Placeholder="Phone Number" Size="large">
+							<Prefix>
+								<Icon Type="mobile" />
+							</Prefix>
+						</AntDesign.Input>
+					</FormItem>
+					<FormItem>
+						<Row Gutter="8">
+							<AntDesign.Col Span="16">
+								<AntDesign.Input @bind-Value="@context.Captcha" Placeholder="Verification code"
+									Size="large">
+									<Prefix>
+										<Icon Type="mail" />
+									</Prefix>
+								</AntDesign.Input>
+							</AntDesign.Col>
+							<AntDesign.Col Span="8">
+								<Button Block OnClick="GetCaptcha" Size="large">Verify</Button>
+							</AntDesign.Col>
+						</Row>
+					</FormItem>
+				</TabPane>
+			</Tabs>
+			<div>
+				<Checkbox Checked="@context.AutoLogin">
+					Auto Login
+				</Checkbox>
+				<a style="float: right;">
+					Forgot Password
+				</a>
+			</div>
+			<Button Block Class="submit" HtmlType="submit" Size="large" Type="primary">Log in </Button>
+			<div class="other">
+				Other Login Methods
+				<Icon Type="alipay-circle" />
+				<Icon Type="taobao-circle" />
+				<Icon Type="weibo-circle" />
+				<a class="register" href="/user/register">Register Account</a>
+			</div>
+		</Form>
+	</div>
+</div>

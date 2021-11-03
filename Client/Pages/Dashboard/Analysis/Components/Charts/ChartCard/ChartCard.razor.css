@@ -1,0 +1,77 @@
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
+.chartCard { position: relative; }
+
+.chartCard .chartTop {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+}
+
+.chartCard .chartTopMargin { margin-bottom: 12px; }
+
+.chartCard .chartTopHasMargin { margin-bottom: 20px; }
+
+.chartCard .metaWrap { float: left; }
+
+.chartCard .avatar {
+    float: left;
+    margin-right: 20px;
+    position: relative;
+    top: 4px;
+}
+
+.chartCard .avatar img { border-radius: 100%; }
+
+.chartCard .meta {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    height: 22px;
+    line-height: 22px;
+}
+
+.chartCard .action {
+    cursor: pointer;
+    line-height: 1;
+    position: absolute;
+    right: 0;
+    top: 4px;
+}
+
+.chartCard .total {
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 30px;
+    height: 38px;
+    line-height: 38px;
+    margin-bottom: 0;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.chartCard .content {
+    margin-bottom: 12px;
+    position: relative;
+    width: 100%;
+}
+
+.chartCard .contentFixed {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    width: 100%;
+}
+
+.chartCard .footer {
+    border-top: 1px solid #f0f0f0;
+    margin-top: 8px;
+    padding-top: 9px;
+}
+
+.chartCard .footer > * { position: relative; }
+
+.chartCard .footerMargin { margin-top: 20px; }

@@ -1,0 +1,93 @@
+﻿@namespace Client.Pages.List
+@layout SearchList
+@page "/list/search/projects"
+
+<div class="coverCardList">
+	<Card>
+		<Form Layout="inline"
+			Model="_model">
+			<StandardFormRow Block Style="padding-bottom: 11px" Title="Category">
+				<FormItem>
+					<TagSelect Expandable>
+						<TagSelectOption Value="cat1">Category 1</TagSelectOption>
+						<TagSelectOption Value="cat2">Category 2</TagSelectOption>
+						<TagSelectOption Value="cat3">Category 3</TagSelectOption>
+						<TagSelectOption Value="cat4">Category 4</TagSelectOption>
+						<TagSelectOption Value="cat5">Category 5</TagSelectOption>
+						<TagSelectOption Value="cat6">Category 6</TagSelectOption>
+						<TagSelectOption Value="cat7">Category 7</TagSelectOption>
+						<TagSelectOption Value="cat8">Category 8</TagSelectOption>
+						<TagSelectOption Value="cat9">Category 9</TagSelectOption>
+						<TagSelectOption Value="cat10">Category 10</TagSelectOption>
+						<TagSelectOption Value="cat11">Category 11</TagSelectOption>
+						<TagSelectOption Value="cat12">Category 12</TagSelectOption>
+					</TagSelect>
+				</FormItem>
+			</StandardFormRow>
+			<StandardFormRow Grid Last Title="Other Options">
+				<Row Gutter="16">
+					<AntDesign.Col Lg="8" Md="10" Sm="10" Xs="24">
+						<FormItem Label="Author" WrapperCol="_formItemLayout.WrapperCol">
+							<Select @bind-Value="_model.ActiveUser"
+								Placeholder="All"
+								Style="max-width: 200px; width: 100%;"
+								TItem="string"
+								TItemValue="string">
+								<SelectOptions>
+									<SelectOption Label="Wang Zhaojun" TItem="string" TItemValue="string" Value="@("lisa")" />
+								</SelectOptions>
+							</Select>
+						</FormItem>
+					</AntDesign.Col>
+					<AntDesign.Col Lg="8" Md="10" Sm="10" Xs="24">
+						<FormItem Label="Rating" WrapperCol="_formItemLayout.WrapperCol">
+							<Select @bind-Value="_model.Satisfaction"
+								Placeholder="All"
+								Style="max-width: 200px; width: 100%;"
+								TItem="string"
+								TItemValue="string">
+								<SelectOptions>
+									<SelectOption Label="Excellent" TItem="string" TItemValue="string" Value="@("good")" />
+									<SelectOption Label="Normal" TItem="string" TItemValue="string" Value="@("normal")" />
+								</SelectOptions>
+							</Select>
+						</FormItem>
+					</AntDesign.Col>
+				</Row>
+			</StandardFormRow>
+		</Form>
+	</Card>
+	<div class="cardList">
+		<AntList DataSource="_fakeList"
+			Grid="_listGridType"
+			TItem="ListItemDataType">
+			<ListItem Grid="_listGridType" NoFlex>
+				<Card Bordered Class="card" Hoverable>
+					<Cover>
+						<img alt="@context.Title" src="@context.Cover" />
+					</Cover>
+					<ChildContent>
+						<CardMeta>
+							<DescriptionTemplate>@context.SubDescription</DescriptionTemplate>
+							<TitleTemplate>
+								<a>@context.Title</a>
+							</TitleTemplate>
+						</CardMeta>
+						<div class="cardItemContent">
+							<span>@context.UpdatedAt.ToFriendlyDisplay()</span>
+							<div class="avatarList">
+								<Client.Pages.Account.Center.AvatarList>
+									@foreach (var member in context.Members) {
+										<Client.Pages.Account.Center.AvatarListItem Size="small"
+											Src="@member.Avatar"
+											Tips="@member.Name" />
+									}
+								</Client.Pages.Account.Center.AvatarList>
+							</div>
+						</div>
+					</ChildContent>
+				</Card>
+			</ListItem>
+		</AntList>
+	</div>
+</div>

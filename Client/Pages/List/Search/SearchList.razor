@@ -1,0 +1,23 @@
+﻿@namespace Client.Pages.List
+@using BasicLayout = Client.BasicLayout
+@inherits LayoutComponentBase
+@layout BasicLayout
+
+<PageContainer OnTabChange="HandleTabChange" TabActiveKey="@GetTabKey()" TabList="_tabList" Title="Search">
+	<Breadcrumb>
+		<Breadcrumb>
+			<BreadcrumbItem>Home</BreadcrumbItem>
+			<BreadcrumbItem>List</BreadcrumbItem>
+			<BreadcrumbItem>Search</BreadcrumbItem>
+		</Breadcrumb>
+	</Breadcrumb>
+	<Content>
+		<div style="text-align: center;">
+			<Search EnterButton="@("Search For")" Placeholder="Please Enter" Size="large"
+				Style="max-width: 522px; width: 100%;" />
+		</div>
+	</Content>
+	<ChildContent>
+		@Body
+	</ChildContent>
+</PageContainer>

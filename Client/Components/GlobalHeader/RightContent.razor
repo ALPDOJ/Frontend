@@ -1,0 +1,52 @@
+﻿@namespace Client.Components
+@inherits AntDomComponentBase
+
+<Space Class="@ClassMapper.Class" Size="@("24")">
+	<SpaceItem>
+		<HeaderSearch Class="action search"
+			DefaultValue="umi ui"
+			Options="DefaultOptions"
+			Placeholder="Site Search" />
+	</SpaceItem>
+	<SpaceItem>
+		<AntDesign.Tooltip Placement="@Placement.Bottom" Title="@("Help")">
+			<Unbound>
+				<span class="action" @ref="@context.Current">
+					<Icon Theme="outline" Type="question-circle" />
+				</span>
+			</Unbound>
+		</AntDesign.Tooltip>
+	</SpaceItem>
+	<SpaceItem>
+		<NoticeIcon ClearText="Empty"
+			Count="_count"
+			OnClear="HandleClear"
+			OnViewMore="HandleViewMore"
+			ViewMoreText="see more">
+			<NoticeList Data="_notifications"
+				EmptyText="You have viewed all notifications"
+				ShowViewMore
+				TabKey="notification"
+				Title="Notifications" />
+			<NoticeList Data="_messages"
+				EmptyText="You have read all messages"
+				ShowViewMore
+				TabKey="message"
+				Title="Messages" />
+			<NoticeList Data="_events"
+				EmptyText="You have completed all to do"
+				ShowViewMore
+				TabKey="event"
+				Title="Upcoming" />
+		</NoticeIcon>
+	</SpaceItem>
+	<SpaceItem>
+		<AvatarDropdown Avatar="@_currentUser.Avatar"
+			MenuItems="@AvatarMenuItems"
+			Name="@_currentUser.Name"
+			OnItemSelected="HandleSelectUser" />
+	</SpaceItem>
+	<SpaceItem>
+		<SelectLang OnItemSelected="HandleSelectLang" />
+	</SpaceItem>
+</Space>

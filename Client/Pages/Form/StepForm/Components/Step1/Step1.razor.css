@@ -1,0 +1,71 @@
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
+.stepForm {
+    margin: 40px auto 0;
+    max-width: 500px;
+}
+
+.stepFormText { margin-bottom: 24px; }
+
+.stepFormText :global .ant-form-item-label,
+.stepFormText :global .ant-form-item-control { line-height: 22px; }
+
+.result {
+    margin: 0 auto;
+    max-width: 560px;
+    padding: 24px 0 8px;
+}
+
+.desc {
+    color: rgba(0, 0, 0, 0.45);
+    padding: 0 56px;
+}
+
+.desc h3 {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 16px;
+    line-height: 32px;
+    margin: 0 0 12px 0;
+}
+
+.desc h4 {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    line-height: 22px;
+    margin: 0 0 4px 0;
+}
+
+.desc p {
+    line-height: 22px;
+    margin-bottom: 12px;
+    margin-top: 0;
+}
+
+@media screen and (max-width: 768px) {
+    .desc { padding: 0; }
+}
+
+.information { line-height: 22px; }
+
+.information :global .ant-row:not(:last-child) { margin-bottom: 24px; }
+
+.information .label {
+    color: rgba(0, 0, 0, 0.85);
+    padding-right: 8px;
+    text-align: right;
+}
+
+@media screen and (max-width: 576px) {
+    .information .label { text-align: left; }
+}
+
+.money {
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 14px;
+}
+
+.uppercase { font-size: 12px; }

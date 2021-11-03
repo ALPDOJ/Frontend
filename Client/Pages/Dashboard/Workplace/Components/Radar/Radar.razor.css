@@ -1,0 +1,46 @@
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
+.radar .legend { margin-top: 16px; }
+
+.radar .legend .legendItem {
+    color: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+    line-height: 22px;
+    position: relative;
+    text-align: center;
+}
+
+.radar .legend .legendItem p { margin: 0; }
+
+.radar .legend .legendItem h6 {
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 24px;
+    line-height: 32px;
+    margin-bottom: 0;
+    margin-top: 4px;
+    padding-left: 16px;
+}
+
+.radar .legend .legendItem::after {
+    background-color: #f0f0f0;
+    content: '';
+    height: 40px;
+    position: absolute;
+    right: 0;
+    top: 8px;
+    width: 1px;
+}
+
+.radar .legend > :last-child .legendItem::after { display: none; }
+
+.radar .legend .dot {
+    border-radius: 6px;
+    display: inline-block;
+    height: 6px;
+    margin-right: 6px;
+    position: relative;
+    top: -1px;
+    width: 6px;
+}

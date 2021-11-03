@@ -1,0 +1,33 @@
+﻿using Client.Models;
+using System.Net.Http.Json;
+
+namespace Client.Services
+{
+	public interface IChartService
+	{
+		Task<ChartDataItem[]> GetVisitDataAsync();
+
+		Task<ChartDataItem[]> GetVisitData2Async();
+
+		Task<ChartDataItem[]> GetSalesDataAsync();
+
+		Task<RadarDataItem[]> GetRadarDataAsync();
+	}
+
+	public class ChartService : IChartService
+	{
+		private readonly HttpClient _httpClient;
+
+		public ChartService(HttpClient httpClient) => _httpClient = httpClient;
+
+		public async Task<ChartDataItem[]> GetVisitDataAsync() => (await GetChartDataAsync()).VisitData;
+
+		public async Task<ChartDataItem[]> GetVisitData2Async() => (await GetChartDataAsync()).VisitData2;
+
+		public async Task<ChartDataItem[]> GetSalesDataAsync() => (await GetChartDataAsync()).SalesData;
+
+		public async Task<RadarDataItem[]> GetRadarDataAsync() => (await GetChartDataAsync()).RadarData;
+
+		private async Task<ChartData> GetChartDataAsync() => (await _httpClient.GetFromJsonAsync<ChartData>("data/fake_chart_data.json"))!;
+	}
+}

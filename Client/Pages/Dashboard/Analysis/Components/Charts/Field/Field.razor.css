@@ -1,0 +1,21 @@
+/* stylelint-disable at-rule-empty-line-before,at-rule-name-space-after,at-rule-no-unknown */
+/* stylelint-disable no-duplicate-selectors */
+/* stylelint-disable */
+/* stylelint-disable declaration-bang-space-before,no-duplicate-selectors,string-no-newline */
+.field {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.field .label,
+.field .number {
+    font-size: 14px;
+    line-height: 22px;
+}
+
+.field .number {
+    color: rgba(0, 0, 0, 0.85);
+    margin-left: 8px;
+}

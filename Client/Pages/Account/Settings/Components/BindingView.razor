@@ -1,0 +1,24 @@
+@namespace Client.Pages.Account.Settings
+
+<AntList DataSource="_data" ItemLayout="ListItemLayout.Horizontal" TItem="UserLiteItem">
+	<ListItem Actions="_actions">
+		<ListItemMeta Description="@context.Description" Title="@context.Title">
+			<AvatarTemplate>
+				<Icon Class="@context.Avater" Theme="outline" Type="@context.Avater" />
+			</AvatarTemplate>
+		</ListItemMeta>
+	</ListItem>
+</AntList>
+
+@code
+
+{
+
+	private static RenderFragment _modify = 
+	@<a key="bind">Bind</a>
+	;
+
+
+
+	private readonly RenderFragment[] _actions = { _modify };
+}

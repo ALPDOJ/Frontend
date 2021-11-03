@@ -1,0 +1,31 @@
+@namespace Client.Pages.Account.Center
+
+<AntList Class="coverCardList" DataSource="List" Grid="_listGridType" TItem="ListItemDataType">
+	<ListItem Grid="_listGridType" NoFlex>
+		<Card Bordered Class="card" Hoverable>
+			<Cover>
+				<img alt="@context.Title" src="@context.Cover" />
+			</Cover>
+			<ChildContent>
+				<CardMeta>
+					<DescriptionTemplate>@context.SubDescription</DescriptionTemplate>
+					<TitleTemplate>
+						<a>@context.Title</a>
+					</TitleTemplate>
+				</CardMeta>
+				<div class="cardItemContent">
+					<span>@context.UpdatedAt.ToFriendlyDisplay()</span>
+					<div class="avatarList">
+						<AvatarList>
+							@foreach (var member in context.Members)
+							{
+								<AvatarListItem Size="small" Src="@member.Avatar" Tips="@member.Name" />
+
+							}
+						</AvatarList>
+					</div>
+				</div>
+			</ChildContent>
+		</Card>
+	</ListItem>
+</AntList>

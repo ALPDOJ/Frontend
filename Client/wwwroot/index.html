@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta content="IE=edge" http-equiv="X-UA-Compatible" />
+	<meta content="ALPDOJ,Online Judge,在线评测,同济大学,黄渡理工,true_mogician"
+		name="keywords" />
+	<meta content="黄渡理工知名教授飞姐旗下旗舰款在线评测系统" name="description" />
+	<meta content="由可怜的打工人true_mogician编写" name="description" />
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+	<title>ALPDOJ</title>
+	<link href="favicon.ico" rel="icon" type="image/x-icon" />
+	<base href="/" />
+	<link href="_content/AntDesign/css/ant-design-blazor.css" rel="stylesheet" />
+	<link href="_content/AntDesign.ProLayout/css/ant-design-pro-layout-blazor.css" rel="stylesheet" />
+	<link href="./css/site.css" rel="stylesheet" />
+	<link href="Client.styles.css" rel="stylesheet" />
+	<link href="manifest.json" rel="manifest" />
+	<link href="pro_icon.svg" rel="apple-touch-icon" sizes="512*512" />
+</head>
+
+<body>
+<noscript>Out-of-the-box mid-stage front/design solution!</noscript>
+<div id="app">
+	<style>
+		html,
+		body,
+		#app {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+
+		#app {
+			background-repeat: no-repeat;
+			background-size: 100% auto;
+		}
+
+		.page-loading-warp {
+			align-items: center;
+			display: flex;
+			justify-content: center;
+			padding: 98px;
+		}
+
+		.ant-spin {
+			-webkit-box-sizing: border-box;
+			-webkit-font-feature-settings: 'tnum';
+			-webkit-transition: -webkit-transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+			box-sizing: border-box;
+			color: rgba(0, 0, 0, 0.65);
+			color: #1890ff;
+			display: none;
+			font-feature-settings: 'tnum';
+			font-size: 14px;
+			font-variant: tabular-nums;
+			line-height: 1.5;
+			list-style: none;
+			margin: 0;
+			opacity: 0;
+			padding: 0;
+			position: absolute;
+			text-align: center;
+			transition: -webkit-transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+			transition: transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+			transition: transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86),
+						-webkit-transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+			vertical-align: middle;
+		}
+
+		.ant-spin-spinning {
+			display: inline-block;
+			opacity: 1;
+			position: static;
+		}
+
+		.ant-spin-dot {
+			display: inline-block;
+			font-size: 20px;
+			height: 20px;
+			position: relative;
+			width: 20px;
+		}
+
+		.ant-spin-dot-item {
+			-ms-transform: scale(0.75);
+			-ms-transform-origin: 50% 50%;
+			-webkit-animation: antSpinMove 1s infinite linear alternate;
+			-webkit-transform: scale(0.75);
+			-webkit-transform-origin: 50% 50%;
+			animation: antSpinMove 1s infinite linear alternate;
+			background-color: #1890ff;
+			border-radius: 100%;
+			display: block;
+			height: 9px;
+			opacity: 0.3;
+			position: absolute;
+			transform: scale(0.75);
+			transform-origin: 50% 50%;
+			width: 9px;
+		}
+
+		.ant-spin-dot-item:nth-child(1) {
+			left: 0;
+			top: 0;
+		}
+
+		.ant-spin-dot-item:nth-child(2) {
+			-webkit-animation-delay: 0.4s;
+			animation-delay: 0.4s;
+			right: 0;
+			top: 0;
+		}
+
+		.ant-spin-dot-item:nth-child(3) {
+			-webkit-animation-delay: 0.8s;
+			animation-delay: 0.8s;
+			bottom: 0;
+			right: 0;
+		}
+
+		.ant-spin-dot-item:nth-child(4) {
+			-webkit-animation-delay: 1.2s;
+			animation-delay: 1.2s;
+			bottom: 0;
+			left: 0;
+		}
+
+		.ant-spin-dot-spin {
+			-ms-transform: rotate(45deg);
+			-webkit-animation: antRotate 1.2s infinite linear;
+			-webkit-transform: rotate(45deg);
+			animation: antRotate 1.2s infinite linear;
+			transform: rotate(45deg);
+		}
+
+		.ant-spin-lg .ant-spin-dot {
+			font-size: 32px;
+			height: 32px;
+			width: 32px;
+		}
+
+		.ant-spin-lg .ant-spin-dot i {
+			height: 14px;
+			width: 14px;
+		}
+
+		@media all and (-ms-high-contrast: none),
+(-ms-high-contrast: active) {
+			.ant-spin-blur {
+				background: #fff;
+				opacity: 0.5;
+			}
+		}
+
+		@-webkit-keyframes antSpinMove {
+			to { opacity: 1; }
+		}
+
+		@keyframes antSpinMove {
+			to { opacity: 1; }
+		}
+
+		@-webkit-keyframes antRotate {
+			to {
+				-webkit-transform: rotate(405deg);
+				transform: rotate(405deg);
+			}
+		}
+
+		@keyframes antRotate {
+			to {
+				-webkit-transform: rotate(405deg);
+				transform: rotate(405deg);
+			}
+		}
+	</style>
+	<div
+		style="align-items: center; display: flex; flex-direction: column; height: 100%; justify-content: center; min-height: 420px;">
+		<img alt="logo" src="./pro-icon.svg" width="256" />
+		<div class="page-loading-warp">
+			<div class="ant-spin ant-spin-lg ant-spin-spinning">
+				<span class="ant-spin-dot ant-spin-dot-spin">
+					<i class="ant-spin-dot-item"></i>
+					<i class="ant-spin-dot-item">
+					</i><i class="ant-spin-dot-item"></i>
+					<i class="ant-spin-dot-item">
+					</i>
+				</span>
+			</div>
+		</div>
+		<div style="align-items: center; display: flex; justify-content: center;">
+			<img src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg"
+				style="margin-right: 8px;" width="32" />
+			ALPDOJ
+		</div>
+	</div>
+</div>
+
+<script src="_content/AntDesign.Charts/g2plot.js"></script>
+<script src="_content/AntDesign/js/ant-design-blazor.js"></script>
+<script src="_content/AntDesign.Charts/ant-design-charts-blazor.js"></script>
+<script src="_framework/blazor.webassembly.js"></script>
+<script>navigator.serviceWorker.register('service-worker.js');</script>
+</body>
+
+</html>

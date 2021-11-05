@@ -10,19 +10,19 @@
 			<div class="header">
 				<a>
 					<img alt="logo" class="logo" src="assets/logo.svg" />
-					<span class="title">Ant Design</span>
+					<span class="title">ALPDOJ</span>
 				</a>
 			</div>
-			<div class="desc">Ant Design Blazor</div>
+			<div class="desc">ALPDOJ</div>
 		</div>
 		@Body
 	</div>
-	<FooterView Copyright="2021 Ant Design Blazor" Links="Links"></FooterView>
+	<FooterView Copyright="飞姐" Links="Links" />
 </div>
 
 @code{
 
-	public LinkItem[] Links { get; set; } =
+	public LinkItem[] Links { get; } =
 		{
 			new() {
 				Key = "Ant Design Blazor",
@@ -31,15 +31,15 @@
 				BlankTarget = true
 			},
 			new() {
-				Key = "github",
-				Title = (RenderFragment)(@<Icon Type="github" />),
-				Href = "https://github.com/ant-design-blazor/ant-design-pro-blazor",
-				BlankTarget = true
-			},
-			new() {
 				Key = "Blazor",
 				Title = "Blazor",
 				Href = "https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor?WT.mc_id=DT-MVP-5003987",
+				BlankTarget = true
+			},
+			new() {
+				Key = "Repository",
+				Title = (RenderFragment)(@<Icon Type="github" />),
+				Href = "https://github.com/ALPDOJ/Frontend",
 				BlankTarget = true
 			}
 		};

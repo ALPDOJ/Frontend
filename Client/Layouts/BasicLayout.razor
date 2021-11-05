@@ -4,13 +4,13 @@
 <AntDesign.ProLayout.BasicLayout Logo="@("https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg")"
 	MenuData="_menuData">
 	<RightContentRender>
-		<Client.components.rightcontent />
+		<Client.Components.RightContent />
 	</RightContentRender>
 	<ChildContent>
 		@Body
 	</ChildContent>
 	<FooterRender>
-		<FooterView Copyright="2021 Ant Design Blazor" Links="Links"></FooterView>
+		<FooterView Copyright="飞姐" Links="Links" />
 	</FooterRender>
 </AntDesign.ProLayout.BasicLayout>
 <SettingDrawer />
@@ -24,10 +24,10 @@
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		_menuData = await HttpClient.GetFromJsonAsync<MenuDataItem[]>("data/menu.json");
+		_menuData = (await HttpClient.GetFromJsonAsync<MenuDataItem[]>("data/menu.json"))!;
 	}
 
-	public LinkItem[] Links { get; set; } =
+	public LinkItem[] Links { get; } =
 		{
 			new() {
 				Key = "Ant Design Blazor",
@@ -36,15 +36,15 @@
 				BlankTarget = true
 			},
 			new() {
-				Key = "github",
-				Title = (RenderFragment)(@<Icon Type="github" />),
-				Href = "https://github.com/ant-design-blazor/ant-design-pro-blazor",
-				BlankTarget = true
-			},
-			new() {
 				Key = "Blazor",
 				Title = "Blazor",
 				Href = "https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor?WT.mc_id=DT-MVP-5003987",
+				BlankTarget = true
+			},
+			new() {
+				Key = "Repository",
+				Title = (RenderFragment)(@<Icon Type="github" />),
+				Href = "https://github.com/ALPDOJ/Frontend",
 				BlankTarget = true
 			}
 		};

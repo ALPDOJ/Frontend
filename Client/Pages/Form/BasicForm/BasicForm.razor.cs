@@ -1,44 +1,36 @@
 using AntDesign;
 using Client.Models;
 
-namespace Client.Pages.Form
-{
-	public class FormItemLayout
-	{
-		public ColLayoutParam LabelCol { get; set; }
+namespace Client.Pages.Form; 
 
-		public ColLayoutParam WrapperCol { get; set; }
-	}
+public class FormItemLayout {
+	public ColLayoutParam LabelCol { get; set; }
 
-	public partial class BasicForm
-	{
-		private readonly FormItemLayout _formItemLayout = new()
-		{
-			LabelCol = new ColLayoutParam
-			{
-				Xs = new EmbeddedProperty { Span = 24 },
-				Sm = new EmbeddedProperty { Span = 7 }
-			},
+	public ColLayoutParam WrapperCol { get; set; }
+}
 
-			WrapperCol = new ColLayoutParam
-			{
-				Xs = new EmbeddedProperty { Span = 24 },
-				Sm = new EmbeddedProperty { Span = 12 },
-				Md = new EmbeddedProperty { Span = 10 }
-			}
-		};
+public partial class BasicForm {
+	private readonly FormItemLayout _formItemLayout = new() {
+		LabelCol = new ColLayoutParam {
+			Xs = new EmbeddedProperty { Span = 24 },
+			Sm = new EmbeddedProperty { Span = 7 }
+		},
 
-		private readonly BasicFormModel _model = new();
+		WrapperCol = new ColLayoutParam {
+			Xs = new EmbeddedProperty { Span = 24 },
+			Sm = new EmbeddedProperty { Span = 12 },
+			Md = new EmbeddedProperty { Span = 10 }
+		}
+	};
 
-		private readonly FormItemLayout _submitFormLayout = new()
-		{
-			WrapperCol = new ColLayoutParam
-			{
-				Xs = new EmbeddedProperty { Span = 24, Offset = 0 },
-				Sm = new EmbeddedProperty { Span = 10, Offset = 7 }
-			}
-		};
+	private readonly BasicFormModel _model = new();
 
-		private void HandleSubmit() { }
-	}
+	private readonly FormItemLayout _submitFormLayout = new() {
+		WrapperCol = new ColLayoutParam {
+			Xs = new EmbeddedProperty { Span = 24, Offset = 0 },
+			Sm = new EmbeddedProperty { Span = 10, Offset = 7 }
+		}
+	};
+
+	private void HandleSubmit() { }
 }

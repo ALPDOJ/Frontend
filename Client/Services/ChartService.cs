@@ -1,33 +1,30 @@
-﻿using Client.Models;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
+using Client.Models;
 
-namespace Client.Services
-{
-	public interface IChartService
-	{
-		Task<ChartDataItem[]> GetVisitDataAsync();
+namespace Client.Services; 
 
-		Task<ChartDataItem[]> GetVisitData2Async();
+public interface IChartService {
+	Task<ChartDataItem[]> GetVisitDataAsync();
 
-		Task<ChartDataItem[]> GetSalesDataAsync();
+	Task<ChartDataItem[]> GetVisitData2Async();
 
-		Task<RadarDataItem[]> GetRadarDataAsync();
-	}
+	Task<ChartDataItem[]> GetSalesDataAsync();
 
-	public class ChartService : IChartService
-	{
-		private readonly HttpClient _httpClient;
+	Task<RadarDataItem[]> GetRadarDataAsync();
+}
 
-		public ChartService(HttpClient httpClient) => _httpClient = httpClient;
+public class ChartService : IChartService {
+	private readonly HttpClient _httpClient;
 
-		public async Task<ChartDataItem[]> GetVisitDataAsync() => (await GetChartDataAsync()).VisitData;
+	public ChartService(HttpClient httpClient) => _httpClient = httpClient;
 
-		public async Task<ChartDataItem[]> GetVisitData2Async() => (await GetChartDataAsync()).VisitData2;
+	public async Task<ChartDataItem[]> GetVisitDataAsync() => (await GetChartDataAsync()).VisitData;
 
-		public async Task<ChartDataItem[]> GetSalesDataAsync() => (await GetChartDataAsync()).SalesData;
+	public async Task<ChartDataItem[]> GetVisitData2Async() => (await GetChartDataAsync()).VisitData2;
 
-		public async Task<RadarDataItem[]> GetRadarDataAsync() => (await GetChartDataAsync()).RadarData;
+	public async Task<ChartDataItem[]> GetSalesDataAsync() => (await GetChartDataAsync()).SalesData;
 
-		private async Task<ChartData> GetChartDataAsync() => (await _httpClient.GetFromJsonAsync<ChartData>("data/fake_chart_data.json"))!;
-	}
+	public async Task<RadarDataItem[]> GetRadarDataAsync() => (await GetChartDataAsync()).RadarData;
+
+	private async Task<ChartData> GetChartDataAsync() => (await _httpClient.GetFromJsonAsync<ChartData>("data/fake_chart_data.json"))!;
 }

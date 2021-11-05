@@ -86,50 +86,37 @@
 
 {
 
-	private static readonly RenderFragment Download = 
-	@<AntDesign.Tooltip Title="@("下载")">
-		<Icon Theme="outline" Type="download" />
-	</AntDesign.Tooltip>
-	;
-
-
+	private static readonly RenderFragment Download =
+		@<AntDesign.Tooltip Title="@("下载")">
+			<Icon Theme="outline" Type="download" />
+		</AntDesign.Tooltip>
+		;
 
 	private static readonly IList<RenderFragment> Actions = new List<RenderFragment> {
-Download,
-	@<AntDesign.Tooltip Title="@("Edit")">
-		<Icon Theme="outline" Type="edit" />
-	</AntDesign.Tooltip>
-	,
-	@<AntDesign.Tooltip Title="@("Share")">
-		<Icon Theme="outline" Type="share-alt" />
-	</AntDesign.Tooltip>
-	,
-	@<Dropdown>
-		<Icon Theme="outline" Type="ellipsis" />
-	</Dropdown>
-
+		Download,
+		@<AntDesign.Tooltip Title="@("Edit")">
+			<Icon Theme="outline" Type="edit" />
+		</AntDesign.Tooltip>
+		,
+		@<AntDesign.Tooltip Title="@("Share")">
+			<Icon Theme="outline" Type="share-alt" />
+		</AntDesign.Tooltip>
+		,
+		@<Dropdown>
+			<Icon Theme="outline" Type="ellipsis" />
+		</Dropdown>
 	};
 
-
-
-	private static RenderFragment FormatWan(int val)
-	{
-
-		if (val > 10000)
-		{
-
+	private static RenderFragment FormatWan(int val) {
+		if (val > 10000) {
 			val = (int)Math.Floor((double)val / 10000);
-
 		}
 
-
-
-		return 
-	@<span>
-		@val
-		<span style="font-size: 14px; font-style: normal; margin-left: 2px; position: relative; top: -2px;">k</span>
-	</span>
-	;
-
+		return
+			@<span>
+				@val
+				<span style="font-size: 14px; font-style: normal; margin-left: 2px; position: relative; top: -2px;">k</span>
+			</span>
+			;
 	}
 }

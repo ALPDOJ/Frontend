@@ -8,40 +8,20 @@
 
 	private IChartComponent _chart;
 
-
-
-	private readonly AreaConfig _chartConfig = new()
-	{
-
+	private readonly AreaConfig _chartConfig = new() {
 		XField = "x",
-
 		YField = "y",
-
 		Height = 84,
-
 		Padding = new[] { 8, 8, 8, 8 },
-
 		ForceFit = true,
-
-		XAxis = new ValueCatTimeAxis
-		{
-
+		XAxis = new ValueCatTimeAxis {
 			Visible = false
-
 		},
-
-		YAxis = new ValueAxis
-		{
-
+		YAxis = new ValueAxis {
 			Visible = false
-
 		}
-
 	};
 
-
-
 	[Parameter]
-
 	public ChartDataItem[] Data { get; set; }
 }

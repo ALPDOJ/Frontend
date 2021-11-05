@@ -1,22 +1,18 @@
 using AntDesign;
 
-namespace Client.Pages.Account.Settings
-{
-	public partial class Index
-	{
-		private readonly Dictionary<string, string> _menuMap = new()
-		{
-			{ "base", "Basic Settings" },
-			{ "security", "Security Settings" },
-			{ "binding", "Account Binding" },
-			{ "notification", "New Message Notification" }
-		};
+namespace Client.Pages.Account.Settings; 
 
-		private string _selectKey = "base";
+public partial class Index {
+	private readonly Dictionary<string, string> _menuMap = new() {
+		{ "base", "Basic Settings" },
+		{ "security", "Security Settings" },
+		{ "binding", "Account Binding" },
+		{ "notification", "New Message Notification" }
+	};
 
-		private void SelectKey(MenuItem item)
-		{
-			_selectKey = item.Key;
-		}
+	private string _selectKey = "base";
+
+	private void SelectKey(MenuItem item) {
+		_selectKey = item.Key;
 	}
 }

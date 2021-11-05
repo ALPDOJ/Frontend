@@ -1,9 +1,7 @@
-﻿namespace Client.Models
-{
-	public class OfflineDataItem
-	{
-		public string Name { get; set; }
+﻿namespace Client.Models; 
 
-		public float Cvr { get; set; }
-	}
+public class OfflineDataItem {
+	public string Name { get; set; }
+
+	public float Cvr { get; set; }
 }

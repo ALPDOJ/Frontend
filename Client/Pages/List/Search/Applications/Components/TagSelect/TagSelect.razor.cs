@@ -1,76 +1,67 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.List
-{
-	public partial class TagSelect
-	{
-		private readonly IList<TagSelectOption> _options = new List<TagSelectOption>();
+namespace Client.Pages.List; 
 
-		private bool _checkedAll;
+public partial class TagSelect {
+	private readonly IList<TagSelectOption> _options = new List<TagSelectOption>();
 
-		private bool _expand = false;
+	private bool _checkedAll;
 
-		[Parameter]
-		public bool Expandable { get; set; }
+	private bool _expand = false;
 
-		[Parameter]
-		public bool HideCheckAll { get; set; }
+	[Parameter]
+	public bool Expandable { get; set; }
 
-		[Parameter]
-		public string SelectAllText { get; set; } = "All";
+	[Parameter]
+	public bool HideCheckAll { get; set; }
 
-		[Parameter]
-		public string CollapseText { get; set; } = "Collapse";
+	[Parameter]
+	public string SelectAllText { get; set; } = "All";
 
-		[Parameter]
-		public string ExpandText { get; set; } = "Expand";
+	[Parameter]
+	public string CollapseText { get; set; } = "Collapse";
 
-		[Parameter]
-		public IList<string> Value { get; set; }
+	[Parameter]
+	public string ExpandText { get; set; } = "Expand";
 
-		[Parameter]
-		public RenderFragment ChildContent { get; set; }
+	[Parameter]
+	public IList<string> Value { get; set; }
 
-		protected override void OnInitialized()
-		{
-			base.OnInitialized();
-			SetClassMap();
-		}
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
 
-		protected void SetClassMap()
-		{
-			ClassMapper
-				.Clear()
-				.Add("tagSelect")
-				.If("hasExpandTag", () => Expandable)
-				.If("expanded", () => _expand);
-		}
+	protected override void OnInitialized() {
+		base.OnInitialized();
+		SetClassMap();
+	}
 
-		private void HandleExpand()
-		{
-			_expand = !_expand;
-		}
+	protected void SetClassMap() {
+		ClassMapper
+			.Clear()
+			.Add("tagSelect")
+			.If("hasExpandTag", () => Expandable)
+			.If("expanded", () => _expand);
+	}
 
-		private void HandleCheckedChange(bool isChecked)
-		{
-			_checkedAll = isChecked;
-			foreach (var option in _options)
-				option.Check(_checkedAll);
-		}
+	private void HandleExpand() {
+		_expand = !_expand;
+	}
 
-		public void AddOption(TagSelectOption option)
-		{
-			_options.Add(option);
-		}
+	private void HandleCheckedChange(bool isChecked) {
+		_checkedAll = isChecked;
+		foreach (var option in _options)
+			option.Check(_checkedAll);
+	}
 
-		public void SelectItem(string value)
-		{
-			Value?.Add(value);
-		}
+	public void AddOption(TagSelectOption option) {
+		_options.Add(option);
+	}
 
-		public void UnSelectItem(string value)
-		{
-			Value?.Remove(value);
-		}
+	public void SelectItem(string value) {
+		Value?.Add(value);
+	}
+
+	public void UnSelectItem(string value) {
+		Value?.Remove(value);
 	}
 }

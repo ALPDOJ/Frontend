@@ -2,42 +2,36 @@
 using Client.Services;
 using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.Account.Center
-{
-	public partial class Index
-	{
-		private CurrentUser _currentUser = new()
-		{
-			Geographic = new GeographicType { City = new TagType(), Province = new TagType() }
-		};
+namespace Client.Pages.Account.Center; 
 
-		private IList<ListItemDataType> _fakeList = new List<ListItemDataType>();
+public partial class Index {
+	private CurrentUser _currentUser = new() {
+		Geographic = new GeographicType { City = new TagType(), Province = new TagType() }
+	};
 
-		private bool _inputVisible;
+	private IList<ListItemDataType> _fakeList = new List<ListItemDataType>();
 
-		public string InputValue { get; set; }
+	private bool _inputVisible;
 
-		[Inject]
-		public IProjectService ProjectService { get; set; }
+	public string InputValue { get; set; }
 
-		[Inject]
-		public IUserService UserService { get; set; }
+	[Inject]
+	public IProjectService ProjectService { get; set; }
 
-		protected override async Task OnInitializedAsync()
-		{
-			await base.OnInitializedAsync();
-			_currentUser = await UserService.GetCurrentUserAsync();
-			_fakeList = await ProjectService.GetFakeListAsync();
-		}
+	[Inject]
+	public IUserService UserService { get; set; }
 
-		protected void ShowInput()
-		{
-			_inputVisible = true;
-		}
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		_currentUser = await UserService.GetCurrentUserAsync();
+		_fakeList = await ProjectService.GetFakeListAsync();
+	}
 
-		protected void HandleInputConfirm()
-		{
-			_inputVisible = false;
-		}
+	protected void ShowInput() {
+		_inputVisible = true;
+	}
+
+	protected void HandleInputConfirm() {
+		_inputVisible = false;
 	}
 }

@@ -1,27 +1,23 @@
 ﻿using Client.Models;
 
-namespace Client.Services
-{
-	public interface IAccountService
-	{
-		Task LoginAsync(LoginParamsType model);
+namespace Client.Services; 
 
-		Task<string> GetCaptchaAsync(string modile);
-	}
+public interface IAccountService {
+	Task LoginAsync(LoginParamsType model);
 
-	public class AccountService : IAccountService
-	{
-		private readonly Random _random = new();
+	Task<string> GetCaptchaAsync(string modile);
+}
 
-		public Task LoginAsync(LoginParamsType model)
-			=>
-				// todo: login logic
-				Task.CompletedTask;
+public class AccountService : IAccountService {
+	private readonly Random _random = new();
 
-		public Task<string> GetCaptchaAsync(string modile)
-		{
-			string captcha = _random.Next(0, 9999).ToString().PadLeft(4, '0');
-			return Task.FromResult(captcha);
-		}
+	public Task LoginAsync(LoginParamsType model)
+		=>
+			// todo: login logic
+			Task.CompletedTask;
+
+	public Task<string> GetCaptchaAsync(string modile) {
+		string captcha = _random.Next(0, 9999).ToString().PadLeft(4, '0');
+		return Task.FromResult(captcha);
 	}
 }

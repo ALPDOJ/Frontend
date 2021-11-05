@@ -17,8 +17,7 @@
 									Sales Ranking
 								</h1>
 								<ul class="rankingList">
-									@foreach (var item in Items)
-									{
+									@foreach (var item in Items) {
 										<li key="@item.Title">
 											<span class="rankingItemNumber @(item.Id <= 3 ? "active" : "")">
 												@item.Id
@@ -30,7 +29,6 @@
 												@item.Total
 											</span>
 										</li>
-
 									}
 								</ul>
 							</div>
@@ -49,8 +47,7 @@
 									Visits Ranking
 								</h1>
 								<ul class="rankingList">
-									@foreach (var item in Items)
-									{
+									@foreach (var item in Items) {
 										<li key="@item.Title">
 											<span class="rankingItemNumber @(item.Id <= 3 ? "active" : "")">
 												@item.Id
@@ -62,7 +59,6 @@
 												@item.Total
 											</span>
 										</li>
-
 									}
 								</ul>
 							</div>

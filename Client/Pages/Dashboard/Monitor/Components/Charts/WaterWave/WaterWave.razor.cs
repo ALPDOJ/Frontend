@@ -1,16 +1,14 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.Dashboard.Monitor
-{
-	public partial class WaterWave
-	{
-		[Parameter]
-		public string Title { get; set; }
+namespace Client.Pages.Dashboard.Monitor; 
 
-		[Parameter]
-		public int Percent { get; set; }
+public partial class WaterWave {
+	[Parameter]
+	public string Title { get; set; }
 
-		[Parameter]
-		public int? Height { get; set; }
-	}
+	[Parameter]
+	public int Percent { get; set; }
+
+	[Parameter]
+	public int? Height { get; set; }
 }

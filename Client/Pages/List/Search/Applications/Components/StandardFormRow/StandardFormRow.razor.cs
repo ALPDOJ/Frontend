@@ -1,38 +1,34 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.List
-{
-	public partial class StandardFormRow
-	{
-		[Parameter]
-		public string Title { get; set; }
+namespace Client.Pages.List; 
 
-		[Parameter]
-		public bool Last { get; set; }
+public partial class StandardFormRow {
+	[Parameter]
+	public string Title { get; set; }
 
-		[Parameter]
-		public bool Block { get; set; }
+	[Parameter]
+	public bool Last { get; set; }
 
-		[Parameter]
-		public bool Grid { get; set; }
+	[Parameter]
+	public bool Block { get; set; }
 
-		[Parameter]
-		public RenderFragment ChildContent { get; set; }
+	[Parameter]
+	public bool Grid { get; set; }
 
-		protected override void OnInitialized()
-		{
-			base.OnInitialized();
-			SetClassMap();
-		}
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
 
-		protected void SetClassMap()
-		{
-			ClassMapper
-				.Clear()
-				.Add("standardFormRow")
-				.If("standardFormRowBlock", () => Block)
-				.If("standardFormRowLast", () => Last)
-				.If("standardFormRowGrid", () => Grid);
-		}
+	protected override void OnInitialized() {
+		base.OnInitialized();
+		SetClassMap();
+	}
+
+	protected void SetClassMap() {
+		ClassMapper
+			.Clear()
+			.Add("standardFormRow")
+			.If("standardFormRowBlock", () => Block)
+			.If("standardFormRowLast", () => Last)
+			.If("standardFormRowGrid", () => Grid);
 	}
 }

@@ -17,10 +17,8 @@
 					<span>@context.UpdatedAt.ToFriendlyDisplay()</span>
 					<div class="avatarList">
 						<AvatarList>
-							@foreach (var member in context.Members)
-							{
+							@foreach (var member in context.Members) {
 								<AvatarListItem Size="small" Src="@member.Avatar" Tips="@member.Name" />
-
 							}
 						</AvatarList>
 					</div>

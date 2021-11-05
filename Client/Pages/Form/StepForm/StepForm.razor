@@ -20,8 +20,7 @@
 				<Step Title="@("Proceed")" />
 			</Steps>
 			<CascadingValue Value="this">
-				@switch (_current)
-				{
+				@switch (_current) {
 					case 0:
 						<Step1 />
 
@@ -34,7 +33,6 @@
 						<Step3 />
 
 						break;
-
 				}
 			</CascadingValue>
 		</Card>

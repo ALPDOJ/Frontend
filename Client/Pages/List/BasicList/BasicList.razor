@@ -79,34 +79,25 @@
 
 {
 
-	private static readonly RenderFragment Edit = 
-	@<a key="edit">
-		Edit
-	</a>
-	;
-
-
+	private static readonly RenderFragment Edit =
+		@<a key="edit">
+			Edit
+		</a>
+		;
 
 	private readonly RenderFragment[] _actions = {
-Edit
-};
+		Edit
+	};
 
-
-
-	private RenderFragment Info(string title, string value, bool bordered = false)
-	{
-
-		return 
-	@<div class="headerInfo">
-		<span>@title</span>
-		<p>@value</p>
-		@if (bordered)
-			{
-				<em />
-
-			}
-		</div>
-	;
-
+	private RenderFragment Info(string title, string value, bool bordered = false) {
+		return
+			@<div class="headerInfo">
+				<span>@title</span>
+				<p>@value</p>
+				@if (bordered) {
+					<em />
+				}
+			</div>
+			;
 	}
 }

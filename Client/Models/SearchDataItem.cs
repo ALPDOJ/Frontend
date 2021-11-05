@@ -1,15 +1,13 @@
-﻿namespace Client.Models
-{
-	public class SearchDataItem
-	{
-		public int Index { get; set; }
+﻿namespace Client.Models; 
 
-		public string Keywod { get; set; }
+public class SearchDataItem {
+	public int Index { get; set; }
 
-		public int Count { get; set; }
+	public string Keywod { get; set; }
 
-		public int Range { get; set; }
+	public int Count { get; set; }
 
-		public int Status { get; set; }
-	}
+	public int Range { get; set; }
+
+	public int Status { get; set; }
 }

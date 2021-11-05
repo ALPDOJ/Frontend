@@ -2,17 +2,14 @@ using AntDesign;
 using Client.Models;
 using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.Account.Center
-{
-	public partial class Projects
-	{
-		private readonly ListGridType _listGridType = new()
-		{
-			Gutter = 24,
-			Column = 4
-		};
+namespace Client.Pages.Account.Center; 
 
-		[Parameter]
-		public IList<ListItemDataType> List { get; set; }
-	}
+public partial class Projects {
+	private readonly ListGridType _listGridType = new() {
+		Gutter = 24,
+		Column = 4
+	};
+
+	[Parameter]
+	public IList<ListItemDataType> List { get; set; }
 }

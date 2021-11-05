@@ -42,16 +42,13 @@
 			<AntList DataSource="_data" Grid="_listGridType" ItemLayout="ListItemLayout.Horizontal"
 				TItem="ListItemDataType">
 				<ListItem Grid="_listGridType" NoFlex>
-					@if (string.IsNullOrEmpty(context.Id))
-					{
+					@if (string.IsNullOrEmpty(context.Id)) {
 						<Button class="newButton" Type="dashed">
 							<Icon Theme="outline" Type="plus" /> Add Product
 						</Button>
-
 					}
 
-					else
-					{
+					else {
 						<Card Actions="_actions" Bordered Class="card" Hoverable>
 							<CardMeta>
 								<AvatarTemplate>
@@ -63,12 +60,11 @@
 								<DescriptionTemplate>
 									<Paragraph class="item" Ellipsis>
 										<!--todo: Ellipsis not working-->
-									@context.Description
+										@context.Description
 									</Paragraph>
 								</DescriptionTemplate>
 							</CardMeta>
 						</Card>
-
 					}
 				</ListItem>
 			</AntList>
@@ -80,15 +76,12 @@
 
 {
 
-	private static readonly RenderFragment Operate = 
-	@<a key="option1">Operation one</a>
-	;
-
-
+	private static readonly RenderFragment Operate =
+		@<a key="option1">Operation one</a>
+		;
 
 	private readonly RenderFragment[] _actions = {
-Operate,
-	@<a key="option2">Operation two</a>
-
+		Operate,
+		@<a key="option2">Operation two</a>
 	};
 }

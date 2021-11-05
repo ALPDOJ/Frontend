@@ -1,9 +1,7 @@
-namespace Client.Models
-{
-	public class ActivityProject
-	{
-		public string Name { get; set; }
+namespace Client.Models; 
 
-		public string Link { get; set; }
-	}
+public class ActivityProject {
+	public string Name { get; set; }
+
+	public string Link { get; set; }
 }

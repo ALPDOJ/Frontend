@@ -9,47 +9,25 @@
 
 	private IChartComponent _visitChart;
 
-
-
-	private readonly AreaConfig _visitChartConfig = new()
-	{
-
+	private readonly AreaConfig _visitChartConfig = new() {
 		XField = "x",
-
 		YField = "y",
-
 		Height = 45,
-
 		Padding = new[] { 8, 8, 8, 8 },
-
 		ForceFit = true,
-
-		XAxis = new ValueCatTimeAxis
-		{
-
+		XAxis = new ValueCatTimeAxis {
 			Visible = false
-
 		},
-
-		YAxis = new ValueAxis
-		{
-
+		YAxis = new ValueAxis {
 			Visible = false
-
 		}
-
 	};
 
-
-
-	protected override async Task OnInitializedAsync()
-	{
-
+	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 
 		var data = await ChartService.GetVisitDataAsync();
 
 		await _visitChart.ChangeData(data);
-
 	}
 }

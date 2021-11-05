@@ -1,10 +1,9 @@
 using Client.Models;
 
-namespace Client.Pages.Account.Settings
-{
-	public partial class SecurityView
-	{
-		private readonly UserLiteItem[] _data = {
+namespace Client.Pages.Account.Settings; 
+
+public partial class SecurityView {
+	private readonly UserLiteItem[] _data = {
 		new() {
 			Title = "Account Password",
 			Description = "Current password strength: : Strong"
@@ -27,5 +26,4 @@ namespace Client.Pages.Account.Settings
 			Description = "Unbound MFA device, after binding, can be confirmed twice"
 		}
 	};
-	}
 }

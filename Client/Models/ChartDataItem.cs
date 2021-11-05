@@ -1,9 +1,7 @@
-﻿namespace Client.Models
-{
-	public class ChartDataItem
-	{
-		public string X { get; set; }
+﻿namespace Client.Models; 
 
-		public int Y { get; set; }
-	}
+public class ChartDataItem {
+	public string X { get; set; }
+
+	public int Y { get; set; }
 }

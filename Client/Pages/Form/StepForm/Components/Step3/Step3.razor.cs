@@ -1,11 +1,9 @@
 using Client.Models;
 
-namespace Client.Pages.Form
-{
-	public partial class Step3
-	{
-		private readonly StepFormModel _model = new();
+namespace Client.Pages.Form; 
 
-		public void OnFinish() { }
-	}
+public partial class Step3 {
+	private readonly StepFormModel _model = new();
+
+	public void OnFinish() { }
 }

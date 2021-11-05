@@ -1,9 +1,7 @@
-namespace Client.Models
-{
-	public class ActivityGroup
-	{
-		public string Name { get; set; }
+namespace Client.Models; 
 
-		public string Link { get; set; }
-	}
+public class ActivityGroup {
+	public string Name { get; set; }
+
+	public string Link { get; set; }
 }

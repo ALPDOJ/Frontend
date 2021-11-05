@@ -1,10 +1,8 @@
 ﻿@namespace Client.Pages.Dashboard.Workplace
 
 <div class="linkGroup">
-	@foreach (var link in Links)
-	{
+	@foreach (var link in Links) {
 		<a href="@link.Href">@link.Title</a>
-
 	}
 
 	<Button Ghost Size="small" Type="primary">

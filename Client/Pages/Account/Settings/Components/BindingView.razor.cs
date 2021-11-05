@@ -1,10 +1,9 @@
 using Client.Models;
 
-namespace Client.Pages.Account.Settings
-{
-	public partial class BindingView
-	{
-		private readonly UserLiteItem[] _data = {
+namespace Client.Pages.Account.Settings; 
+
+public partial class BindingView {
+	private readonly UserLiteItem[] _data = {
 		new() {
 			Avater = "taobao",
 			Title = "Binding Taobao",
@@ -21,5 +20,4 @@ namespace Client.Pages.Account.Settings
 			Description = "Currently unbound DingTalk account"
 		}
 	};
-	}
 }

@@ -32,25 +32,19 @@
 
 				<div class="tags">
 					<div class="tagsTitle">Tags</div>
-					@foreach (var tag in _currentUser.Tags)
-					{
+					@foreach (var tag in _currentUser.Tags) {
 						<Tag>@tag.Label</Tag>
-
 					}
 
-					@if (_inputVisible)
-					{
+					@if (_inputVisible) {
 						<AntDesign.Input @bind-Value="InputValue" OnBlur="HandleInputConfirm" Size="small"
-						Style="width: 78px" Type="text" />
-
+							Style="width: 78px" Type="text" />
 					}
 
-					else
-					{
+					else {
 						<Tag OnClick="ShowInput" Style="border-style: dashed">
 							<Icon Theme="outline" Type="plus" />
 						</Tag>
-
 					}
 				</div>
 

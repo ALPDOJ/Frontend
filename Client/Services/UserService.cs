@@ -1,19 +1,16 @@
-﻿using Client.Models;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
+using Client.Models;
 
-namespace Client.Services
-{
-	public interface IUserService
-	{
-		Task<CurrentUser> GetCurrentUserAsync();
-	}
+namespace Client.Services; 
 
-	public class UserService : IUserService
-	{
-		private readonly HttpClient _httpClient;
+public interface IUserService {
+	Task<CurrentUser> GetCurrentUserAsync();
+}
 
-		public UserService(HttpClient httpClient) => _httpClient = httpClient;
+public class UserService : IUserService {
+	private readonly HttpClient _httpClient;
 
-		public async Task<CurrentUser> GetCurrentUserAsync() => (await _httpClient.GetFromJsonAsync<CurrentUser>("data/current_user.json"))!;
-	}
+	public UserService(HttpClient httpClient) => _httpClient = httpClient;
+
+	public async Task<CurrentUser> GetCurrentUserAsync() => (await _httpClient.GetFromJsonAsync<CurrentUser>("data/current_user.json"))!;
 }

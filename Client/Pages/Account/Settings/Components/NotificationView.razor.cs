@@ -1,10 +1,9 @@
 using Client.Models;
 
-namespace Client.Pages.Account.Settings
-{
-	public partial class NotificationView
-	{
-		private readonly UserLiteItem[] _data = {
+namespace Client.Pages.Account.Settings; 
+
+public partial class NotificationView {
+	private readonly UserLiteItem[] _data = {
 		new() {
 			Title = "Account Password",
 			Description = "Messages from other users will be notified in the form of a station letter"
@@ -18,5 +17,4 @@ namespace Client.Pages.Account.Settings
 			Description = "The to-do list will be notified in the form of a letter from the station"
 		}
 	};
-	}
 }

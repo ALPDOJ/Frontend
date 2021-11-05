@@ -1,17 +1,15 @@
-namespace Client.Models
-{
-	public class ActivitiesType
-	{
-		public string Id { get; set; }
+namespace Client.Models; 
 
-		public DateTime UpdatedAt { get; set; }
+public class ActivitiesType {
+	public string Id { get; set; }
 
-		public ActivityUser User { get; set; }
+	public DateTime UpdatedAt { get; set; }
 
-		public ActivityGroup Group { get; set; }
+	public ActivityUser User { get; set; }
 
-		public ActivityProject Project { get; set; }
+	public ActivityGroup Group { get; set; }
 
-		public string Template { get; set; }
-	}
+	public ActivityProject Project { get; set; }
+
+	public string Template { get; set; }
 }

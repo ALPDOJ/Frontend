@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.Dashboard.Monitor
-{
-	public partial class Pie
-	{
-		[Parameter]
-		public bool? Animate { get; set; }
+namespace Client.Pages.Dashboard.Monitor; 
 
-		[Parameter]
-		public int? LineWidth { get; set; }
-	}
+public partial class Pie {
+	[Parameter]
+	public bool? Animate { get; set; }
+
+	[Parameter]
+	public int? LineWidth { get; set; }
 }

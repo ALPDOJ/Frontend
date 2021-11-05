@@ -2,33 +2,25 @@
 @inherits AntDomComponentBase
 
 <div class="@ClassMapper.Class" style="@Style">
-	@if (!HideCheckAll)
-	{
+	@if (!HideCheckAll) {
 		<Tag Checkable Checked="_checkedAll" CheckedChange="HandleCheckedChange">@SelectAllText</Tag>
-
 	}
 
 	<CascadingValue Value="this">
 		@ChildContent
 	</CascadingValue>
 
-	@if (Expandable)
-	{
+	@if (Expandable) {
 		<a class="trigger" @onclick="HandleExpand">
-			@if (_expand)
-			{
+			@if (_expand) {
 				@CollapseText
 				<Icon Theme="outline" Type="Up" />
-
 			}
 
-			else
-			{
+			else {
 				@ExpandText
 				<Icon Theme="outline" Type="Down" />
-
 			}
 		</a>
-
 	}
 </div>

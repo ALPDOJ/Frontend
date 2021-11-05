@@ -12,12 +12,14 @@
 
 			<FormItem>
 				<Input @bind-Value="@context.Password" Placeholder="At Least 6-Digit Password, Case Sensitive"
-					Size="@InputSize.Large" Type="password"></Input>
+					Size="@InputSize.Large" Type="password">
+				</Input>
 			</FormItem>
 
 			<FormItem>
 				<Input @bind-Value="@context.ConfirmPassword" Placeholder="Confirm Password" Size="@InputSize.Large"
-					Type="password"></Input>
+					Type="password">
+				</Input>
 			</FormItem>
 
 			<FormItem>
@@ -38,7 +40,8 @@
 					<Row Gutter="8">
 						<AntDesign.Col Span="16">
 							<AntDesign.Input @bind-Value="@context.Captcha" Placeholder="Verification Code"
-								Size="@InputSize.Large"></AntDesign.Input>
+								Size="@InputSize.Large">
+							</AntDesign.Input>
 						</AntDesign.Col>
 						<AntDesign.Col Span="8">
 							<Button Block Size="large">Get Code</Button>

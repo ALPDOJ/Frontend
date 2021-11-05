@@ -49,8 +49,7 @@
 						<a href="/">All items</a>
 					</Extra>
 					<ChildContent>
-						@foreach (var item in _projectNotice)
-						{
+						@foreach (var item in _projectNotice) {
 							<CardGrid Hoverable>
 								<Card BodyStyle="padding: 0px;" Bordered="false">
 									<CardMeta>
@@ -62,24 +61,21 @@
 										</TitleTemplate>
 										<DescriptionTemplate>
 											<!--todo: submit a pr to card component-->
-										<div class="ant-card-meta-description">
+											<div class="ant-card-meta-description">
 												@item.Description
 											</div>
 										</DescriptionTemplate>
 									</CardMeta>
 									<div class="projectItemContent">
 										<a href="@item.MemberLink">@item.Member</a>
-										@if (!string.IsNullOrEmpty(item.UpdatedAt))
-										{
+										@if (!string.IsNullOrEmpty(item.UpdatedAt)) {
 											<span class="datetime" title="@item.UpdatedAt">
 
 											</span>
-
 										}
 									</div>
 								</Card>
 							</CardGrid>
-
 						}
 					</ChildContent>
 				</Card>
@@ -95,31 +91,22 @@
 										<a class="username">@context.User.Name</a>
 										&nbsp;
 										<span class="event">
-											@foreach (string str in Regex.Split(context.Template, @"@\{([^{}]*)\}"))
-											{
-
-												if (str == "group")
-												{
+											@foreach (string str in Regex.Split(context.Template, @"@\{([^{}]*)\}")) {
+												if (str == "group") {
 													<a href="@context.Group.Link" key="@context.Group.Name">
 														@context.Group.Name
 													</a>
-
 												}
 
-												else if (str == "project")
-												{
+												else if (str == "project") {
 													<a href="@context.Project.Link" key="@context.Project.Name">
 														@context.Project.Name
 													</a>
-
 												}
 
-												else
-												{
+												else {
 													@str
-
 												}
-
 											}
 										</span>
 									</span>
@@ -143,15 +130,13 @@
 				<Card BodyStyle="padding-top: 12px; padding-bottom: 12px;" Title="Team">
 					<div class="members">
 						<Row Gutter="48">
-							@foreach (var item in _projectNotice)
-							{
+							@foreach (var item in _projectNotice) {
 								<AntDesign.Col Span="12" Style="padding-left: 24px; padding-right: 24px;">
 									<a href="@item.Href">
 										<Avatar Size="small" Src="@item.Logo" />
 										<span class="member">@item.Member</span>
 									</a>
 								</AntDesign.Col>
-
 							}
 						</Row>
 					</div>

@@ -1,13 +1,11 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Client.Pages.Dashboard.Monitor
-{
-	public partial class TagCloud
-	{
-		[Parameter]
-		public object[] Data { get; set; }
+namespace Client.Pages.Dashboard.Monitor; 
 
-		[Parameter]
-		public int? Height { get; set; }
-	}
+public partial class TagCloud {
+	[Parameter]
+	public object[] Data { get; set; }
+
+	[Parameter]
+	public int? Height { get; set; }
 }

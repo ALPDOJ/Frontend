@@ -17,7 +17,7 @@
 				"ASPNETCORE_ENVIRONMENT": "Development"
 			}
 		},
-		"$safeprojectname$": {
+		"Client": {
 			"commandName": "Project",
 			"launchBrowser": true,
 			"inspectUri":

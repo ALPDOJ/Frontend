@@ -9,7 +9,6 @@ public class Program {
 		var builder = WebAssemblyHostBuilder.CreateDefault(args);
 		builder.RootComponents.Add<App>("#app");
 
-		builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 		builder.Services.AddAntDesign();
 		builder.Services.Configure<ProSettings>(builder.Configuration.GetSection("ProSettings"));
 		builder.Services.AddScoped<IChartService, ChartService>();
@@ -17,6 +16,7 @@ public class Program {
 		builder.Services.AddScoped<IUserService, UserService>();
 		builder.Services.AddScoped<IAccountService, AccountService>();
 		builder.Services.AddScoped<IProfileService, ProfileService>();
+		builder.Services.AddSingleton(new Api(new HttpClient()));
 
 		await builder.Build().RunAsync();
 	}

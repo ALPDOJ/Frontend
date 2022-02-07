@@ -30,23 +30,22 @@
 	public LinkItem[] Links { get; } =
 		{
 			new() {
-				Key = "Ant Design Blazor",
-				Title = "Ant Design Blazor",
+				Key = "Ant Design",
+				Title = "Ant Design",
 				Href = "https://antblazor.com",
 				BlankTarget = true
 			},
 			new() {
 				Key = "Blazor",
 				Title = "Blazor",
-				Href = "https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor?WT.mc_id=DT-MVP-5003987",
+				Href = "https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor",
 				BlankTarget = true
 			},
 			new() {
-				Key = "Repository",
-				Title = (RenderFragment)(@<Icon Type="github" />),
-				Href = "https://github.com/ALPDOJ/Frontend",
+				Key = "Author",
+				Title = (RenderFragment)(@<Icon Type="github">作者</Icon>),
+				Href = "https://github.com/truemogician",
 				BlankTarget = true
 			}
 		};
-
 }

@@ -5,66 +5,95 @@
 <div class="main__b__0">
 	<div class="login">
 		<Form Model="@_model" OnFinish="HandleSubmit">
-			<Tabs ActiveKey="@context.LoginType">
-				<TabPane Key="1" Tab="Account Login">
-					<FormItem>
-						<AntDesign.Input @bind-Value="@context.UserName" Placeholder="Username: admin or user"
-							Size="large">
-							<Prefix>
-								<Icon Type="user" />
-							</Prefix>
-						</AntDesign.Input>
-					</FormItem>
-					<FormItem>
-						<AntDesign.Input @bind-Value="@context.Password" Placeholder="Password: ant.design" Size="large"
-							Type="password">
-							<Prefix>
-								<Icon Type="lock" />
-							</Prefix>
-						</AntDesign.Input>
-					</FormItem>
-				</TabPane>
-				<TabPane Key="2" Tab="Mobile Login">
-					<FormItem>
-						<AntDesign.Input @bind-Value="@context.Mobile" Placeholder="Phone Number" Size="large">
-							<Prefix>
-								<Icon Type="mobile" />
-							</Prefix>
-						</AntDesign.Input>
-					</FormItem>
-					<FormItem>
-						<Row Gutter="8">
-							<AntDesign.Col Span="16">
-								<AntDesign.Input @bind-Value="@context.Captcha" Placeholder="Verification code"
-									Size="large">
-									<Prefix>
-										<Icon Type="mail" />
-									</Prefix>
-								</AntDesign.Input>
-							</AntDesign.Col>
-							<AntDesign.Col Span="8">
-								<Button Block OnClick="GetCaptcha" Size="large">Verify</Button>
-							</AntDesign.Col>
-						</Row>
-					</FormItem>
-				</TabPane>
-			</Tabs>
+			<FormItem>
+				<AntDesign.Input @bind-Value="@context.Id" Placeholder="学号" Size="@InputSize.Large" Class="input">
+					<Prefix>
+						<Icon Type="user" />
+					</Prefix>
+				</AntDesign.Input>
+			</FormItem>
+			<FormItem>
+				<AntDesign.Input @bind-Value="@context.Password" Placeholder="密码" Size="@InputSize.Large"
+					Type="password" Class="input">
+					<Prefix>
+						<Icon Type="lock" />
+					</Prefix>
+				</AntDesign.Input>
+			</FormItem>
 			<div>
 				<Checkbox Checked="@context.AutoLogin">
-					Auto Login
+					自动登录
 				</Checkbox>
 				<a style="float: right;">
-					Forgot Password
+					忘记密码
 				</a>
 			</div>
-			<Button Block Class="submit" HtmlType="submit" Size="large" Type="primary">Log in </Button>
-			<div class="other">
-				Other Login Methods
-				<Icon Type="alipay-circle" />
-				<Icon Type="taobao-circle" />
-				<Icon Type="weibo-circle" />
-				<a class="register" href="/user/register">Register Account</a>
-			</div>
+			<Button Block Class="submit" HtmlType="submit" Size="@ButtonSize.Large" Type="@ButtonType.Primary">登录</Button>
 		</Form>
 	</div>
 </div>
+
+<style lang="css">
+	.main__b__0 {
+		margin: 0 auto;
+		width: 368px;
+	}
+
+	.main__b__0 .login .icon { color: #1890ff; }
+
+	.main__b__0 .login .other {
+		line-height: 22px;
+		margin-top: 24px;
+		text-align: left;
+	}
+
+	.main__b__0 .login .other .icon {
+		color: rgba(0, 0, 0, 0.45);
+		cursor: pointer;
+		font-size: 24px;
+		margin-left: 16px;
+		transition: color 0.3s;
+		vertical-align: middle;
+	}
+
+	.main__b__0 .login .other .icon:hover { color: #1890ff; }
+
+	.main__b__0 .login .other .register { float: right; }
+
+	.main__b__0 .login .prefixIcon {
+		color: rgba(0, 0, 0, 0.25);
+		font-size: 14px;
+	}
+
+	.main__b__0 .login .submit {
+		margin-top: 32px;
+		width: 100%;
+	}
+
+	.main__b__0 .input {
+		border-radius: 5px;
+	}
+</style>
+
+@code {
+	private readonly LoginParamsType _model = new();
+
+	[Inject]
+	public NavigationManager NavigationManager { get; set; }
+
+	[Inject]
+	public Api Api { get; set; }
+
+	[Inject]
+	public MessageService Message { get; set; }
+
+	public async void HandleSubmit() {
+		try {
+			await Api.LoginAsync(_model.Id, _model.Password);
+			NavigationManager.NavigateTo("/");
+		}
+		catch (ApiException ex) {
+			var _ = Message.Error(ex.Message);
+		}
+	}
+}

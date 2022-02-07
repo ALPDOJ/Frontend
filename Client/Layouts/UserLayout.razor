@@ -2,9 +2,6 @@
 @inherits LayoutComponentBase
 
 <div class="container__b__0">
-	<div class="lang">
-		<!--todo: selectLang-->
-	</div>
 	<div class="content">
 		<div class="top">
 			<div class="header">
@@ -13,12 +10,22 @@
 					<span class="title">ALPDOJ</span>
 				</a>
 			</div>
-			<div class="desc">ALPDOJ</div>
 		</div>
 		@Body
 	</div>
 	<FooterView Copyright="飞姐" Links="Links" />
 </div>
+
+<style>
+	.container__b__0 .content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center
+	}
+	.container__b__0 .top {
+		margin-bottom: 2em;
+	}
+</style>
 
 @code{
 

@@ -1,4 +1,5 @@
 using AntDesign.ProLayout;
+using Client.Api;
 using Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -11,12 +12,13 @@ public class Program {
 
 		builder.Services.AddAntDesign();
 		builder.Services.Configure<ProSettings>(builder.Configuration.GetSection("ProSettings"));
+		builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 		builder.Services.AddScoped<IChartService, ChartService>();
 		builder.Services.AddScoped<IProjectService, ProjectService>();
 		builder.Services.AddScoped<IUserService, UserService>();
 		builder.Services.AddScoped<IAccountService, AccountService>();
 		builder.Services.AddScoped<IProfileService, ProfileService>();
-		builder.Services.AddSingleton(new Api(new HttpClient()));
+		builder.Services.AddSingleton(new ApiClient(new HttpClient()));
 
 		await builder.Build().RunAsync();
 	}

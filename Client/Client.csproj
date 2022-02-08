@@ -13,21 +13,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<OpenApiReference Include="..\..\Document\openapi.yml" CodeGenerator="NSwagCSharp" Namespace="Client" ClassName="Api" Link="OpenAPIs\openapi.yml" />
+		<OpenApiReference Include="..\..\Document\openapi.yml" CodeGenerator="NSwagCSharp" Namespace="Client.Api" ClassName="ApiClient" Link="OpenAPIs\openapi.yml" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AntDesign.Charts" Version="0.2.2" />
 		<PackageReference Include="AntDesign.ProLayout" Version="0.1.9" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.1">
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.2" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.2">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="NSwag.ApiDescription.Client" Version="13.15.5">
+		<PackageReference Include="NSwag.ApiDescription.Client" Version="13.15.7">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

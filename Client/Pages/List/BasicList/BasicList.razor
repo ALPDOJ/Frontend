@@ -1,103 +1,300 @@
 ﻿@namespace Client.Pages.List
 @page "/list/basic-list"
 
-<div>
-	<PageContainer Title="Basic List">
-		<Breadcrumb>
-			<Breadcrumb>
-				<BreadcrumbItem>Home</BreadcrumbItem>
-				<BreadcrumbItem>List</BreadcrumbItem>
-				<BreadcrumbItem>Basic List </BreadcrumbItem>
-			</Breadcrumb>
-		</Breadcrumb>
-		<ChildContent>
-			<div class="standardList">
-				<Card>
-					<Row Gutter="24">
-						<AntDesign.Col Sm="8" Xs="24">
-							@Info("My to do", "8 tasks", true)
-						</AntDesign.Col>
-						<AntDesign.Col Sm="8" Xs="24">
-							@Info("Average task processing time this week", "32 minutes", true)
-						</AntDesign.Col>
-						<AntDesign.Col Sm="8" Xs="24">
-							@Info("Number of tasks completed this week", "24 tasks")
-						</AntDesign.Col>
-					</Row>
-				</Card>
+<div class="standardList">
+	<Card>
+		<Row Gutter="24">
+			<AntDesign.Col Sm="6" Xs="24">
+				@Info("已完成", "1", true)
+			</AntDesign.Col>
+			<AntDesign.Col Sm="6" Xs="24">
+				@Info("待完成", "1", true)
+			</AntDesign.Col>
+			<AntDesign.Col Sm="6" Xs="24">
+				@Info("已延期", "1", true)
+			</AntDesign.Col>
+			<AntDesign.Col Sm="6" Xs="24">
+				@Info("最近截止日期", "2022-03-01 23:59:59")
+			</AntDesign.Col>
+		</Row>
+	</Card>
 
-				<Card BodyStyle="padding: 0 32px 40px 32px" Class="listCard" Style="margin-top: 24px;"
-					Title="Basic list">
-					<Extra>
-						<div class="extraContent">
-							<RadioGroup @bind-Value="_model.Status">
-								<Radio RadioButton Value="@("all")">All</Radio>
-								<Radio RadioButton Value="@("progress")">Processing</Radio>
-								<Radio RadioButton Value="@("waiting")">Waiting</Radio>
-							</RadioGroup>
-							<Search @bind-Value="_model.SearchKeyword" Class="extraContentSearch"
-								Placeholder="Please Enter" />
-						</div>
-					</Extra>
-					<ChildContent>
-						<Button OnClick="ShowModal" Style="margin-bottom: 8px; width: 100%;" Type="dashed">
-							<Icon Theme="outline" Type="plus" />
-							Add
-						</Button>
-
-						<AntList DataSource="_data" ItemLayout="ListItemLayout.Horizontal" TItem="ListItemDataType">
-							<ListItem Actions="_actions">
-								<ListItemMeta Avatar="@context.Avatar" Description="@context.SubDescription">
-									<TitleTemplate>
-										<a href="@context.Href">@context.Title</a>
-									</TitleTemplate>
-								</ListItemMeta>
-								<div class="listContent">
-									<div class="listContentItem">
-										<span>Owner</span>
-										<p>@context.Owner</p>
-									</div>
-									<div class="listContentItem">
-										<span>Starting time</span>
-										<p>@context.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
-									</div>
-									<div class="listContentItem">
-										<AntDesign.Progress Percent="@context.Percent"
-											Status="@_pStatus[context.Status]" StrokeWidth="6" Style="width: 180px;" />
-									</div>
-								</div>
-							</ListItem>
-						</AntList>
-					</ChildContent>
-				</Card>
+	<Card BodyStyle="padding: 0 32px 40px 32px" Class="listCard" Style="margin-top: 24px;"
+		Title="题目">
+		<Extra>
+			<div class="extraContent" style="display: flex">
+				<RadioGroup @bind-Value="_model.Status" Class="filterRatioGroup" Style="display: flex">
+					<Radio RadioButton Value="@("all")">所有</Radio>
+					<Radio RadioButton Value="@("delayed")">已延期</Radio>
+					<Radio RadioButton Value="@("active")">进行中</Radio>
+					<Radio RadioButton Value="@("completed")">已完成</Radio>
+				</RadioGroup>
+				<Search @bind-Value="_model.SearchKeyword" Class="extraContentSearch" Placeholder="请输入关键字" />
 			</div>
+		</Extra>
+		<ChildContent>
+			<AntList TItem="UserProblemSummary" DataSource="_problemSummaries" ItemLayout="ListItemLayout.Horizontal">
+				<ListItem>
+					<ListItemMeta>
+						<TitleTemplate>
+							<a href="@($"/problem/{context.Id}")">@context.Title</a>
+						</TitleTemplate>
+					</ListItemMeta>
+					<div class="listContent">
+						<div class="listContentItem">
+							<span>剩余次数</span>
+							<p>@(context.Times - context.SubmittedTimes)</p>
+						</div>
+						<div class="listContentItem">
+							<span>@(context.Deadline < DateTimeOffset.Now ? "已过期" : "剩余时间")</span>
+							<p>@((context.Deadline - DateTimeOffset.Now).Duration().ToString(@"d\天h\时m\分"))</p>
+						</div>
+						<div class="listContentItem">
+							<AntDesign.Progress Percent="@((context.Score ?? 0) * 100 / context.TotalScore)"
+								Status="@GetProgressStatus(context)" StrokeWidth="6" Style="width: 180px;" />
+						</div>
+					</div>
+				</ListItem>
+			</AntList>
 		</ChildContent>
-	</PageContainer>
+	</Card>
 </div>
 
-@code
+<style scoped>
+	.standardList .ant-card-head { border-bottom: none; }
 
-{
+	.standardList .ant-card-head-title {
+		line-height: 32px;
+		padding: 24px 0;
+	}
 
-	private static readonly RenderFragment Edit =
-		@<a key="edit">
-			Edit
-		</a>
-		;
+	.standardList .ant-card-extra { padding: 24px 0; }
 
-	private readonly RenderFragment[] _actions = {
-		Edit
+	.standardList .ant-list-pagination {
+		margin-top: 24px;
+		text-align: right;
+	}
+
+	.standardList .ant-avatar-lg {
+		height: 48px;
+		line-height: 48px;
+		width: 48px;
+	}
+
+	.standardList .headerInfo {
+		position: relative;
+		text-align: center;
+	}
+
+	.standardList .headerInfo > span {
+		opacity: 0.45;
+		display: inline-block;
+		font-size: 14px;
+		line-height: 22px;
+		margin-bottom: 4px;
+	}
+
+	.standardList .headerInfo > p {
+		opacity: 0.85;
+		font-size: 24px;
+		line-height: 32px;
+		margin: 0;
+	}
+
+	.standardList .headerInfo > em {
+		background-color: #f0f0f0;
+		height: 56px;
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 1px;
+	}
+
+	.standardList .listContent {
+		font-size: 0;
+		display: flex;
+	}
+
+	.standardList .listContent .listContentItem {
+		display: flex;
+		flex-direction: column;
+		font-size: 14px;
+		margin-left: 40px;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.standardList .listContent .listContentItem > span { line-height: 20px; }
+
+	.standardList .listContent .listContentItem > p {
+		line-height: 22px;
+		margin-bottom: 0;
+		margin-top: 4px;
+	}
+
+	.standardList .extraContentSearch {
+		margin-left: 16px;
+		width: 272px;
+	}
+
+	.standardList .filterRatioGroup span { white-space: nowrap; }
+
+	@@media screen and (max-width: 480px) {
+		.standardList .ant-list-item-content {
+			display: block;
+			flex: none;
+			width: 100%;
+		}
+
+		.standardList .ant-list-item-action { margin-left: 0; }
+
+		.standardList .listContent { margin-left: 0; }
+
+		.standardList .listContent > div { margin-left: 0; }
+
+		.standardList .listCard .ant-card-head-title { overflow: visible; }
+	}
+
+	@@media screen and (max-width: 576px) {
+		.standardList .extraContentSearch {
+			margin-left: 0;
+			width: 100%;
+		}
+
+		.standardList .headerInfo { margin-bottom: 16px; }
+
+		.standardList .headerInfo > em { display: none; }
+	}
+
+	@@media screen and (max-width: 768px) {
+		.standardList .listContent > div { display: block; }
+
+		.standardList .listContent > div:last-child {
+			top: 0;
+			width: 100%;
+		}
+
+		.listCard .ant-radio-group {
+			display: block;
+			margin-bottom: 8px;
+		}
+	}
+
+	@@media screen and (max-width: 992px) and (min-width: 768px) {
+		.standardList .listContent > div { display: block; }
+
+		.standardList .listContent > div:last-child {
+			top: 0;
+			width: 100%;
+		}
+	}
+
+	@@media screen and (max-width: 1200px) {
+		.standardList .listContent > div { margin-left: 24px; }
+
+		.standardList .listContent > div:last-child { top: 0; }
+	}
+
+	@@media screen and (max-width: 1400px) {
+		.standardList .listContent { text-align: right; }
+
+		.standardList .listContent > div:last-child { top: 0; }
+	}
+
+	.standardListForm .ant-form-item { margin-bottom: 12px; }
+
+	.standardListForm .ant-form-item:last-child {
+		margin-bottom: 32px;
+		padding-top: 4px;
+	}
+
+	.formResult { width: 100%; }
+
+	.formResult [class^='title'] { margin-bottom: 8px; }
+</style>
+
+@code {
+
+	private readonly BasicListFormModel _model = new();
+
+	private ICollection<UserProblemSummary> _problemSummaries = new [] {
+		new UserProblemSummary {
+			Id = 1,
+			Title = "A+B问题",
+			Manual = false,
+			Tags = new []{"入门"},
+			Times = 2,
+			SubmittedTimes = 1,
+			Deadline = DateTimeOffset.Now,
+			Score = 10
+		},
+		new UserProblemSummary {
+			Id = 2,
+			Title = "A-B问题",
+			Manual = false,
+			Tags = new []{"一般"},
+			Times = 2,
+			SubmittedTimes = 2,
+			Deadline = DateTimeOffset.Now,
+			Score = 5
+		},
+		new UserProblemSummary {
+			Id = 2,
+			Title = "A*B问题",
+			Manual = false,
+			Tags = new []{"困难"},
+			Times = 2,
+			SubmittedTimes = 0,
+			Deadline = DateTimeOffset.Now
+		}
 	};
 
-	private RenderFragment Info(string title, string value, bool bordered = false) {
-		return
-			@<div class="headerInfo">
-				<span>@title</span>
-				<p>@value</p>
-				@if (bordered) {
-					<em />
-				}
-			</div>
-			;
+	[Inject]
+	protected IProjectService ProjectService { get; set; }
+
+	[Inject]
+	protected ApiClient Api { get; set; }
+
+	private RenderFragment Info(string title, string value, bool bordered = false) =>
+		@<div class="headerInfo">
+			<span>@title</span>
+			<p>@value</p>
+			@if (bordered) {
+				<em></em>
+			}
+		</div>;
+
+	private ProgressStatus GetProgressStatus(UserProblemSummary summary) {
+		if (summary.Score.HasValue && summary.Score.Value == summary.TotalScore)
+			return ProgressStatus.Success;
+		if (DateTimeOffset.Now >= summary.Deadline && summary.SubmittedTimes == 0)
+			return ProgressStatus.Exception;
+		if (DateTimeOffset.Now < summary.Deadline && summary.SubmittedTimes < summary.Times)
+			return ProgressStatus.Active;
+		return ProgressStatus.Normal;
 	}
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		/*
+		var assignmentSummaries = (await Api.GetCurrentUserAssignmentSummaryAsync()).AsArray();
+		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
+		_problemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
+		*/
+	}
+	private class UserProblemSummaryComparer : IEqualityComparer<UserProblemSummary> {
+		public bool Equals(UserProblemSummary? x, UserProblemSummary? y) {
+			if (ReferenceEquals(x, y))
+				return true;
+			if (ReferenceEquals(x, null))
+				return false;
+			if (ReferenceEquals(y, null))
+				return false;
+			if (x.GetType() != y.GetType())
+				return false;
+			return x.Id == y.Id;
+		}
+
+		public int GetHashCode(UserProblemSummary obj) => obj.Id;
+	} 
 }

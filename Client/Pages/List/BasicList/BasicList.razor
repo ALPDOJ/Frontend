@@ -5,16 +5,21 @@
 	<Card>
 		<Row Gutter="24">
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("已完成", "1", true)
+				@Info("已完成", CompletedCount.ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("待完成", "1", true)
+				@Info("进行中", OngoingCount.ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("已延期", "1", true)
+				@Info("已延期", DelayedCount.ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("最近截止日期", "2022-03-01 23:59:59")
+				@if (LatestDeadline.HasValue) {
+					<CountDown Class="headerInfo" Title="最近截止日期" Value="@LatestDeadline.Value" Format="dd:hh:mm:ss" OnFinish="StateHasChanged" />
+				}
+				else {
+					@Info("最近截止日期", "无");
+				}
 			</AntDesign.Col>
 		</Row>
 	</Card>
@@ -26,7 +31,7 @@
 				<RadioGroup @bind-Value="_model.Status" Class="filterRatioGroup" Style="display: flex">
 					<Radio RadioButton Value="@("all")">所有</Radio>
 					<Radio RadioButton Value="@("delayed")">已延期</Radio>
-					<Radio RadioButton Value="@("active")">进行中</Radio>
+					<Radio RadioButton Value="@("ongoing")">进行中</Radio>
 					<Radio RadioButton Value="@("completed")">已完成</Radio>
 				</RadioGroup>
 				<Search @bind-Value="_model.SearchKeyword" Class="extraContentSearch" Placeholder="请输入关键字" />
@@ -215,6 +220,12 @@
 
 @code {
 
+	[Inject]
+	protected IProjectService ProjectService { get; set; }
+
+	[Inject]
+	protected ApiClient Api { get; set; }
+
 	private readonly BasicListFormModel _model = new();
 
 	private ICollection<UserProblemSummary> _problemSummaries = new [] {
@@ -249,11 +260,18 @@
 		}
 	};
 
-	[Inject]
-	protected IProjectService ProjectService { get; set; }
+	private int DelayedCount => _problemSummaries.Count(p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0);
 
-	[Inject]
-	protected ApiClient Api { get; set; }
+	private int OngoingCount => _problemSummaries.Count(p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times);
+
+	private int CompletedCount => _problemSummaries.Count(p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0));
+
+	private DateTime? LatestDeadline {
+		get {
+			var comingDeadlines = _problemSummaries.Select(p => p.Deadline).Where(d => d > DateTimeOffset.Now).ToArray();
+			return comingDeadlines.Length == 0 ? null : comingDeadlines.Min().DateTime;
+		}
+	}
 
 	private RenderFragment Info(string title, string value, bool bordered = false) =>
 		@<div class="headerInfo">
@@ -265,7 +283,7 @@
 		</div>;
 
 	private ProgressStatus GetProgressStatus(UserProblemSummary summary) {
-		if (summary.Score.HasValue && summary.Score.Value == summary.TotalScore)
+		if (summary.Score.HasValue && Math.Abs(summary.Score.Value - summary.TotalScore) < float.Epsilon)
 			return ProgressStatus.Success;
 		if (DateTimeOffset.Now >= summary.Deadline && summary.SubmittedTimes == 0)
 			return ProgressStatus.Exception;

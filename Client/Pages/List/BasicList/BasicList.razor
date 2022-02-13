@@ -1,24 +1,25 @@
 ﻿@namespace Client.Pages.List
 @page "/list/basic-list"
+@using TrueMogician.Extensions.Enumerable
 
 <div class="standardList">
 	<Card>
 		<Row Gutter="24">
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("已完成", CompletedCount.ToString(), true)
+				@RenderHeaderInfo("已完成", _problemSummaries.Count(CompletedFilter).ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("进行中", OngoingCount.ToString(), true)
+				@RenderHeaderInfo("进行中", _problemSummaries.Count(OngoingFilter).ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@Info("已延期", DelayedCount.ToString(), true)
+				@RenderHeaderInfo("已延期", _problemSummaries.Count(DelayedFilter).ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
 				@if (LatestDeadline.HasValue) {
 					<CountDown Class="headerInfo" Title="最近截止日期" Value="@LatestDeadline.Value" Format="dd:hh:mm:ss" OnFinish="StateHasChanged" />
 				}
 				else {
-					@Info("最近截止日期", "无");
+					@RenderHeaderInfo("最近截止日期", "无")
 				}
 			</AntDesign.Col>
 		</Row>
@@ -28,17 +29,17 @@
 		Title="题目">
 		<Extra>
 			<div class="extraContent" style="display: flex">
-				<RadioGroup @bind-Value="_model.Status" Class="filterRatioGroup" Style="display: flex">
-					<Radio RadioButton Value="@("all")">所有</Radio>
-					<Radio RadioButton Value="@("delayed")">已延期</Radio>
-					<Radio RadioButton Value="@("ongoing")">进行中</Radio>
-					<Radio RadioButton Value="@("completed")">已完成</Radio>
+				<RadioGroup Class="filterRatioGroup" Style="display: flex" @bind-Value="StatusFilter">
+					<Radio RadioButton Value="@ProblemStatusFilter.All">所有</Radio>
+					<Radio RadioButton Value="@ProblemStatusFilter.Delayed">已延期</Radio>
+					<Radio RadioButton Value="@ProblemStatusFilter.Ongoing">进行中</Radio>
+					<Radio RadioButton Value="@ProblemStatusFilter.Completed">已完成</Radio>
 				</RadioGroup>
-				<Search @bind-Value="_model.SearchKeyword" Class="extraContentSearch" Placeholder="请输入关键字" />
+				<Search Class="extraContentSearch" @bind-Value="SearchKeyword" Placeholder="请输入关键字" />
 			</div>
 		</Extra>
 		<ChildContent>
-			<AntList TItem="UserProblemSummary" DataSource="_problemSummaries" ItemLayout="ListItemLayout.Horizontal">
+			<AntList TItem="UserProblemSummary" DataSource="DisplayedProblemSummaries" ItemLayout="ListItemLayout.Horizontal">
 				<ListItem>
 					<ListItemMeta>
 						<TitleTemplate>
@@ -219,14 +220,11 @@
 </style>
 
 @code {
+	private static readonly Func<UserProblemSummary, bool> DelayedFilter = p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0;
 
-	[Inject]
-	protected IProjectService ProjectService { get; set; }
+	private static readonly Func<UserProblemSummary, bool> OngoingFilter = p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times;
 
-	[Inject]
-	protected ApiClient Api { get; set; }
-
-	private readonly BasicListFormModel _model = new();
+	private static readonly Func<UserProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0);
 
 	private ICollection<UserProblemSummary> _problemSummaries = new [] {
 		new UserProblemSummary {
@@ -236,7 +234,7 @@
 			Tags = new []{"入门"},
 			Times = 2,
 			SubmittedTimes = 1,
-			Deadline = DateTimeOffset.Now,
+			Deadline = DateTimeOffset.Now + TimeSpan.FromHours(1),
 			Score = 10
 		},
 		new UserProblemSummary {
@@ -256,15 +254,38 @@
 			Tags = new []{"困难"},
 			Times = 2,
 			SubmittedTimes = 0,
-			Deadline = DateTimeOffset.Now
+			Deadline = DateTimeOffset.Now - TimeSpan.FromHours(2)
 		}
 	};
 
-	private int DelayedCount => _problemSummaries.Count(p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0);
+	private ProblemStatusFilter _statusFilter;
 
-	private int OngoingCount => _problemSummaries.Count(p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times);
+	private string _searchKeyword;
 
-	private int CompletedCount => _problemSummaries.Count(p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0));
+	[Inject]
+	protected ApiClient Api { get; set; }
+
+	private ICollection<UserProblemSummary> DisplayedProblemSummaries { get; set; }
+
+	private ProblemStatusFilter StatusFilter {
+		get => _statusFilter;
+		set {
+			if (value != _statusFilter) {
+				_statusFilter = value;
+				FilterProblemSummaries();
+			}
+		}
+	}
+
+	private string SearchKeyword {
+		get => _searchKeyword;
+		set{
+			if (value != _searchKeyword) {
+				_searchKeyword = value;
+				FilterProblemSummaries();
+			}
+		}
+	}
 
 	private DateTime? LatestDeadline {
 		get {
@@ -273,16 +294,7 @@
 		}
 	}
 
-	private RenderFragment Info(string title, string value, bool bordered = false) =>
-		@<div class="headerInfo">
-			<span>@title</span>
-			<p>@value</p>
-			@if (bordered) {
-				<em></em>
-			}
-		</div>;
-
-	private ProgressStatus GetProgressStatus(UserProblemSummary summary) {
+	private static ProgressStatus GetProgressStatus(UserProblemSummary summary) {
 		if (summary.Score.HasValue && Math.Abs(summary.Score.Value - summary.TotalScore) < float.Epsilon)
 			return ProgressStatus.Success;
 		if (DateTimeOffset.Now >= summary.Deadline && summary.SubmittedTimes == 0)
@@ -292,14 +304,45 @@
 		return ProgressStatus.Normal;
 	}
 
+	private RenderFragment RenderHeaderInfo(string title, string value, bool bordered = false) =>
+		@<div class="headerInfo">
+			<span>@title</span>
+			<p>@value</p>
+			@if (bordered) {
+				<em></em>
+			}
+		</div>;
+
+	private void FilterProblemSummaries() {
+		DisplayedProblemSummaries = _problemSummaries;
+		if (!string.IsNullOrEmpty(SearchKeyword))
+			DisplayedProblemSummaries = DisplayedProblemSummaries.Where(p => p.Title.Contains(SearchKeyword)).ToArray();
+		if (StatusFilter != ProblemStatusFilter.All)
+			DisplayedProblemSummaries = DisplayedProblemSummaries.Where(StatusFilter switch {
+				ProblemStatusFilter.Delayed => DelayedFilter,
+				ProblemStatusFilter.Ongoing => OngoingFilter,
+				ProblemStatusFilter.Completed => CompletedFilter
+			}).ToArray();
+	}
+
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		/*
 		var assignmentSummaries = (await Api.GetCurrentUserAssignmentSummaryAsync()).AsArray();
 		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
 		_problemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
-		*/
+		DisplayedProblemSummaries = _problemSummaries;
 	}
+
+	private enum ProblemStatusFilter:byte {
+		All,
+
+		Delayed,
+
+		Ongoing,
+
+		Completed
+	}
+
 	private class UserProblemSummaryComparer : IEqualityComparer<UserProblemSummary> {
 		public bool Equals(UserProblemSummary? x, UserProblemSummary? y) {
 			if (ReferenceEquals(x, y))

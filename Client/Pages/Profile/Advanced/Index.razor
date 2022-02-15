@@ -1,0 +1,114 @@
+﻿@namespace Client.Pages.Profile.Advanced
+@page "/profile/advanced"
+
+<PageContainer Class="pageHeader" TabList="_tabList" OnTabChange="OnTabChange" Title="@_problem.Title" >
+	<Extra>
+		<ButtonGroup>
+			<Button>讨论</Button>
+		</ButtonGroup>
+		<ButtonGroup>
+			<Button Type="@ButtonType.Primary">测试</Button>
+			<Button Type="@ButtonType.Primary">提交</Button>
+		</ButtonGroup>
+	</Extra>
+	<ExtraContent>
+		<div class="moreInfo">
+			<Statistic Title="@("剩余次数")" Value="@(_summary.Times - _summary.SubmittedTimes)" />
+			<Statistic Title="@("当前分数")" Value="@($"{_summary.Score ?? 0} / {_summary.TotalScore}")" />
+		</div>
+	</ExtraContent>
+	<Content>
+		<Descriptions Class="headerList" Column="2" Size="small">
+			<DescriptionsItem Title="@("题目序号")">@_problem.Id</DescriptionsItem>
+			<DescriptionsItem Title="@("题目标签")">
+				@foreach (var tag in _problem.Tags) {
+					<Tag>@tag</Tag>
+				}
+			</DescriptionsItem>
+			<DescriptionsItem Title="@("人工批阅")">@(_problem.Manual ? "是" : "否")</DescriptionsItem>
+			<DescriptionsItem Title="@("截止日期")">@_summary.Deadline.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
+			<DescriptionsItem Title="@("运行时间限制")">@($"{_problem.Limits.Time} ms")</DescriptionsItem>
+			<DescriptionsItem Title="@("运行内存限制")">@FormatMemoryLimit(_problem.Limits.Memory)</DescriptionsItem>
+		</Descriptions>
+	</Content>
+
+	<ChildContent>
+		<div class="main__b__3">
+			@switch (TabKey) {
+				case "content":
+					<ContentView Data="_problem" />
+					break;
+				case "submission":
+					<SubmissionView />
+					break;
+				case "discussion":
+					<DiscussionView />
+					break;
+			}
+		</div>
+	</ChildContent>
+</PageContainer>
+
+@code {
+
+	private readonly IList<TabPaneItem> _tabList = new List<TabPaneItem> {
+		new() { Key = "content", Tab = "题目内容" },
+		new() { Key = "submission", Tab = "评测记录" },
+		new() { Key = "discussion", Tab = "提问讨论" }
+	};
+
+	private Problem _problem = new() {
+		Id = 1,
+		Title = "A+B问题",
+		Manual = false,
+		Tags = new[] { "入门" },
+		Limits = new ProblemLimits {
+			Time = 1000,
+			Memory = 1 << 20,
+			FileSize = 100 << 10
+		},
+		Content = new ProblemContent {
+			Description = "这是题目描述",
+			Format = new Format {
+				Input = "这是输入数据格式",
+				Output = "这是输出数据格式"
+			},
+			Examples = new [] {
+				new ProblemExample {
+					Input = "这是样例输入",
+					Output = "这是样例输出",
+					Explanation = "这是样例解释"
+				}
+			}
+		}
+	};
+
+	private UserProblemSummary _summary = new (){
+		Id = 1,
+		Title = "A+B问题",
+		Manual = false,
+		Tags = new []{"入门"},
+		Times = 2,
+		SubmittedTimes = 1,
+		Deadline = DateTimeOffset.Now,
+		Score = 10
+	};
+
+	[Inject]
+	protected IProfileService ProfileService { get; set; }
+
+	private string TabKey { get; set; } = "content";
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+	}
+
+	private string FormatMemoryLimit(int limit) {
+		if (limit < (1 << 10))
+			return $"{limit} B";
+		return limit < (1 << 20) ? $"{((float)limit) / (1 << 10):F1} KB" : $"{((float)limit) / (1 << 20):F1} MB";
+	}
+
+	private void OnTabChange(string key) => TabKey = key;
+
+}

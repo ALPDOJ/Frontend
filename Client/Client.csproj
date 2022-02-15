@@ -13,12 +13,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<OpenApiReference Include="..\..\Document\openapi.yml" CodeGenerator="NSwagCSharp" Namespace="Client.Api" ClassName="ApiClient" Link="OpenAPIs\openapi.yml" />
+		<OpenApiReference Include="..\..\Document\openapi.yml" CodeGenerator="NSwagCSharp" OutputPath="ApiClient.cs" Link="OpenAPIs\openapi.yml">
+			<Namespace>Client.Api</Namespace>
+			<ClassName>ApiClient</ClassName>
+			<Options>/GenerateNullableReferenceTypes:true /WrapResponses:true /ExceptionClass:ApiException /ResponseClass:ApiResponse /AdditionalNamespaceUsages:System,System.Collections.Generic /DateType:DateTime /DateTimeType:DateTime /ArrayType:IList /ArrayInstanceType:List /ArrayBaseType:List /ResponseArrayType:IList</Options>
+		</OpenApiReference>
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AntDesign.Charts" Version="0.2.2" />
 		<PackageReference Include="AntDesign.ProLayout" Version="0.1.9" />
+		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.2" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.2">
@@ -27,11 +32,12 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-		<PackageReference Include="NSwag.ApiDescription.Client" Version="13.15.7">
+		<PackageReference Include="NSwag.ApiDescription.Client" Version="13.15.9">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+		<PackageReference Include="TrueMogician.Extensions.Collections" Version="0.5.0" />
 		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="1.7.0" />
 	</ItemGroup>
 

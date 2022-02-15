@@ -234,7 +234,7 @@
 			Tags = new []{"入门"},
 			Times = 2,
 			SubmittedTimes = 1,
-			Deadline = DateTimeOffset.Now + TimeSpan.FromHours(1),
+			Deadline = DateTime.Now + TimeSpan.FromHours(1),
 			Score = 10
 		},
 		new UserProblemSummary {
@@ -244,7 +244,7 @@
 			Tags = new []{"一般"},
 			Times = 2,
 			SubmittedTimes = 2,
-			Deadline = DateTimeOffset.Now,
+			Deadline = DateTime.Now,
 			Score = 5
 		},
 		new UserProblemSummary {
@@ -254,7 +254,7 @@
 			Tags = new []{"困难"},
 			Times = 2,
 			SubmittedTimes = 0,
-			Deadline = DateTimeOffset.Now - TimeSpan.FromHours(2)
+			Deadline = DateTime.Now - TimeSpan.FromHours(2)
 		}
 	};
 
@@ -290,7 +290,7 @@
 	private DateTime? LatestDeadline {
 		get {
 			var comingDeadlines = _problemSummaries.Select(p => p.Deadline).Where(d => d > DateTimeOffset.Now).ToArray();
-			return comingDeadlines.Length == 0 ? null : comingDeadlines.Min().DateTime;
+			return comingDeadlines.Length == 0 ? null : comingDeadlines.Min();
 		}
 	}
 
@@ -327,7 +327,7 @@
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		var assignmentSummaries = (await Api.GetCurrentUserAssignmentSummaryAsync()).AsArray();
+		var assignmentSummaries = (await Api.GetCurrentUserAssignmentSummaryAsync()).Result.AsArray();
 		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
 		_problemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
 		DisplayedProblemSummaries = _problemSummaries;

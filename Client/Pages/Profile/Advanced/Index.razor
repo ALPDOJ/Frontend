@@ -79,7 +79,14 @@
 					Output = "这是样例输出",
 					Explanation = "这是样例解释"
 				}
-			}
+			},
+			InputRange = new [] {
+				new ProblemInputRange {
+					Description = "这是输入范围描述",
+					TestCaseCount = 10
+				}
+			},
+			Limitation = "这是代码限制"
 		}
 	};
 
@@ -90,7 +97,7 @@
 		Tags = new []{"入门"},
 		Times = 2,
 		SubmittedTimes = 1,
-		Deadline = DateTimeOffset.Now,
+		Deadline = DateTime.Now,
 		Score = 10
 	};
 

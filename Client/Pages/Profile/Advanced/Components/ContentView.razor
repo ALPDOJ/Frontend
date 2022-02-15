@@ -1,0 +1,52 @@
+﻿@namespace Client.Pages.Profile.Advanced
+
+<GridContent>
+	<Card Class="content-card" Title="@("题目描述")">
+		@Data.Content.Description
+	</Card>
+	
+	@if (Data.Content.Format is not null) {
+		<Card Class="content-card" BodyStyle="display:flex;" Title="@("数据格式")">
+			<Card Style="flex-grow: 1" Title="输入" Bordered>
+				@Data.Content.Format.Input
+			</Card>
+			<Divider Type="DirectionVHType.Vertical" />
+			<Card Style="flex-grow: 1" Title="输出" Bordered>
+				@Data.Content.Format.Output
+			</Card>
+		</Card>
+	}
+
+	@if (Data.Content.Examples?.Count > 0) {
+		<Card Class="content-card" Title="@("样例")">
+			@foreach (var example in Data.Content.Examples!) {
+				<Card Bordered>
+					<CardGrid Style="width: 50%">
+						@example.Input
+					</CardGrid>
+					<CardGrid Style="width: 50%">
+						@example.Output
+					</CardGrid>
+					@if (example.Explanation is not null) {
+						<CardGrid Style="width: 100%">
+							@example.Explanation
+						</CardGrid>
+					}
+				</Card>
+			}
+		</Card>
+	}
+</GridContent>
+
+<style scoped>
+	.content-card {
+		margin-top: 24px;
+	}
+</style>
+
+@code {
+
+	[Parameter]
+	public Problem Data { get; set; }
+
+}

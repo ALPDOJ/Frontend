@@ -1,0 +1,119 @@
+﻿@namespace Client.Pages.Profile.Advanced
+@using TrueMogician.Extensions.Collections.Tree
+@using Client.Extensions
+@using Blazored.LocalStorage
+@using OneOf.Types
+@using Comment = Client.Api.Comment
+
+<Comment @ref="CommentElement" Author="@Data.Value.Author.Username" Datetime="@Data.Value.Time.ToFriendlyDisplay()" Actions="new []{LikeAction, DislikeAction, ReplyAction}">
+	<AvatarTemplate>
+		@RenderAvatar(Data.Value.Author)
+	</AvatarTemplate>
+	<ContentTemplate>
+		@if (Data.Value.Content is null) {
+			<span><i>该内容已被删除</i></span>
+		}
+		else {
+			@Data.Value.Content
+		}
+	</ContentTemplate>
+	<ChildContent>
+		@if (!Data.IsLeaf) {
+			@foreach (var child in Data.Children) {
+				<CommentTree Data="@child" OnReply="@OnReply" />
+			}
+		}
+	</ChildContent>
+</Comment>
+
+@code {
+
+	[Parameter]
+    public ValuedTreeNode<Comment> Data { get; set; }
+
+	[Parameter]
+	public EventCallback<int> OnReply { get; set; }
+
+	[CascadingParameter]
+	public User CurrentUser { get; set; }
+
+	[Inject]
+	public ApiClient Api { get; set; }
+
+	[Inject]
+	public MessageService MessageService { get; set; }
+
+	private AntDesign.Comment CommentElement { get; set; }
+
+	private CommentReaction CurrentReaction { get; set; }
+
+	private RenderFragment LikeAction =>
+		@<span>
+			<AntDesign.Tooltip Title="@("点赞")">
+				<Icon Type="like" Theme="@(CurrentReaction == CommentReaction.Like ? "fill" : "outline")" OnClick="() => ReactToComment(CommentReaction.Like)" />
+			</AntDesign.Tooltip>
+			<span>@(Data.Value.Likers?.Count ?? 0)</span>
+		</span>;
+
+	private RenderFragment DislikeAction =>
+		@<span>
+			<AntDesign.Tooltip Title="@("点踩")">
+				<Icon Type="dislike" Theme="@(CurrentReaction == CommentReaction.Dislike ? "fill" : "outline")" OnClick="() => ReactToComment(CommentReaction.Dislike)" />
+			</AntDesign.Tooltip>
+			<span>@(Data.Value.Dislikers?.Count ?? 0)</span>
+		</span>;
+
+	private RenderFragment ReplyAction =>
+		@<span onclick="@(() => OnReply.InvokeAsync(Data.Value.Id))">回复</span>;
+
+	private RenderFragment DeleteAction =>
+		@<span>
+			<AntDesign.Tooltip Title="@("删除")">
+				<Icon Type="delete" OnClick="DeleteComment" />
+			</AntDesign.Tooltip>
+		</span>;
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		CurrentReaction = Data.Value.Likers?.Contains(CurrentUser.Id) == true
+			? CommentReaction.Like : Data.Value.Dislikers?.Contains(CurrentUser.Id) == true 
+				? CommentReaction.Dislike 
+				: CommentReaction.None;
+	}
+
+	private RenderFragment RenderAvatar(Author author) {
+		if (author.HasAvatar)
+			return @<Avatar Src="@($"{Api.BaseUrl}/user/{author.Id}/avatar")" />;
+        return @<Avatar>author.Username[0]</Avatar>;
+	}
+
+	private async Task ReactToComment(CommentReaction button) {
+		var reaction = button == CurrentReaction ? CommentReaction.None : button;
+		try {
+			await Api.ReactToCommentAsync(Data.Value.ProblemId, Data.Value.Id, reaction);
+			if (CurrentReaction == CommentReaction.Like)
+				Data.Value.Likers?.Remove(CurrentUser.Id);
+			else if (CurrentReaction == CommentReaction.Dislike)
+				Data.Value.Dislikers?.Remove(CurrentUser.Id);
+			CurrentReaction = reaction;
+			if (reaction == CommentReaction.Like)
+				Data.Value.Likers?.Add(CurrentUser.Id);
+			else if (reaction == CommentReaction.Dislike)
+				Data.Value.Dislikers?.Add(CurrentUser.Id);
+		}
+		catch (ApiException ex) {
+			var _ = MessageService.Error($"{ex.StatusCode}: {ex.Message}");
+		}
+	}
+
+	private async Task DeleteComment() {
+		try {
+			await Api.DeleteCommentAsync(Data.Value.ProblemId, Data.Value.Id);
+			Data.Value.Content = null;
+			var _ = MessageService.Success("删除成功");
+		}
+		catch (ApiException ex) {
+			var _ = MessageService.Error($"删除失败: {ex.Message}");
+		}
+	}
+}

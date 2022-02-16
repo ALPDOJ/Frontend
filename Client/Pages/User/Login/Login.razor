@@ -1,6 +1,7 @@
 ﻿@namespace Client.Pages.User
 @layout UserLayout
 @page "/user/login"
+@using Blazored.LocalStorage
 
 <div class="main__b__0">
 	<div class="login">
@@ -33,7 +34,7 @@
 	</div>
 </div>
 
-<style lang="css">
+<style lang="css" scoped>
 	.main__b__0 {
 		margin: 0 auto;
 		width: 368px;
@@ -87,9 +88,26 @@
 	[Inject]
 	public MessageService Message { get; set; }
 
+	[Inject]
+	public ISyncLocalStorageService LocalStorage { get; set; }
+
 	public async void HandleSubmit() {
 		try {
 			await Api.LoginAsync(_model.Id, _model.Password);
+			LocalStorage.SetItem("currentUser", await Api.GetCurrentUserAsync());
+			try {
+				var resp = await Api.GetUserAvatarAsync(_model.Id);
+				var memoryStream = new MemoryStream();
+				await resp.Stream.CopyToAsync(memoryStream);
+				var base64Image = Convert.ToBase64String(memoryStream.ToArray());
+				LocalStorage.SetItem("currentUserAvatar", $"data:{resp.Headers["Content-Type"]};base64,{base64Image}");
+			}
+			catch (ApiException ex) {
+				if (ex.StatusCode == 404)
+					LocalStorage.SetItem<string?>("currentUserAvatar", null);
+				else
+					throw;
+			}
 			NavigationManager.NavigateTo("/");
 		}
 		catch (ApiException ex) {

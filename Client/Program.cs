@@ -1,4 +1,5 @@
 using AntDesign.ProLayout;
+using Blazored.LocalStorage;
 using Client.Api;
 using Client.Services;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -19,6 +20,7 @@ public class Program {
 		builder.Services.AddScoped<IAccountService, AccountService>();
 		builder.Services.AddScoped<IProfileService, ProfileService>();
 		builder.Services.AddSingleton(new ApiClient(new HttpClient()));
+		builder.Services.AddBlazoredLocalStorage();
 
 		await builder.Build().RunAsync();
 	}

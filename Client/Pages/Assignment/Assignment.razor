@@ -1,5 +1,5 @@
-﻿@namespace Client.Pages.List
-@page "/list/basic-list"
+﻿@namespace Client.Pages
+@page "/assignment"
 @using TrueMogician.Extensions.Enumerable
 
 <div class="standardList">
@@ -66,7 +66,7 @@
 	</Card>
 </div>
 
-<style scoped>
+<style lang="css" scoped>
 	.standardList .ant-card-head { border-bottom: none; }
 
 	.standardList .ant-card-head-title {
@@ -327,7 +327,7 @@
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		var assignmentSummaries = (await Api.GetCurrentUserAssignmentSummaryAsync()).Result.AsArray();
+		var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
 		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
 		_problemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
 		DisplayedProblemSummaries = _problemSummaries;

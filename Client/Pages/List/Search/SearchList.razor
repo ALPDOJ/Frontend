@@ -1,7 +1,6 @@
 ﻿@namespace Client.Pages.List
-@using BasicLayout = Client.BasicLayout
 @inherits LayoutComponentBase
-@layout BasicLayout
+@layout Client.Layout.BasicLayout
 
 <PageContainer OnTabChange="HandleTabChange" TabActiveKey="@GetTabKey()" TabList="_tabList" Title="Search">
 	<Breadcrumb>

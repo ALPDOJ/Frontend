@@ -1,7 +1,7 @@
-﻿@namespace Client.Pages.Profile.Advanced
-@page "/profile/advanced"
+﻿@namespace Client.Pages.Problem
+@page "/problem/{Id:int}"
 
-<PageContainer Class="pageHeader" TabList="_tabList" OnTabChange="OnTabChange" Title="@_problem.Title" >
+<PageContainer Class="pageHeader" TabList="_tabList" OnTabChange="OnTabChange" Title="@Problem.Title" >
 	<Extra>
 		<ButtonGroup>
 			<Button>讨论</Button>
@@ -13,22 +13,22 @@
 	</Extra>
 	<ExtraContent>
 		<div class="moreInfo">
-			<Statistic Title="@("剩余次数")" Value="@(_summary.Times - _summary.SubmittedTimes)" />
-			<Statistic Title="@("当前分数")" Value="@($"{_summary.Score ?? 0} / {_summary.TotalScore}")" />
+			<Statistic Title="@("剩余次数")" Value="@(Summary.Times - Summary.SubmittedTimes)" />
+			<Statistic Title="@("当前分数")" Value="@($"{Summary.Score ?? 0} / {Summary.TotalScore}")" />
 		</div>
 	</ExtraContent>
 	<Content>
 		<Descriptions Class="headerList" Column="2" Size="small">
-			<DescriptionsItem Title="@("题目序号")">@_problem.Id</DescriptionsItem>
+			<DescriptionsItem Title="@("题目序号")">@Problem.Id</DescriptionsItem>
 			<DescriptionsItem Title="@("题目标签")">
-				@foreach (var tag in _problem.Tags) {
+				@foreach (var tag in Problem.Tags) {
 					<Tag>@tag</Tag>
 				}
 			</DescriptionsItem>
-			<DescriptionsItem Title="@("人工批阅")">@(_problem.Manual ? "是" : "否")</DescriptionsItem>
-			<DescriptionsItem Title="@("截止日期")">@_summary.Deadline.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
-			<DescriptionsItem Title="@("运行时间限制")">@($"{_problem.Limits.Time} ms")</DescriptionsItem>
-			<DescriptionsItem Title="@("运行内存限制")">@FormatMemoryLimit(_problem.Limits.Memory)</DescriptionsItem>
+			<DescriptionsItem Title="@("人工批阅")">@(Problem.Manual ? "是" : "否")</DescriptionsItem>
+			<DescriptionsItem Title="@("截止日期")">@Summary.Deadline.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
+			<DescriptionsItem Title="@("运行时间限制")">@($"{Problem.Limits.Time} ms")</DescriptionsItem>
+			<DescriptionsItem Title="@("运行内存限制")">@FormatMemoryLimit(Problem.Limits.Memory)</DescriptionsItem>
 		</Descriptions>
 	</Content>
 
@@ -36,7 +36,7 @@
 		<div class="main__b__3">
 			@switch (TabKey) {
 				case "content":
-					<ContentView Data="_problem" />
+					<ContentView Data="Problem" />
 					break;
 				case "submission":
 					<SubmissionView />
@@ -57,7 +57,10 @@
 		new() { Key = "discussion", Tab = "提问讨论" }
 	};
 
-	private Problem _problem = new() {
+	[Parameter]
+	public int Id { get; set; }
+
+	private Api.Problem Problem { get; set; } = new() {
 		Id = 1,
 		Title = "A+B问题",
 		Manual = false,
@@ -90,7 +93,7 @@
 		}
 	};
 
-	private UserProblemSummary _summary = new (){
+	private UserProblemSummary Summary { get; set; } = new (){
 		Id = 1,
 		Title = "A+B问题",
 		Manual = false,
@@ -102,18 +105,20 @@
 	};
 
 	[Inject]
-	protected IProfileService ProfileService { get; set; }
+	public ApiClient Api { get; set; }
 
 	private string TabKey { get; set; } = "content";
 
-	protected override async Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
-	}
-
-	private string FormatMemoryLimit(int limit) {
+	private static string FormatMemoryLimit(int limit) {
 		if (limit < (1 << 10))
 			return $"{limit} B";
 		return limit < (1 << 20) ? $"{((float)limit) / (1 << 10):F1} KB" : $"{((float)limit) / (1 << 20):F1} MB";
+	}
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		Problem = (await Api.GetProblemAsync(Id)).Result;
+		Summary = (await Api.GetProblemSummaryAsync(Id.ToString())).Result;
 	}
 
 	private void OnTabChange(string key) => TabKey = key;

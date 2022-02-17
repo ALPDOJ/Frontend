@@ -1,8 +1,7 @@
-﻿@namespace Client
+﻿@namespace Client.Layout
 @inherits LayoutComponentBase
 
-<AntDesign.ProLayout.BasicLayout Logo="@("https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg")"
-	MenuData="_menuData">
+<AntDesign.ProLayout.BasicLayout Logo="@("https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg")" MenuData="_menuData">
 	<RightContentRender>
 		<Client.Components.RightContent />
 	</RightContentRender>
@@ -17,15 +16,32 @@
 
 @code{
 
-	private MenuDataItem[] _menuData = { };
-
-	[Inject]
-	public HttpClient HttpClient { get; set; }
-
-	protected override async Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
-		_menuData = (await HttpClient.GetFromJsonAsync<MenuDataItem[]>("data/menu.json"))!;
-	}
+	private readonly MenuDataItem[] _menuData = {
+		new MenuDataItem {
+			Path = "/",
+			Name = "主页",
+			Key = "main",
+			Icon = "dashboard"
+		},
+		new MenuDataItem {
+			Path = "/assignment",
+			Name = "作业",
+			Key = "list",
+			Icon = "unordered-list"
+		},
+		new MenuDataItem {
+			Path = "/question",
+			Name = "Q & A",
+			Key = "question",
+			Icon = "question-circle"
+		},
+		new MenuDataItem {
+			Path = "/about",
+			Name = "关于本站",
+			Key = "about",
+			Icon = "info-circle"
+		}
+	};
 
 	public LinkItem[] Links { get; } =
 		{

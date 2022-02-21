@@ -1,4 +1,4 @@
-﻿namespace Client.Pages.Problem;
+﻿namespace Client.Models;
 
 public class UploadModalArgument {
 	public bool Multiple { get; set; }

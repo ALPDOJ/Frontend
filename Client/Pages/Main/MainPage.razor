@@ -1,0 +1,56 @@
+﻿@namespace Client.Pages.Main
+@page "/"
+
+<GridContent>
+	<Row Gutter="24">
+		<AntDesign.Col Lg="24" Md="24" Sm="24" Style="margin-bottom: 24px;" Xl="18" Xs="24">
+			@if (CarouselUrls is null) {
+				<Skeleton Class="carousel" />
+			}
+			else {
+				<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
+					@foreach (var url in CarouselUrls) {
+						<CarouselSlick>
+							<Image Src="@url" Preview="false" />
+						</CarouselSlick>
+					}
+				</Carousel>
+			}
+		</AntDesign.Col>
+		<AntDesign.Col Lg="24" Md="24" Sm="24" Style="margin-bottom: 24px;" Xl="6" Xs="24">
+			<Card Title="@("Title")" Style="height: 260px">
+				Content
+			</Card>
+			<Card Title="@("Title")" Style="height: 240px; margin-top: 20px">
+				Content
+			</Card>
+		</AntDesign.Col>
+	</Row>
+</GridContent>
+
+<style lang="css" scoped>
+	.ant-carousel .slick-slide {
+		text-align: center;
+		height: 520px;
+		line-height: 160px;
+		overflow: hidden;
+	}
+
+	.ant-carousel .slick-slide h3 {
+		color: #fff;
+	}
+</style>
+
+@code {
+
+	[Inject]
+	private ApiClient Api { get; set; }
+
+	private IList<string>? CarouselUrls { get; set; }
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		CarouselUrls = (await Api.GetCarouselImageUrlsAsync()).Result;
+	}
+
+}

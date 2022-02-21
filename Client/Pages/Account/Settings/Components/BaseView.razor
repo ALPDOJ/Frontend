@@ -2,52 +2,29 @@
 
 <div class="baseView">
 	<div class="left" style="min-width: 310px;">
-		<Form Layout="vertical" Model="@_currentUser" OnFinish="HandleFinish">
-			<FormItem Label="Email">
-				<AntDesign.Input @bind-Value="@context.Email" />
-			</FormItem>
-			<FormItem Label="Nickname">
-				<AntDesign.Input @bind-Value="@context.Name" />
-			</FormItem>
-			<FormItem Label="Personal profile">
-				<AntDesign.TextArea @bind-Value="@context.Signature" />
-			</FormItem>
-			<FormItem Label="Country/Region">
-				<Select @bind-Value="@context.Country" Style="max-width: 220px;" TItem="string" TItemValue="string">
-					<SelectOptions>
-						<SelectOption Label="中国" TItem="string" TItemValue="string" Value="@("China")" />
-					</SelectOptions>
-				</Select>
-			</FormItem>
-			<FormItem Label="Province or city">
-				<GeographicView />
-			</FormItem>
-			<FormItem Label="Street Address">
-				<AntDesign.Input @bind-Value="@context.Address" />
-			</FormItem>
-			<FormItem Label="Phone Number">
-				<PhoneView />
-			</FormItem>
-			<FormItem>
-				<Button HtmlType="submit" Type="primary">
-					Update Information
-				</Button>
-			</FormItem>
-		</Form>
-	</div>
-	<div class="right__b__1">
-		<div class="avatar_title">
-			Avatar
-		</div>
-		<div class="avatar">
-			<img alt="avatar" src="@_currentUser.Avatar" />
-		</div>
-		<Upload ShowUploadList="false">
-			<div class="button_view">
-				<Button Icon="upload">
-					Change avatar
-				</Button>
+		<Form Style="display:flex;" Model="@_currentUser" OnFinish="HandleFinish">
+			<div style="margin-right: 50px">
+				<FormItem Label="昵称">
+					<AntDesign.Input @bind-Value="@context.Name" />
+				</FormItem>
+				<FormItem Label="邮箱">
+					<AntDesign.Input @bind-Value="@context.Email" />
+				</FormItem>
+				<FormItem>
+					<Button HtmlType="submit" Type="@ButtonType.Primary">
+						保存信息
+					</Button>
+				</FormItem>
 			</div>
-		</Upload>
+			<div>
+				<FormItem Label="头像">
+					<Upload ShowUploadList="false">
+						<div class="avatar">
+							<img alt="avatar" width="128" src="@_currentUser.Avatar" />
+						</div>
+					</Upload>
+				</FormItem>
+			</div>
+		</Form>
 	</div>
 </div>

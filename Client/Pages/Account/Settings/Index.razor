@@ -3,36 +3,19 @@
 
 <GridContent>
 	<div class="main__b__2">
-		<div class="leftMenu">
-			<Menu Mode="MenuMode.Inline" OnMenuItemClicked="SelectKey" SelectedKeys="new[] { _selectKey }">
-				@foreach (var item in _menuMap) {
-					<MenuItem Key="@item.Key">@item.Value</MenuItem>
-				}
-			</Menu>
-		</div>
-		<div class="right__b__0">
-			<div class="title">@_menuMap[_selectKey]</div>
-			@switch (_selectKey) {
-				case "base":
-					<BaseView />
-
-					break;
-
-				case "security":
-					<SecurityView />
-
-					break;
-
-				case "binding":
-					<BindingView />
-
-					break;
-
-				case "notification":
-					<NotificationView />
-
-					break;
-			}
-		</div>
+		<Tabs Centered>
+			<TabPane Tab="基本资料" Key="1">
+				<BaseView />
+			</TabPane>
+			<TabPane Tab="安全设置" Key="2">
+				<SecurityView />
+			</TabPane>
+			<TabPane Tab="绑定设置" Key="3">
+				<BindingView />
+			</TabPane>
+			<TabPane Tab="消息通知" Key="4">
+				<NotificationView />
+			</TabPane>
+		</Tabs>
 	</div>
 </GridContent>

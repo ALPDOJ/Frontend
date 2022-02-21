@@ -1,11 +1,11 @@
 ﻿@namespace Client.Pages.Problem
 @using TrueMogician.Extensions.Collections.Tree
-@using Client.Extensions
 @using Blazored.LocalStorage
+@using Client.Utils
 @using OneOf.Types
 @using Comment = Client.Api.Comment
 
-<Comment @ref="CommentElement" Author="@Data.Value.Author.Username" Datetime="@Data.Value.Time.ToFriendlyDisplay()" Actions="new []{LikeAction, DislikeAction, ReplyAction}">
+<Comment @ref="@CommentElement" Author="@Data.Value.Author.Username" Datetime="@Formatter.FormatDateTimeRelatively(Data.Value.Time,2)" Actions="new []{LikeAction, DislikeAction, ReplyAction}">
 	<AvatarTemplate>
 		@RenderAvatar(Data.Value.Author)
 	</AvatarTemplate>

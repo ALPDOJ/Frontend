@@ -1,0 +1,65 @@
+﻿@namespace Client.Pages.Submission
+@page "/submission/result/{Id:int}"
+
+<PageContainer Class="pageHeader" Title="评测结果">
+	<Extra>
+		<Button Type="@ButtonType.Primary">返回题目</Button>
+	</Extra>
+	<ExtraContent>
+		<div class="moreInfo">
+			<Statistic Title="@("得分")" Value="@("10.0/10.0")" />
+		</div>
+	</ExtraContent>
+	<Content>
+		<Descriptions Class="headerList" Column="2" Size="small">
+			<DescriptionsItem Title="@("评测ID")">@Id</DescriptionsItem>
+			<DescriptionsItem Title="@("Ordering Products")">XX Service</DescriptionsItem>
+			<DescriptionsItem Title="@("Creation Time")">2017-07-07</DescriptionsItem>
+			<DescriptionsItem Title="@("Associated documents")">
+				<a href="">12421</a>
+			</DescriptionsItem>
+			<DescriptionsItem Title="@("Effective Date")">2017-07-07 ~ 2017-08-08</DescriptionsItem>
+			<DescriptionsItem Title="@("Remarks")">Please confirm within two working days</DescriptionsItem>
+		</Descriptions>
+	</Content>
+	<ChildContent>
+		<div class="main__b__3">
+			<GridContent>
+				<Card Style="margin-bottom: 24px;" Title="@("评测进度")">
+					<Steps Current="2" Direction="horizontal">
+						<ChildContent>
+							<Step Title="@("已提交")" />
+							<Step Title="@("正在评测")" />
+							<Step Title="@("评测结束")" />
+						</ChildContent>
+					</Steps>
+				</Card>
+
+				<Card Style="margin-bottom: 24px" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Title="@("测试点状态")">
+					@for (int i = 0; i < 24; ++i) {
+						<Card Bordered Style="width: 150px; height: 100px; text-align: center; padding:12px; margin:18px; background-color: green">
+							Accepted
+						</Card>
+					}
+				</Card>
+			</GridContent>
+		</div>
+	</ChildContent>
+</PageContainer>
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Inject]
+    protected ApiClient Api { get; set; }
+
+    private SubmissionResult Data { get; set; }
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		Data = (await Api.GetSubmissionResultAsync(Id)).Result;
+	}
+
+}

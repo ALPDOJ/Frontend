@@ -1,15 +1,16 @@
 ﻿@namespace Client.Layout
+@using Blazored.LocalStorage
 @inherits LayoutComponentBase
 
 <AntDesign.ProLayout.BasicLayout Logo="@("https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg")" MenuData="_menuData">
 	<RightContentRender>
-		<Client.Components.RightContent />
+		<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
 	</RightContentRender>
 	<ChildContent>
 		@Body
 	</ChildContent>
 	<FooterRender>
-		<FooterView Copyright="飞姐" Links="Links" />
+		<FooterView Style="margin-top:24px" Copyright="飞姐" Links="Links" />
 	</FooterRender>
 </AntDesign.ProLayout.BasicLayout>
 <SettingDrawer />
@@ -37,11 +38,14 @@
 		},
 		new MenuDataItem {
 			Path = "/about",
-			Name = "关于本站",
+			Name = "关于课程",
 			Key = "about",
 			Icon = "info-circle"
 		}
 	};
+
+	[Inject]
+	private ISyncLocalStorageService LocalStorage { get; set; }
 
 	public LinkItem[] Links { get; } =
 		{
@@ -64,4 +68,15 @@
 				BlankTarget = true
 			}
 		};
+
+	private User CurrentUser { get; set; }
+
+	private string? CurrentUserAvatar { get; set; }
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		CurrentUser = LocalStorage.GetItem<User>("currentUser");
+		CurrentUserAvatar = LocalStorage.GetItem<string?>("currentUserAvatar");
+	}
+
 }

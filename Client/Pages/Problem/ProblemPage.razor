@@ -140,13 +140,10 @@
 		var files = await ShowUploadModal(options, argument);
 		if (files is null)
 			return;
-		var body = new NewSubmission {
-			Test = test,
-			Files = files
-		};
+		var body = new NewSubmission();
 		var stream = new MemoryStream();
 		new BinaryFormatter().Serialize(stream, body);
-		await Api.SubmitAsync(stream);
+		await Api.SubmitAsync(test, stream);
 	}
 
 }

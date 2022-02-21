@@ -5,7 +5,7 @@
 
 <div class="main__b__0">
 	<div class="login">
-		<Form Model="@_model" OnFinish="HandleSubmit">
+		<Form Model="@Parameters" OnFinish="OnSubmit">
 			<FormItem>
 				<AntDesign.Input @bind-Value="@context.Id" Placeholder="学号" Size="@InputSize.Large" Class="input">
 					<Prefix>
@@ -22,7 +22,7 @@
 				</AntDesign.Input>
 			</FormItem>
 			<div>
-				<Checkbox Checked="@context.AutoLogin">
+				<Checkbox Checked="@AutoLogin">
 					自动登录
 				</Checkbox>
 				<a style="float: right;">
@@ -77,26 +77,29 @@
 </style>
 
 @code {
-	private readonly LoginParamsType _model = new();
 
 	[Inject]
-	public NavigationManager NavigationManager { get; set; }
+	private NavigationManager Navigator { get; set; }
 
 	[Inject]
-	public ApiClient Api { get; set; }
+	private ApiClient Api { get; set; }
 
 	[Inject]
-	public MessageService Message { get; set; }
+	private MessageService MessageService { get; set; }
 
 	[Inject]
-	public ISyncLocalStorageService LocalStorage { get; set; }
+	private ISyncLocalStorageService LocalStorage { get; set; }
 
-	public async void HandleSubmit() {
+	private LoginParameters Parameters { get; } = new();
+
+	private bool AutoLogin { get; set; }
+
+	public async void OnSubmit() {
 		try {
-			await Api.LoginAsync(_model.Id, _model.Password);
+			await Api.LoginAsync(Parameters.Id,Parameters.Password);
 			LocalStorage.SetItem("currentUser", await Api.GetCurrentUserAsync());
 			try {
-				var resp = await Api.GetUserAvatarAsync(_model.Id);
+				var resp = await Api.GetUserAvatarAsync(Parameters.Id);
 				var memoryStream = new MemoryStream();
 				await resp.Stream.CopyToAsync(memoryStream);
 				var base64Image = Convert.ToBase64String(memoryStream.ToArray());
@@ -108,10 +111,10 @@
 				else
 					throw;
 			}
-			NavigationManager.NavigateTo("/");
+			Navigator.NavigateTo("/");
 		}
 		catch (ApiException ex) {
-			var _ = Message.Error(ex.Message);
+			var _ = MessageService.Error(ex.Message);
 		}
 	}
 }

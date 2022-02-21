@@ -2,7 +2,7 @@
 
 <div class="baseView">
 	<div class="left" style="min-width: 310px;">
-		<Form Style="display:flex;" Model="@_currentUser" OnFinish="HandleFinish">
+		<Form Style="display:flex;" Model="@CurrentUser" OnFinish="OnSubmit">
 			<div style="margin-right: 50px">
 				<FormItem Label="昵称">
 					<AntDesign.Input @bind-Value="@context.Name" />
@@ -20,7 +20,7 @@
 				<FormItem Label="头像">
 					<Upload ShowUploadList="false">
 						<div class="avatar">
-							<img alt="avatar" width="128" src="@_currentUser.Avatar" />
+							<img alt="avatar" width="128" src="@CurrentUserAvatar" />
 						</div>
 					</Upload>
 				</FormItem>
@@ -28,3 +28,15 @@
 		</Form>
 	</div>
 </div>
+
+@code {
+
+	private User CurrentUser { get; set; }
+
+	private string? CurrentUserAvatar { get; set; }
+
+	private void OnSubmit() {
+
+	}
+
+}

@@ -1,0 +1,25 @@
+﻿@namespace Client.Pages.Exception
+@page "/exception"
+@using System.Net
+@using System.Text.RegularExpressions
+
+<Result Status="@StatusCode.ToString()" Title="@Title">
+	<Extra>
+		<Button Type="@ButtonType.Primary" OnClick="OnBackHome">返回主页</Button>
+	</Extra>
+</Result>
+
+@code {
+
+	[SupplyParameterFromQuery(Name="status")]
+	[Parameter]
+	public int StatusCode { get; set; }
+
+	[Inject]
+	private NavigationManager Navigator { get; set; }
+
+	private string Title => Enum.GetName((HttpStatusCode)StatusCode) is var text && text is null ? StatusCode.ToString() : string.Join(' ', Regex.Split(text, @"(?<!^)(?=[A-Z])"));
+
+	private void OnBackHome() => Navigator.NavigateTo("/");
+
+}

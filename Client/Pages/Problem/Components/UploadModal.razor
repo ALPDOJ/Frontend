@@ -1,0 +1,86 @@
+﻿@using Client.Utils
+@inherits FeedbackComponent<UploadModalArgument, IList<File>?>
+
+<div class="upload-modal ant-upload ant-upload-selected-text ant-upload-drag ant-upload-select">
+	<div class="ant-upload" style="position: relative" role="button" tabindex="0">
+		<InputFile multiple="@Options.Multiple" accept="@Options.Accept" OnChange="@OnFileChange" />
+		<div class="ant-upload-drag-container" style="display: flex; flex-direction: column">
+			<p class="ant-upload-drag-icon">
+				<Icon Type="inbox" />
+			</p>
+			<p class="ant-upload-text">拖入源文件或点击以上传</p>
+		</div>
+	</div>
+	<AntList DataSource="@BrowserFiles">
+		<ListItem Actions="@GetActions(context)">
+			<ListItemMeta Title="@context.Name" />
+			<div>@Formatter.FormatSize(context.Size)</div>
+		</ListItem>
+	</AntList>
+</div>
+
+
+@code {
+
+	[Inject]
+	private MessageService MessageService { get; set; }
+
+	private List<IBrowserFile> BrowserFiles { get; } = new List<IBrowserFile>();
+
+	private List<File> Files { get; } = new List<File>();
+
+	private long TotalSize { get; set; }
+
+	public override async Task OnFeedbackCancelAsync(ModalClosingEventArgs args) {
+		await (FeedbackRef as IOkCancelRef<IList<File>?>)!.OnCancel(null);
+		await base.OnFeedbackCancelAsync(args);
+	}
+
+	public override async Task OnFeedbackOkAsync(ModalClosingEventArgs args) {
+		await (FeedbackRef as IOkCancelRef<IList<File>?>)!.OnOk(Files);
+		await base.OnFeedbackOkAsync(args);
+	}
+
+	private RenderFragment[] GetActions(IBrowserFile file) => new[] {
+		<Icon Type="delete" OnClick="() => OnDelete(file)" />
+	};
+
+	private async Task OnFileChange(InputFileChangeEventArgs args) {
+		var files = args.FileCount > 1 ? args.GetMultipleFiles(args.FileCount) : new[] { args.File };
+		foreach (var file in files) {
+			if (Files.Any(f => f.Name == file.Name)) {
+				var _ = MessageService.Error($"文件{file.Name}已上传");
+				continue;
+			}
+			if (file.Size > Options.MaxFileSize) {
+				var _ = MessageService.Error($"文件{file.Name}大小超出单个文件最大限制");
+				continue;
+			}
+			if (TotalSize + file.Size > Options.TotalFileSize) {
+				var _ = MessageService.Error($"上传文件总大小超出限制");
+				continue;
+			}
+			await using var stream = file.OpenReadStream(file.Size);
+			var f = new File {
+				Name = file.Name,
+				Content = new byte[file.Size]
+			};
+			await stream.ReadAsync(f.Content);
+			Files.Add(f);
+			BrowserFiles.Add(file);
+			TotalSize += file.Size;
+			StateHasChanged();
+		}
+	}
+
+	private void OnDelete(IBrowserFile browserFile) {
+		var file = Files.Find(f => f.Name == browserFile.Name);
+		if (file is null)
+			return;
+		TotalSize -= file.Content.Length;
+		BrowserFiles.Remove(browserFile);
+		Files.Remove(file);
+		StateHasChanged();
+	}
+
+}

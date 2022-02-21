@@ -1,14 +1,14 @@
 ﻿@namespace Client.Pages.Problem
 @page "/problem/{Id:int}"
+@using Client.Pages.Problem.Components
+@using System.Runtime.Serialization.Formatters.Binary
+@using Client.Utils
 
 <PageContainer Class="pageHeader" TabList="_tabList" OnTabChange="OnTabChange" Title="@Problem.Title" >
 	<Extra>
 		<ButtonGroup>
-			<Button>讨论</Button>
-		</ButtonGroup>
-		<ButtonGroup>
-			<Button Type="@ButtonType.Primary">测试</Button>
-			<Button Type="@ButtonType.Primary">提交</Button>
+			<Button Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(true)">测试</Button>
+			<Button Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(false)">提交</Button>
 		</ButtonGroup>
 	</Extra>
 	<ExtraContent>
@@ -28,7 +28,7 @@
 			<DescriptionsItem Title="@("人工批阅")">@(Problem.Manual ? "是" : "否")</DescriptionsItem>
 			<DescriptionsItem Title="@("截止日期")">@Summary.Deadline.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
 			<DescriptionsItem Title="@("运行时间限制")">@($"{Problem.Limits.Time} ms")</DescriptionsItem>
-			<DescriptionsItem Title="@("运行内存限制")">@FormatMemoryLimit(Problem.Limits.Memory)</DescriptionsItem>
+			<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limits.Memory)</DescriptionsItem>
 		</Descriptions>
 	</Content>
 
@@ -36,7 +36,7 @@
 		<div class="main__b__3">
 			@switch (TabKey) {
 				case "content":
-					<ContentView Data="Problem" />
+					<ContentView Data="Problem" Examples="Examples" />
 					break;
 				case "submission":
 					<SubmissionView />
@@ -60,7 +60,7 @@
 	[Parameter]
 	public int Id { get; set; }
 
-	private Api.Problem Problem { get; set; } = new() {
+	private Problem Problem { get; set; } = new() {
 		Id = 1,
 		Title = "A+B问题",
 		Manual = false,
@@ -76,13 +76,6 @@
 				Input = "这是输入数据格式",
 				Output = "这是输出数据格式"
 			},
-			Examples = new [] {
-				new ProblemExample {
-					Input = "这是样例输入",
-					Output = "这是样例输出",
-					Explanation = "这是样例解释"
-				}
-			},
 			InputRange = new [] {
 				new ProblemInputRange {
 					Description = "这是输入范围描述",
@@ -92,6 +85,8 @@
 			Limitation = "这是代码限制"
 		}
 	};
+
+	private IList<TestCase>? Examples { get; set; }
 
 	private UserProblemSummary Summary { get; set; } = new (){
 		Id = 1,
@@ -105,22 +100,53 @@
 	};
 
 	[Inject]
-	public ApiClient Api { get; set; }
+	private ModalService ModalService { get; set; }
+
+	[Inject]
+	private ApiClient Api { get; set; }
 
 	private string TabKey { get; set; } = "content";
-
-	private static string FormatMemoryLimit(int limit) {
-		if (limit < (1 << 10))
-			return $"{limit} B";
-		return limit < (1 << 20) ? $"{((float)limit) / (1 << 10):F1} KB" : $"{((float)limit) / (1 << 20):F1} MB";
-	}
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		Problem = (await Api.GetProblemAsync(Id)).Result;
+		Examples = (await Api.GetExampleTestCasesAsync(Id)).Result;
 		Summary = (await Api.GetProblemSummaryAsync(Id.ToString())).Result;
 	}
 
+	private async Task<IList<File>?> ShowUploadModal(ModalOptions options,UploadModalArgument argument) {
+		var modal = await ModalService.CreateModalAsync<UploadModal, UploadModalArgument, IList<File>?>(options, argument);
+		TaskCompletionSource<IList<File>?> taskSource = new();
+		modal.OnOk = modal.OnCancel = result => {
+			taskSource.SetResult(result);
+			return Task.CompletedTask;
+		};
+		return await taskSource.Task;
+	} 
+
 	private void OnTabChange(string key) => TabKey = key;
+
+	private async Task OnSubmitButtonClick(bool test) {
+		var options = new ModalOptions {
+			Title = Problem.Manual ? "上传作业文件" : "上传源文件",
+			OkText = "上传",
+			CancelText = "取消",
+			Draggable = true
+		};
+		var argument = new UploadModalArgument {
+			Accept = Problem.Manual ? "" : ".cpp",
+			Multiple = Problem.Manual
+		};
+		var files = await ShowUploadModal(options, argument);
+		if (files is null)
+			return;
+		var body = new NewSubmission {
+			Test = test,
+			Files = files
+		};
+		var stream = new MemoryStream();
+		new BinaryFormatter().Serialize(stream, body);
+		await Api.SubmitAsync(stream);
+	}
 
 }

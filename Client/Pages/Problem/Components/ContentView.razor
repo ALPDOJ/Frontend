@@ -17,16 +17,23 @@
 		</Card>
 	}
 
-	@if (Data.Content.Examples?.Count > 0) {
+	@if (Examples?.Count > 0) {
 		<Card Class="content-card" Title="@("样例")">
-			@foreach (var example in Data.Content.Examples!) {
+			@foreach (var example in Examples!) {
 				<Card Bordered>
-					<CardGrid Style="width: 50%">
-						@example.Input
-					</CardGrid>
-					<CardGrid Style="width: 50%">
-						@example.Output
-					</CardGrid>
+					@if (example.Input is not null) {
+						<CardGrid Style="width: 50%">
+							@example.Input
+						</CardGrid>
+						<CardGrid Style="width: 50%">
+							@example.Output
+						</CardGrid>
+					}
+					else {
+						<CardGrid Style="width: 100%">
+							@example.Output
+						</CardGrid>
+					}
 					@if (example.Explanation is not null) {
 						<CardGrid Style="width: 100%">
 							@example.Explanation
@@ -34,6 +41,20 @@
 					}
 				</Card>
 			}
+		</Card>
+	}
+	
+	@if (Data.Content.InputRange is not null) {
+		<Card Class="content-card" Title="输入数据范围">
+			<AntList Bordered DataSource="Data.Content.InputRange!">
+				@context.Description
+			</AntList>
+		</Card>
+	}
+	
+	@if (Data.Content.Limitation is not null) {
+		<Card Class="content-card" Title="代码限制">
+			<Text>@Data.Content.Limitation</Text>
 		</Card>
 	}
 </GridContent>
@@ -49,4 +70,6 @@
 	[Parameter]
 	public Problem Data { get; set; }
 
+	[Parameter]
+	public IList<TestCase> Examples { get; set; }
 }

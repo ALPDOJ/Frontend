@@ -1,9 +1,13 @@
-﻿@using Client.Utils
-@inherits FeedbackComponent<UploadModalArgument, IList<File>?>
+﻿@inherits FeedbackComponent<UploadModalArgument, Files?>
+@using Client.Utils
 
 <div class="upload-modal ant-upload ant-upload-selected-text ant-upload-drag ant-upload-select">
 	<div class="ant-upload" style="position: relative" role="button" tabindex="0">
-		<InputFile multiple="@Options.Multiple" accept="@Options.Accept" OnChange="@OnFileChange" />
+		<InputFile 
+			multiple="@Options.Multiple" 
+			accept="@Options.Accept" 
+			style="position: absolute;width: 100%;height: 100%;opacity: 0;top: 0;left: 0;z-index:2;" 
+			OnChange="@OnFileChange" />
 		<div class="ant-upload-drag-container" style="display: flex; flex-direction: column">
 			<p class="ant-upload-drag-icon">
 				<Icon Type="inbox" />
@@ -11,12 +15,14 @@
 			<p class="ant-upload-text">拖入源文件或点击以上传</p>
 		</div>
 	</div>
-	<AntList DataSource="@BrowserFiles">
-		<ListItem Actions="@GetActions(context)">
-			<ListItemMeta Title="@context.Name" />
-			<div>@Formatter.FormatSize(context.Size)</div>
-		</ListItem>
-	</AntList>
+	@if (BrowserFiles.Count > 0) {
+		<AntList DataSource="@BrowserFiles">
+			<ListItem Actions="@(new[] { GetDeleteAction(context) })">
+				<ListItemMeta Title="@context.Name" />
+				<div>@Formatter.FormatSize(context.Size)</div>
+			</ListItem>
+		</AntList>
+	}
 </div>
 
 
@@ -27,28 +33,26 @@
 
 	private List<IBrowserFile> BrowserFiles { get; } = new List<IBrowserFile>();
 
-	private List<File> Files { get; } = new List<File>();
+	private Files Result { get; } = new();
 
 	private long TotalSize { get; set; }
 
 	public override async Task OnFeedbackCancelAsync(ModalClosingEventArgs args) {
-		await (FeedbackRef as IOkCancelRef<IList<File>?>)!.OnCancel(null);
+		await (FeedbackRef as IOkCancelRef<Files?>)!.OnCancel(null);
 		await base.OnFeedbackCancelAsync(args);
 	}
 
 	public override async Task OnFeedbackOkAsync(ModalClosingEventArgs args) {
-		await (FeedbackRef as IOkCancelRef<IList<File>?>)!.OnOk(Files);
+		await (FeedbackRef as IOkCancelRef<Files?>)!.OnOk(Result);
 		await base.OnFeedbackOkAsync(args);
 	}
 
-	private RenderFragment[] GetActions(IBrowserFile file) => new[] {
-		<Icon Type="delete" OnClick="() => OnDelete(file)" />
-	};
+	private RenderFragment GetDeleteAction(IBrowserFile file) => @<Icon Type="delete" OnClick="() => OnDelete(file)" />;
 
 	private async Task OnFileChange(InputFileChangeEventArgs args) {
 		var files = args.FileCount > 1 ? args.GetMultipleFiles(args.FileCount) : new[] { args.File };
 		foreach (var file in files) {
-			if (Files.Any(f => f.Name == file.Name)) {
+			if (Result.ContainsKey(file.Name)) {
 				var _ = MessageService.Error($"文件{file.Name}已上传");
 				continue;
 			}
@@ -57,16 +61,13 @@
 				continue;
 			}
 			if (TotalSize + file.Size > Options.TotalFileSize) {
-				var _ = MessageService.Error($"上传文件总大小超出限制");
+				var _ = MessageService.Error("上传文件总大小超出限制");
 				continue;
 			}
 			await using var stream = file.OpenReadStream(file.Size);
-			var f = new File {
-				Name = file.Name,
-				Content = new byte[file.Size]
-			};
-			await stream.ReadAsync(f.Content);
-			Files.Add(f);
+			var content = new byte[file.Size];
+			await stream.ReadAsync(content);
+			Result.Add(file.Name, content);
 			BrowserFiles.Add(file);
 			TotalSize += file.Size;
 			StateHasChanged();
@@ -74,12 +75,12 @@
 	}
 
 	private void OnDelete(IBrowserFile browserFile) {
-		var file = Files.Find(f => f.Name == browserFile.Name);
-		if (file is null)
+		if (!Result.ContainsKey(browserFile.Name))
 			return;
-		TotalSize -= file.Content.Length;
+		var content = Result[browserFile.Name];
+		TotalSize -= content.Length;
 		BrowserFiles.Remove(browserFile);
-		Files.Remove(file);
+		Result.Remove(browserFile.Name);
 		StateHasChanged();
 	}
 

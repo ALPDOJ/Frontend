@@ -1,12 +1,34 @@
 @namespace Client.Pages.Account.Settings
 @page "/account/settings"
+@using Blazored.LocalStorage
 
 <GridContent>
 	<div class="main__b__2">
-		<Tabs Centered>
-			<TabPane Tab="基本资料" Key="1">
-				<BaseView />
-			</TabPane>
-		</Tabs>
+		<CascadingValue Name="CurrentUser" Value="@CurrentUser">
+			<CascadingValue Name="CurrentUserAvatar" Value="@CurrentUserAvatar">
+				<Tabs Centered>
+					<TabPane Tab="基本资料" Key="1">
+						<BaseView />
+					</TabPane>
+				</Tabs>
+			</CascadingValue>
+		</CascadingValue>
 	</div>
 </GridContent>
+
+@code {
+
+	[Inject]
+	private ISyncLocalStorageService LocalStorage { get; set; }
+
+	private User CurrentUser { get; set; }
+
+	private string? CurrentUserAvatar { get; set; }
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		CurrentUser = LocalStorage.GetItem<User>("currentUser");
+		CurrentUserAvatar = LocalStorage.GetItem<string?>("currentUserAvatar");
+	}
+
+}

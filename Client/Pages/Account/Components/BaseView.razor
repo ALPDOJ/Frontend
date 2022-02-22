@@ -31,8 +31,10 @@
 
 @code {
 
+	[CascadingParameter]
 	private User CurrentUser { get; set; }
 
+	[CascadingParameter]
 	private string? CurrentUserAvatar { get; set; }
 
 	private void OnSubmit() {

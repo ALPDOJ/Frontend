@@ -1,66 +1,75 @@
 ﻿@namespace Client.Pages.Problem
 
 <GridContent>
-	<Card Class="content-card" Title="@("题目描述")">
-		@Data.Content.Description
-	</Card>
-	
-	@if (Data.Content.Format is not null) {
-		<Card Class="content-card" BodyStyle="display:flex;" Title="@("数据格式")">
-			<Card Style="flex-grow: 1" Title="输入" Bordered>
-				@Data.Content.Format.Input
-			</Card>
-			<Divider Type="DirectionVHType.Vertical" />
-			<Card Style="flex-grow: 1" Title="输出" Bordered>
-				@Data.Content.Format.Output
-			</Card>
-		</Card>
+	@if (Problem is null) {
+		for (int i = 0; i < 2; ++i) {
+			<Card Loading Class="content-card" />
+		}
 	}
+	else {
+		<Card Class="content-card" Title="@("题目描述")">
+			@Problem.Content.Description
+		</Card>
 
-	@if (Examples?.Count > 0) {
-		<Card Class="content-card" Title="@("样例")">
-			@foreach (var example in Examples!) {
-				<Card Bordered>
-					@if (example.Input is not null) {
-						<CardGrid Style="width: 50%">
-							@example.Input
-						</CardGrid>
-						<CardGrid Style="width: 50%">
-							@example.Output
-						</CardGrid>
-					}
-					else {
-						<CardGrid Style="width: 100%">
-							@example.Output
-						</CardGrid>
-					}
-					@if (example.Explanation is not null) {
-						<CardGrid Style="width: 100%">
-							@example.Explanation
-						</CardGrid>
-					}
+		@if (Problem.Content.Format is not null) {
+			<Card Class="content-card" BodyStyle="display:flex;" Title="@("数据格式")">
+				<Card Style="flex-grow: 1" Title="输入" Bordered>
+					@Problem.Content.Format.Input
 				</Card>
-			}
-		</Card>
-	}
-	
-	@if (Data.Content.InputRange is not null) {
-		<Card Class="content-card" Title="输入数据范围">
-			<AntList Bordered DataSource="Data.Content.InputRange!">
-				@context.Description
-			</AntList>
-		</Card>
-	}
-	
-	@if (Data.Content.Limitation is not null) {
-		<Card Class="content-card" Title="代码限制">
-			<Text>@Data.Content.Limitation</Text>
-		</Card>
+				<Divider Type="DirectionVHType.Vertical" />
+				<Card Style="flex-grow: 1" Title="输出" Bordered>
+					@Problem.Content.Format.Output
+				</Card>
+			</Card>
+		}
+
+		@if (Examples?.Count > 0) {
+			<Card Class="content-card" Title="@("样例")">
+				@foreach (var example in Examples!) {
+					<Card Bordered>
+						@if (example.Input is not null) {
+							<CardGrid Style="width: 50%">
+								@example.Input
+							</CardGrid>
+							<CardGrid Style="width: 50%">
+								@example.Output
+							</CardGrid>
+						}
+						else {
+							<CardGrid Style="width: 100%">
+								@example.Output
+							</CardGrid>
+						}
+						@if (example.Explanation is not null) {
+							<CardGrid Style="width: 100%">
+								@example.Explanation
+							</CardGrid>
+						}
+					</Card>
+				}
+			</Card>
+		}
+
+		@if (Problem.Content.InputRange is not null) {
+			<Card Class="content-card" Title="输入数据范围">
+				<AntList Bordered DataSource="Problem.Content.InputRange!">
+					<ListItem>
+						@context.Description
+					</ListItem>
+				</AntList>
+			</Card>
+		}
+
+		@if (Problem.Content.Limitation is not null) {
+			<Card Class="content-card" Title="代码限制">
+				<Text>@Problem.Content.Limitation</Text>
+			</Card>
+		}
 	}
 </GridContent>
 
-<style scoped>
-	.content-card {
+<style lang="css" scoped>
+	.ant-card.content-card {
 		margin-top: 24px;
 	}
 </style>
@@ -68,8 +77,9 @@
 @code {
 
 	[Parameter]
-	public Problem Data { get; set; }
+	public Problem? Problem { get; set; }
 
 	[Parameter]
-	public IList<TestCase> Examples { get; set; }
+	public IList<TestCase>? Examples { get; set; }
+
 }

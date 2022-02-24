@@ -1,4 +1,5 @@
 ﻿@namespace Client.Components
+@using BasicLayout = Client.Layout.BasicLayout
 @inherits AntDomComponentBase
 
 <Space Class="@ClassMapper.Class" Size="@("24")">
@@ -6,8 +7,13 @@
 		<HeaderSearch Class="action search"
 			DefaultValue="umi ui"
 			Options="DefaultOptions"
-			Placeholder="Site Search" />
+			Placeholder="全站搜索" />
 	</SpaceItem>
+	@if (User.Role != Role.Student) {
+		<SpaceItem>
+			<Switch CheckedChildren="管理视图" UnCheckedChildren="学生视图" OnChange="OnLayoutChange" />
+		</SpaceItem>
+	}
 	<SpaceItem>
 		<AntDesign.Tooltip Placement="@Placement.Bottom" Title="@("Help")">
 			<Unbound>
@@ -64,6 +70,9 @@
 
 	[Parameter]
 	public string? Avatar { get; set; }
+
+	[CascadingParameter]
+	public BasicLayout Layout { get; set; }
 
 	private List<AutoCompleteDataItem<string>> DefaultOptions { get; set; } = new() {
 		new AutoCompleteDataItem<string> {
@@ -135,6 +144,18 @@
 
 	public async Task HandleViewMore(string key) {
 		await MessageService.Info("Click on view more");
+	}
+
+	private void OnLayoutChange(bool @checked) {
+		if (@checked) {
+			Layout.View = User.Role;
+			Navigator.NavigateTo("/admin");
+		}
+		else {
+			Layout.View = Role.Student;
+			Navigator.NavigateTo("/");
+		}
+		Layout.Refresh();
 	}
 
 }

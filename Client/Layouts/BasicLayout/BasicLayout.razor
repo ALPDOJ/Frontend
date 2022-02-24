@@ -1,23 +1,25 @@
 ﻿@namespace Client.Layout
-@using Blazored.LocalStorage
 @inherits LayoutComponentBase
+@using Blazored.LocalStorage
 
-<AntDesign.ProLayout.BasicLayout Logo="@("https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg")" MenuData="_menuData">
-	<RightContentRender>
-		<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
-	</RightContentRender>
-	<ChildContent>
-		@Body
-	</ChildContent>
-	<FooterRender>
-		<FooterView Style="margin-top:24px" Copyright="飞姐" Links="Links" />
-	</FooterRender>
-</AntDesign.ProLayout.BasicLayout>
-<SettingDrawer />
+<CascadingValue Value="@this" IsFixed>
+	<AntDesign.ProLayout.BasicLayout Logo="@("/asset/logo")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
+		<RightContentRender>
+			<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
+		</RightContentRender>
+		<ChildContent>
+			@Body
+		</ChildContent>
+		<FooterRender>
+			<FooterView Style="margin-top:24px" Copyright="飞姐" Links="Links" />
+		</FooterRender>
+	</AntDesign.ProLayout.BasicLayout>
+	<SettingDrawer />
+</CascadingValue>
 
 @code{
 
-	private readonly MenuDataItem[] _menuData = {
+	private static MenuDataItem[] StudentMenu { get; } = {
 		new MenuDataItem {
 			Path = "/",
 			Name = "主页",
@@ -44,34 +46,64 @@
 		}
 	};
 
+	private static MenuDataItem[] AdminMenu { get; } = {
+		new MenuDataItem {
+			Path = "/admin",
+			Name = "仪表盘",
+			Key = "dashboard",
+			Icon="dashboard"
+		},
+		new MenuDataItem {
+			Path = "/admin/user",
+			Name = "用户管理",
+			Key="user",
+			Icon = "user"
+		},
+		new MenuDataItem {
+			Path = "/admin/problem",
+			Name = "题目管理",
+			Key="problem",
+			Icon = "user"
+		},
+		new MenuDataItem {
+			Path = "/admin/assignment",
+			Name = "作业管理",
+			Key="assignment",
+			Icon = "user"
+		}
+	};
+
+	public Role View { get; set; } = Role.Student;
+
 	[Inject]
 	private ISyncLocalStorageService LocalStorage { get; set; }
 
-	public LinkItem[] Links { get; } =
-		{
-			new() {
-				Key = "Ant Design",
-				Title = "Ant Design",
-				Href = "https://antblazor.com",
-				BlankTarget = true
-			},
-			new() {
-				Key = "Blazor",
-				Title = "Blazor",
-				Href = "https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor",
-				BlankTarget = true
-			},
-			new() {
-				Key = "Author",
-				Title = (RenderFragment)(@<Icon Type="github" />),
-				Href = "https://github.com/truemogician",
-				BlankTarget = true
-			}
-		};
+	public LinkItem[] Links { get; } = {
+		new() {
+			Key = "Ant Design",
+			Title = "Ant Design",
+			Href = "https://antblazor.com",
+			BlankTarget = true
+		},
+		new() {
+			Key = "Blazor",
+			Title = "Blazor",
+			Href = "https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor",
+			BlankTarget = true
+		},
+		new() {
+			Key = "Author",
+			Title = (RenderFragment)(@<Icon Type="github" />),
+			Href = "https://github.com/truemogician",
+			BlankTarget = true
+		}
+	};
 
 	private User CurrentUser { get; set; }
 
 	private string? CurrentUserAvatar { get; set; }
+
+	public void Refresh() => StateHasChanged();
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();

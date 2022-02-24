@@ -1,0 +1,53 @@
+﻿@using Client.Utils
+@namespace Client.Pages.SubmissionResult
+
+<Card Bordered Class="test-case-result-card" Style="@($"background-color: {Color}")" onclick="@OnClick">
+	<Text>@($"#{Result.Id}")</Text>
+	<Text>@Text</Text>
+</Card>
+<Modal Visible="@ModalVisible">
+	<Descriptions Column="1" Colon>
+		<DescriptionsItem Title="评测点序号">@Result.Id</DescriptionsItem>
+		<DescriptionsItem Title="运行时间">@($"{Result.Consumption.Time} 毫秒")</DescriptionsItem>
+		<DescriptionsItem Title="内存消耗">@Formatter.FormatSize(Result.Consumption.Memory)</DescriptionsItem>
+	</Descriptions>
+</Modal>
+
+<style lang="css" scoped>
+	.test-case-result-card {
+		min-height: 80px;
+		min-width: 120px;
+		margin: 15px;
+		padding: 15px;
+		text-align: center;
+	}
+</style>
+
+@code {
+
+	[Parameter]
+	public TestCaseResult Result { get; set; }
+
+	private bool ModalVisible { get; set; }
+
+#pragma warning disable CS8524
+	private string Color => Result.Result switch {
+		TestCaseStatus.Accepted => "#00FF7F",
+		TestCaseStatus.WrongAnswer => "#FF6347",
+		TestCaseStatus.RuntimeError => "#8A2BE2",
+		TestCaseStatus.TimeLimitExceeded => "#FFA500",
+		TestCaseStatus.MemoryLimitExceeded => "##838B8B"
+	};
+
+	private string Text => Result.Result switch {
+		TestCaseStatus.Accepted => "AC",
+		TestCaseStatus.WrongAnswer => "WA",
+		TestCaseStatus.RuntimeError => "RE",
+		TestCaseStatus.TimeLimitExceeded => "TLE",
+		TestCaseStatus.MemoryLimitExceeded => "MLE"
+	};
+#pragma warning restore CS8524
+
+	private void OnClick() => ModalVisible = true;
+
+}

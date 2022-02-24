@@ -1,45 +1,79 @@
 ﻿@namespace Client.Pages.SubmissionResult
 @page "/submission/{Id:int}/result"
+@using Client.Utils
 
 <PageContainer Title="评测结果">
 	<Extra>
-		<Button Type="@ButtonType.Primary">返回题目</Button>
+		@if (Results is not null) {
+			<SimpleSelect DefaultValue="@Results.Keys.First()" OnSelectedItemChanged="OnSelectCompiler">
+				<SelectOptions>
+					@foreach (string key in Results.Keys) {
+						<SimpleSelectOption Label="@key" Value="@key" />
+					}
+				</SelectOptions>
+			</SimpleSelect>
+		}
+		<Button Disabled="@(Problem is null)" OnClick="@OnReturnToProblemClick" Type="@ButtonType.Primary">返回题目</Button>
 	</Extra>
 	<ExtraContent>
-		<Statistic Title="@("得分")" Value="@("10.0/10.0")" />
+		<Statistic Title="@("总得分")" Value="@("/")">
+			<PrefixTemplate>
+				@if (Results is null) {
+					<Spin />
+				}
+				else {
+					<AntDesign.Text>@Results.Values.Average(r => r.Score).ToString("F1")</AntDesign.Text>
+				}
+			</PrefixTemplate>
+			<SuffixTemplate>
+				@if (SubmissionLimit is null) {
+					<Spin />
+				}
+				else {
+					<AntDesign.Text>@SubmissionLimit.GetTotalScore().ToString("F1")</AntDesign.Text>
+				}
+			</SuffixTemplate>
+		</Statistic>
+		@if (DisplayingCompilerResult is not null && SubmissionLimit is not null) {
+			<Statistic Suffix="@($"/ {SubmissionLimit.GetTotalScore():F1}")" Title="@("当前编译器得分")" Value="@DisplayingCompilerResult.Score" />
+		}
 	</ExtraContent>
 	<Content>
-		<Descriptions Class="headerList" Column="2" Size="small">
-			<DescriptionsItem Title="@("评测ID")">@Id</DescriptionsItem>
-			<DescriptionsItem Title="@("Ordering Products")">XX Service</DescriptionsItem>
-			<DescriptionsItem Title="@("Creation Time")">2017-07-07</DescriptionsItem>
-			<DescriptionsItem Title="@("Associated documents")">
-				<a href="">12421</a>
-			</DescriptionsItem>
-			<DescriptionsItem Title="@("Effective Date")">2017-07-07 ~ 2017-08-08</DescriptionsItem>
-			<DescriptionsItem Title="@("Remarks")">Please confirm within two working days</DescriptionsItem>
-		</Descriptions>
+		@if (Submission is not null && Problem is not null) {
+			<Descriptions Class="headerList" Column="3" Size="@AntSizeLDSType.Small">
+				<DescriptionsItem Title="@("评测序号")">@Id</DescriptionsItem>
+				<DescriptionsItem Title="@("提交时间")">@Formatter.FormatDateTimeRelatively(Submission.Timestamp)</DescriptionsItem>
+				<DescriptionsItem Title="@("提交模式")">@(Submission.Test ? "测试提交" : "正式提交")</DescriptionsItem>
+				<DescriptionsItem Title="@("题目")" Span="2">@Problem.Title</DescriptionsItem>
+				<DescriptionsItem Title="@("用户")">@Submission.UserId</DescriptionsItem>
+			</Descriptions>
+		}
 	</Content>
 	<ChildContent>
 		<div class="main__b__3">
 			<GridContent>
 				<Card Style="margin-bottom: 24px;" Title="@("评测进度")">
-					<Steps Current="2" Direction="horizontal">
+					<Steps Current="@CurrentStep" Direction="horizontal">
 						<ChildContent>
 							<Step Title="@("已提交")" />
+							<Step Title="@("正在排队")" />
 							<Step Title="@("正在评测")" />
 							<Step Title="@("评测结束")" />
 						</ChildContent>
 					</Steps>
 				</Card>
-
-				<Card Style="margin-bottom: 24px" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Title="@("测试点状态")">
-					@for (int i = 0; i < 24; ++i) {
-						<Card Bordered Style="width: 150px; height: 100px; text-align: center; padding: 12px; margin: 18px; background-color: green">
-							Accepted
+				@if (DisplayingCompilerResult is not null) {
+					@if (DisplayingCompilerResult.Message is not null) {
+						<Alert Type="@AlertType.Error" Message="编译信息" Description="@DisplayingCompilerResult.Message" />
+					}
+					else {
+						<Card BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Style="margin-bottom: 24px" Title="@("测试点状态")">
+							@foreach (var result in DisplayingCompilerResult.TestCases!) {
+								<TestCaseResultCard Result="@result" />
+							}
 						</Card>
 					}
-				</Card>
+				}
 			</GridContent>
 		</div>
 	</ChildContent>
@@ -47,36 +81,46 @@
 
 @code {
 
-	private static TaskFactory TaskFactory { get; } = new();
-
-    [Parameter]
-    public int Id { get; set; }
-
 	[Parameter]
-	public int? ProblemId { get; set; }
+	public int Id { get; set; }
 
-	[Parameter]
-	public Problem? Problem { get; set; }
+	[Inject]
+	private NavigationManager Navigator { get; set; }
 
-    [Inject]
-    private ApiClient Api { get; set; }
+	[Inject]
+	private ApiClient Api { get; set; }
 
-	private SubmissionStatus Status { get; set; }
+	private Submission? Submission { get; set; }
 
-    private IDictionary<string, CompilerResult>? Results { get; set; }
+	private Problem? Problem { get; set; }
+
+	private ProblemSubmissionLimit? SubmissionLimit { get; set; }
+
+	private SubmissionStatus Status { get; set; } = SubmissionStatus.Submitted;
+
+	private IDictionary<string, CompilerResult>? Results { get; set; }
+
+	private string? DisplayingCompiler { get; set; }
+
+	private int CurrentStep => Status switch {
+		SubmissionStatus.Submitted => 0,
+		SubmissionStatus.Queueing => 1,
+		SubmissionStatus.Judging => 2,
+		_ => 3
+	};
+
+	private CompilerResult? DisplayingCompilerResult => DisplayingCompiler is null ? null : Results?[DisplayingCompiler];
 
 	protected override async Task OnParametersSetAsync() {
 		await base.OnParametersSetAsync();
-		if (ProblemId is null && Problem is null)
-			throw new ArgumentNullException("Problem information not provided");
-		if (ProblemId is null)
-			ProblemId = Problem!.Id;
-		else 
-			Problem = (await Api.GetProblemAsync(ProblemId!.Value)).Result;
+		Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
+		Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result;
+		SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result;
 	}
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
+#pragma warning disable CS4014
 		Task.Run(async () => {
 			var interval = TimeSpan.FromSeconds(0.5);
 			while (true) {
@@ -88,9 +132,15 @@
 				if (duration < interval)
 					await Task.Delay(interval - duration);
 			}
-		}).ContinueWith(async _ => {
-			Results = (await Api.GetJudgementResultAsync(Id)).Result;
-		}).ConfigureAwait(false);
+		}).ContinueWith(async _ => { Results = (await Api.GetJudgementResultAsync(Id)).Result; }).ConfigureAwait(false);
+#pragma warning restore CS4014
 	}
+
+	private void OnSelectCompiler(string compiler) {
+		DisplayingCompiler = compiler;
+		StateHasChanged();
+	}
+
+	private void OnReturnToProblemClick() => Navigator.NavigateTo($"/problem/{Problem!.Id}");
 
 }

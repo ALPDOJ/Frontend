@@ -1,6 +1,5 @@
 ﻿@namespace Client.Pages.Problem
 @page "/problem/{Id:int}"
-@using Client.Pages.Problem.Components
 @using Client.Utils
 @using Newtonsoft.Json
 
@@ -31,8 +30,8 @@ else {
 				</DescriptionsItem>
 				<DescriptionsItem Title="@("人工批阅")">@(Problem.Manual ? "是" : "否")</DescriptionsItem>
 				<DescriptionsItem Title="@("截止日期")">@Summary.Deadline.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
-				<DescriptionsItem Title="@("运行时间限制")">@($"{Problem.Limits.Time} ms")</DescriptionsItem>
-				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limits.Memory)</DescriptionsItem>
+				<DescriptionsItem Title="@("运行时间限制")">@($"{Problem.Limit.Time} ms")</DescriptionsItem>
+				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limit.Memory)</DescriptionsItem>
 			</Descriptions>
 		</Content>
 

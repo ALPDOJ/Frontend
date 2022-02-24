@@ -105,7 +105,21 @@
 
 	private bool LoggingIn { get; set; }
 
-	public async void OnSubmit() {
+	protected async override Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
+		if (LocalStorage.ContainKey("id")) {
+			var id = LocalStorage.GetItemAsString("id");
+			if (int.TryParse(id, out var result))
+				Parameters.Id = result;
+		}
+		if (LocalStorage.ContainKey("password")) {
+			var password = LocalStorage.GetItemAsString("password");
+			Parameters.Password = password;
+			AutoLogin = true;
+		}
+	}
+
+	private async void OnSubmit() {
 		if (Parameters.Id is null) {
 			var _ = MessageService.Error("学号不可为空");
 			return;
@@ -118,6 +132,10 @@
 		LoggingIn = true;
 		try {
 			await Api.LoginAsync(id, Parameters.Password);
+			if (AutoLogin) {
+				LocalStorage.SetItemAsString("id", id.ToString());
+				LocalStorage.SetItemAsString("password", Parameters.Password!);
+			}
 			LocalStorage.SetItem("currentUser", (await Api.GetCurrentUserAsync()).Result);
 			try {
 				var resp = await Api.GetUserAvatarAsync(id);

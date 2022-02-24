@@ -99,7 +99,7 @@ else {
 		try {
 			Problem = (await Api.GetProblemAsync(Id)).Result;
 			Examples = (await Api.GetExampleTestCasesAsync(Id)).Result;
-			Summary = (await Api.GetProblemSummaryAsync(Id.ToString())).Result;
+			Summary = (await Api.GetProblemSummaryAsync(Id)).Result;
 		}
 		catch { }
 	}

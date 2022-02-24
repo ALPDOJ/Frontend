@@ -1,14 +1,12 @@
-﻿@namespace Client.Pages.Submission
-@page "/submission/result/{Id:int}"
+﻿@namespace Client.Pages.SubmissionResult
+@page "/submission/{Id:int}/result"
 
-<PageContainer Class="pageHeader" Title="评测结果">
+<PageContainer Title="评测结果">
 	<Extra>
 		<Button Type="@ButtonType.Primary">返回题目</Button>
 	</Extra>
 	<ExtraContent>
-		<div class="moreInfo">
-			<Statistic Title="@("得分")" Value="@("10.0/10.0")" />
-		</div>
+		<Statistic Title="@("得分")" Value="@("10.0/10.0")" />
 	</ExtraContent>
 	<Content>
 		<Descriptions Class="headerList" Column="2" Size="small">
@@ -37,7 +35,7 @@
 
 				<Card Style="margin-bottom: 24px" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Title="@("测试点状态")">
 					@for (int i = 0; i < 24; ++i) {
-						<Card Bordered Style="width: 150px; height: 100px; text-align: center; padding:12px; margin:18px; background-color: green">
+						<Card Bordered Style="width: 150px; height: 100px; text-align: center; padding: 12px; margin: 18px; background-color: green">
 							Accepted
 						</Card>
 					}
@@ -49,17 +47,50 @@
 
 @code {
 
+	private static TaskFactory TaskFactory { get; } = new();
+
     [Parameter]
     public int Id { get; set; }
 
-    [Inject]
-    protected ApiClient Api { get; set; }
+	[Parameter]
+	public int? ProblemId { get; set; }
 
-    private SubmissionResult Data { get; set; }
+	[Parameter]
+	public Problem? Problem { get; set; }
+
+    [Inject]
+    private ApiClient Api { get; set; }
+
+	private SubmissionStatus Status { get; set; }
+
+    private IDictionary<string, CompilerResult>? Results { get; set; }
+
+	protected override async Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
+		if (ProblemId is null && Problem is null)
+			throw new ArgumentNullException("Problem information not provided");
+		if (ProblemId is null)
+			ProblemId = Problem!.Id;
+		else 
+			Problem = (await Api.GetProblemAsync(ProblemId!.Value)).Result;
+	}
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		Data = (await Api.GetSubmissionResultAsync(Id)).Result;
+		Task.Run(async () => {
+			var interval = TimeSpan.FromSeconds(0.5);
+			while (true) {
+				var time = DateTime.Now;
+				Status = (await Api.GetSubmissionStatusAsync(Id)).Result;
+				if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed)
+					break;
+				var duration = DateTime.Now - time;
+				if (duration < interval)
+					await Task.Delay(interval - duration);
+			}
+		}).ContinueWith(async _ => {
+			Results = (await Api.GetJudgementResultAsync(Id)).Result;
+		}).ConfigureAwait(false);
 	}
 
 }

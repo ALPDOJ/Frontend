@@ -6,7 +6,7 @@
 <Card Bordered>
 	<CascadingValue Value="@CurrentUser" Name="@("CurrentUser")" IsFixed>
 		@foreach (var tree in CommentForest) {
-			<CommentTree Data="tree.Root" OnReply="@OnReply" />
+			<CommentTree Value="@tree.Root" OnReply="@OnReply" />
 		}
 	</CascadingValue>
 	
@@ -78,12 +78,19 @@
 	}
 
 	private async Task SubmitComment() {
-		var resp = await Api.CommentProblemAsync(ProblemId, new NewComment {ReplyTo = RepliedCommentId, Content=CommentContent});
+		var content = new RichText {
+			Format = RichTextFormat.Raw,
+			Content = CommentContent
+		};
+		var resp = await Api.CommentProblemAsync(ProblemId, new NewComment {
+			ReplyTo = RepliedCommentId, 
+			Content= content
+		});
 		var newComment = new Comment {
 			Id = resp.Result.Id,
 			ProblemId = ProblemId,
 			Time = resp.Result.Time,
-			Content = CommentContent,
+			Content = content,
 			ReplyTo = RepliedCommentId,
 			Author = new Author {
 				Id = CurrentUser.Id,

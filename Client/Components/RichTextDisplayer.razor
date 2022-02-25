@@ -1,0 +1,28 @@
+﻿@using Markdig
+
+@if (Html is null) {
+	<AntDesign.Text>Value.Content</AntDesign.Text>
+}
+else {
+	<AntDesign.Text>@Html</AntDesign.Text>
+}
+
+@code {
+
+	private RichText _value;
+
+	[Parameter]
+	public RichText Value {
+		get => _value;
+		set {
+			_value = value;
+			if (value.Format == RichTextFormat.Html)
+				Html = new MarkupString(value.Content);
+			else if (value.Format == RichTextFormat.Markdown)
+				Html = new MarkupString(Markdown.ToHtml(value.Content));
+		}
+	}
+
+	private MarkupString? Html { get; set; }
+
+}

@@ -6,7 +6,7 @@
 		<div class="top">
 			<div class="header">
 				<a>
-					<img alt="logo" class="logo" src="assets/logo.svg" />
+					<img alt="logo" class="logo" src="@($"{Api.BaseUrl}/asset/logo")" />
 					<span class="title">ALPDOJ</span>
 				</a>
 			</div>
@@ -29,26 +29,28 @@
 
 @code{
 
-	public LinkItem[] Links { get; } =
-		{
-			new() {
-				Key = "Ant Design Blazor",
-				Title = "Ant Design Blazor",
-				Href = "https://antblazor.com",
-				BlankTarget = true
-			},
-			new() {
-				Key = "Blazor",
-				Title = "Blazor",
-				Href = "https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor?WT.mc_id=DT-MVP-5003987",
-				BlankTarget = true
-			},
-			new() {
-				Key = "Repository",
-				Title = (RenderFragment)(@<Icon Type="github" />),
-				Href = "https://github.com/ALPDOJ/Frontend",
-				BlankTarget = true
-			}
-		};
+	public LinkItem[] Links { get; } = {
+		new() {
+			Key = "Ant Design Blazor",
+			Title = "Ant Design Blazor",
+			Href = "https://antblazor.com",
+			BlankTarget = true
+		},
+		new() {
+			Key = "Blazor",
+			Title = "Blazor",
+			Href = "https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor?WT.mc_id=DT-MVP-5003987",
+			BlankTarget = true
+		},
+		new() {
+			Key = "Author",
+			Title = (RenderFragment)(@<Icon Type="github" />),
+			Href = "https://github.com/truemogician",
+			BlankTarget = true
+		}
+	};
+
+	[Inject]
+	private ApiClient Api { get; set; }
 
 }

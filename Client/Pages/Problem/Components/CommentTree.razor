@@ -83,8 +83,8 @@
 
 	private RenderFragment RenderAvatar(Author author) {
 		if (author.HasAvatar)
-			return @<Avatar Src="@($"{Api.BaseUrl}/user/{author.Id}/avatar")" />;
-        return @<Avatar>author.Username[0]</Avatar>;
+			return @<Avatar Src="@($"/user/{author.Id}/avatar")" />;
+        return @<Avatar>author.Username</Avatar>;
 	}
 
 	private async Task ReactToComment(CommentReaction button) {

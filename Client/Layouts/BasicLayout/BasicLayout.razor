@@ -3,7 +3,7 @@
 @using Blazored.LocalStorage
 
 <CascadingValue Value="@this" IsFixed>
-	<AntDesign.ProLayout.BasicLayout Logo="@("/asset/logo")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
+	<AntDesign.ProLayout.BasicLayout Logo="@($"{Api.BaseUrl}/asset/logo")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
 		<RightContentRender>
 			<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
 		</RightContentRender>
@@ -74,6 +74,9 @@
 	};
 
 	public Role View { get; set; } = Role.Student;
+
+	[Inject]
+	private ApiClient Api { get; set; }
 
 	[Inject]
 	private ISyncLocalStorageService LocalStorage { get; set; }

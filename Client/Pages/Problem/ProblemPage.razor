@@ -16,14 +16,14 @@ else {
 		</Extra>
 		<ExtraContent>
 			@if (Summary is not null) {
-				<div class="moreInfo">
+				<div class="more-info">
 					<Statistic Title="@("剩余次数")" Value="@(Summary.Times - Summary.SubmittedTimes)" />
 					<Statistic Title="@("当前分数")" Value="@($"{Summary.Score ?? 0} / {Summary.TotalScore}")" />
 				</div>
 			}
 		</ExtraContent>
 		<Content>
-			<Descriptions Class="headerList" Column="2" Size="small">
+			<Descriptions Class="header-list" Column="2" Size="small">
 				<DescriptionsItem Title="@("题目序号")">@Id</DescriptionsItem>
 				<DescriptionsItem Title="@("题目标签")">
 					@foreach (var tag in Problem.Tags) {
@@ -31,7 +31,7 @@ else {
 					}
 				</DescriptionsItem>
 				<DescriptionsItem Title="@("批阅模式")">@(Problem.Manual ? "人工批阅" : "自动评测")</DescriptionsItem>
-				<DescriptionsItem Title="@("截止日期")">@Summary.Deadline.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
+				<DescriptionsItem Title="@("截止日期")"><TextOrSpin Value="@Summary?.Deadline.ToString("yyyy-MM-dd hh:mm:ss")" /></DescriptionsItem>
 				<DescriptionsItem Title="@("运行时间限制")">@($"{Problem.Limit.Time} ms")</DescriptionsItem>
 				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limit.Memory)</DescriptionsItem>
 			</Descriptions>

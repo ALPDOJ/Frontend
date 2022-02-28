@@ -6,11 +6,11 @@
 
 .main__b__3 .ant-page-header-heading-extra { flex-direction: column; }
 
-.headerList { margin-bottom: 4px; }
+.header-list { margin-bottom: 4px; }
 
-.headerList .ant-descriptions-row > td { padding-bottom: 8px; }
+.header-list .ant-descriptions-row > td { padding-bottom: 8px; }
 
-.headerList .stepDescription {
+.header-list .step-description {
     font-size: 14px;
     left: 38px;
     padding-top: 8px;
@@ -18,21 +18,21 @@
     text-align: left;
 }
 
-.headerList .stepDescription > div {
+.header-list .step-description > div {
     margin-bottom: 4px;
     margin-top: 8px;
 }
 
-.pageHeader .ant-page-header-heading-extra > * + * { margin-left: 8px; }
+.page-header .ant-page-header-heading-extra > * + * { margin-left: 8px; }
 
-.pageHeader .moreInfo {
+.page-header .more-info {
     display: flex;
     justify-content: space-between;
     width: 200px;
 }
 
 @media screen and (max-width: 576px) {
-    .stepDescription { left: 8px; }
+    .step-description { left: 8px; }
 
-    .pageHeader .ant-pro-page-header-wrap-row { flex-direction: column; }
+    .page-header .ant-pro-page-header-wrap-row { flex-direction: column; }
 }

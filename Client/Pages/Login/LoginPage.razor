@@ -23,7 +23,7 @@
 				</AntDesign.Input>
 			</FormItem>
 			<div>
-				<Checkbox Checked="@AutoLogin">
+				<Checkbox @bind-Value="@AutoLogin">
 					自动登录
 				</Checkbox>
 				<a style="float: right;">
@@ -107,16 +107,20 @@
 
 	protected async override Task OnParametersSetAsync() {
 		await base.OnParametersSetAsync();
-		if (LocalStorage.ContainKey("id")) {
+		bool hasId = LocalStorage.ContainKey("id"), hasPassword = LocalStorage.ContainKey("password");
+		if (hasId) {
 			var id = LocalStorage.GetItemAsString("id");
 			if (int.TryParse(id, out var result))
 				Parameters.Id = result;
 		}
-		if (LocalStorage.ContainKey("password")) {
+		if (hasPassword) {
 			var password = LocalStorage.GetItemAsString("password");
 			Parameters.Password = password;
-			AutoLogin = true;
 		}
+		if (hasId && hasPassword)
+			AutoLogin = true;
+		if (hasId || hasPassword)
+			StateHasChanged();
 	}
 
 	private async void OnSubmit() {
@@ -136,13 +140,17 @@
 				LocalStorage.SetItemAsString("id", id.ToString());
 				LocalStorage.SetItemAsString("password", Parameters.Password!);
 			}
+			else {
+				LocalStorage.RemoveItem("id");
+				LocalStorage.RemoveItem("password");
+			}
 			LocalStorage.SetItem("currentUser", (await Api.GetCurrentUserAsync()).Result);
 			try {
 				var resp = await Api.GetUserAvatarAsync(id);
 				var memoryStream = new MemoryStream();
 				await resp.Stream.CopyToAsync(memoryStream);
 				var base64Image = Convert.ToBase64String(memoryStream.ToArray());
-				LocalStorage.SetItem("currentUserAvatar", $"data:{resp.Headers["Content-Type"]};base64,{base64Image}");
+				LocalStorage.SetItem("currentUserAvatar", $"data:{resp.Headers["Content-Type"].Single()};base64,{base64Image}");
 			}
 			catch (ApiException ex) {
 				if (ex.StatusCode == 404)

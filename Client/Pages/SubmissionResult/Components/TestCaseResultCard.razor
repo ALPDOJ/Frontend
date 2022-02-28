@@ -1,17 +1,12 @@
-﻿@using Client.Utils
-@namespace Client.Pages.SubmissionResult
+﻿@namespace Client.Pages.SubmissionResult
+@using Client.Utils
 
-<Card Bordered Class="test-case-result-card" Style="@($"background-color: {Color}")" onclick="@OnClick">
-	<Text>@($"#{Result.Id}")</Text>
-	<Text>@Text</Text>
-</Card>
-<Modal Visible="@ModalVisible">
-	<Descriptions Column="1" Colon>
-		<DescriptionsItem Title="评测点序号">@Result.Id</DescriptionsItem>
-		<DescriptionsItem Title="运行时间">@($"{Result.Consumption.Time} 毫秒")</DescriptionsItem>
-		<DescriptionsItem Title="内存消耗">@Formatter.FormatSize(Result.Consumption.Memory)</DescriptionsItem>
-	</Descriptions>
-</Modal>
+<div onclick="@OnClick">
+	<Card Bordered Class="test-case-result-card" Style="@($"background-color: {Color}")">
+		<Text>@($"#{Result.Id}")</Text>
+		<Text>@Text</Text>
+	</Card>
+</div>
 
 <style lang="css" scoped>
 	.test-case-result-card {
@@ -28,7 +23,15 @@
 	[Parameter]
 	public TestCaseResult Result { get; set; }
 
-	private bool ModalVisible { get; set; }
+	[Inject]
+	private ModalService ModalService { get; set; }
+
+	private RenderFragment ModalContent => (
+		@<Descriptions Column="1" Colon>
+			<DescriptionsItem Title="运行时间">@($"{Result.Consumption.Time} 毫秒")</DescriptionsItem>
+			<DescriptionsItem Title="内存消耗">@Formatter.FormatSize(Result.Consumption.Memory)</DescriptionsItem>
+		</Descriptions>
+	);
 
 #pragma warning disable CS8524
 	private string Color => Result.Result switch {
@@ -48,6 +51,11 @@
 	};
 #pragma warning restore CS8524
 
-	private void OnClick() => ModalVisible = true;
+	private void OnClick() {
+		ModalService.Info(new ConfirmOptions {
+			Title = $"评测点{Result.Id}",
+			Content = ModalContent
+		});
+	}
 
 }

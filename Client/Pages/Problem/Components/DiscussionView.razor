@@ -94,7 +94,7 @@
 			ReplyTo = RepliedCommentId,
 			Author = new Author {
 				Id = CurrentUser.Id,
-				Username = CurrentUser.Username,
+				Username = CurrentUser.GetDisplayingName(),
 				HasAvatar = CurrentUserAvatar is not null
 			}
 		};

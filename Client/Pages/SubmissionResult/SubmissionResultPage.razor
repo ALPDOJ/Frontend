@@ -1,48 +1,52 @@
 ﻿@namespace Client.Pages.SubmissionResult
 @page "/submission/{Id:int}/result"
-@using Client.Utils
+@using Newtonsoft.Json
 
 <PageContainer Title="评测结果">
 	<Extra>
-		@if (Results is not null) {
-			<SimpleSelect DefaultValue="@Results.Keys.First()" OnSelectedItemChanged="OnSelectCompiler">
-				<SelectOptions>
-					@foreach (string key in Results.Keys) {
-						<SimpleSelectOption Label="@key" Value="@key" />
-					}
-				</SelectOptions>
-			</SimpleSelect>
-		}
-		<Button Disabled="@(Problem is null)" OnClick="@OnReturnToProblemClick" Type="@ButtonType.Primary">返回题目</Button>
+		<div style="display: flex">
+			@if (Results is not null) {
+				<SimpleSelect @bind-Value="@DisplayingCompiler">
+					<SelectOptions>
+						@foreach (string key in Results.Keys) {
+							<SimpleSelectOption Label="@key" Value="@key" />
+						}
+					</SelectOptions>
+				</SimpleSelect>
+			}
+			<Button Disabled="@(Problem is null)" OnClick="@OnReturnToProblemClick" Type="@ButtonType.Primary">返回题目</Button>
+		</div>
 	</Extra>
 	<ExtraContent>
-		<Statistic Title="@("总得分")" Value="@("/")">
-			<PrefixTemplate>
-				@if (Results is null) {
-					<Spin />
-				}
-				else {
-					<AntDesign.Text>@Results.Values.Average(r => r.Score).ToString("F1")</AntDesign.Text>
-				}
-			</PrefixTemplate>
-			<SuffixTemplate>
-				@if (SubmissionLimit is null) {
-					<Spin />
-				}
-				else {
-					<AntDesign.Text>@SubmissionLimit.GetTotalScore().ToString("F1")</AntDesign.Text>
-				}
-			</SuffixTemplate>
-		</Statistic>
-		@if (DisplayingCompilerResult is not null && SubmissionLimit is not null) {
-			<Statistic Suffix="@($"/ {SubmissionLimit.GetTotalScore():F1}")" Title="@("当前编译器得分")" Value="@DisplayingCompilerResult.Score" />
-		}
+		<div style="display: flex">
+			<Statistic Title="@("总得分")" Value="@("/")">
+				<PrefixTemplate>
+					@if (Results is null) {
+						<Spin />
+					}
+					else {
+						<AntDesign.Text>@Results.Values.Average(r => r.Score).ToString("F1")</AntDesign.Text>
+					}
+				</PrefixTemplate>
+				<SuffixTemplate>
+					@if (SubmissionLimit is null) {
+						<Spin />
+					}
+					else {
+						<AntDesign.Text>@SubmissionLimit.GetTotalScore().ToString("F1")</AntDesign.Text>
+					}
+				</SuffixTemplate>
+			</Statistic>
+			@if (DisplayingCompilerResult is not null && SubmissionLimit is not null) {
+				<Statistic Suffix="@($"/ {SubmissionLimit.GetTotalScore():F1}")" Title="@("当前编译器得分")" Value="@DisplayingCompilerResult.Score" Style="margin-left: 12px" />
+			}
+		</div>
 	</ExtraContent>
 	<Content>
 		@if (Submission is not null && Problem is not null) {
-			<Descriptions Class="headerList" Column="3" Size="@AntSizeLDSType.Small">
+			<Descriptions Bordered Column="3" Size="@AntSizeLDSType.Small" Class="headerList">
 				<DescriptionsItem Title="@("评测序号")">@Id</DescriptionsItem>
-				<DescriptionsItem Title="@("提交时间")">@Formatter.FormatDateTimeRelatively(Submission.Timestamp)</DescriptionsItem>
+				<DescriptionsItem Title="@("提交时间")">@Submission.Timestamp.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
 				<DescriptionsItem Title="@("提交模式")">@(Submission.Test ? "测试提交" : "正式提交")</DescriptionsItem>
 				<DescriptionsItem Title="@("题目")" Span="2">@Problem.Title</DescriptionsItem>
 				<DescriptionsItem Title="@("用户")">@Submission.UserId</DescriptionsItem>
@@ -81,6 +85,8 @@
 
 @code {
 
+	private string? _displayingCompiler;
+
 	[Parameter]
 	public int Id { get; set; }
 
@@ -100,7 +106,15 @@
 
 	private IDictionary<string, CompilerResult>? Results { get; set; }
 
-	private string? DisplayingCompiler { get; set; }
+	private string? DisplayingCompiler {
+		get => _displayingCompiler;
+		set {
+			if (_displayingCompiler != value) {
+				_displayingCompiler = value;
+				StateHasChanged();
+			}
+		}
+	}
 
 	private int CurrentStep => Status switch {
 		SubmissionStatus.Submitted => 0,
@@ -120,25 +134,28 @@
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
+		var interval = TimeSpan.FromSeconds(1);
 #pragma warning disable CS4014
 		Task.Run(async () => {
-			var interval = TimeSpan.FromSeconds(0.5);
 			while (true) {
-				var time = DateTime.Now;
-				Status = (await Api.GetSubmissionStatusAsync(Id)).Result;
-				if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed)
-					break;
-				var duration = DateTime.Now - time;
-				if (duration < interval)
-					await Task.Delay(interval - duration);
+				try {
+					var time = DateTime.Now;
+					Status = (await Api.GetSubmissionStatusAsync(Id)).Result.SubmissionStatus;
+					if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed)
+						break;
+					var duration = DateTime.Now - time;
+					if (duration < interval)
+						await Task.Delay(interval - duration);
+					StateHasChanged();
+				}
+				catch (Exception ex) {
+					Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+				}
 			}
-		}).ContinueWith(async _ => { Results = (await Api.GetJudgementResultAsync(Id)).Result; }).ConfigureAwait(false);
+			Results = (await Api.GetJudgementResultAsync(Id)).Result;
+			DisplayingCompiler = Results.Keys.First();
+		}).ConfigureAwait(false);
 #pragma warning restore CS4014
-	}
-
-	private void OnSelectCompiler(string compiler) {
-		DisplayingCompiler = compiler;
-		StateHasChanged();
 	}
 
 	private void OnReturnToProblemClick() => Navigator.NavigateTo($"/problem/{Problem!.Id}");

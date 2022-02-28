@@ -12,41 +12,39 @@
 		</Card>
 
 		@if (Problem.Content.Format is not null) {
-			<Card Class="content-card" BodyStyle="display:flex;" Title="@("数据格式")">
-				<Card Style="flex-grow: 1" Title="输入" Bordered>
+			<Card Title="@("数据格式")" Class="content-card" BodyStyle="display:flex">
+				<Card Title="输入" Bordered  Style="flex-grow: 1">
 					@Problem.Content.Format.Input
 				</Card>
-				<Divider Type="DirectionVHType.Vertical" />
-				<Card Style="flex-grow: 1" Title="输出" Bordered>
+				<Card Title="输出" Bordered  Style="flex-grow: 1">
 					@Problem.Content.Format.Output
 				</Card>
 			</Card>
 		}
 
 		@if (Examples?.Count > 0) {
-			<Card Class="content-card" Title="@("样例")">
-				@foreach (var example in Examples!) {
-					<Card Bordered>
-						@if (example.Input is not null) {
-							<CardGrid Style="width: 50%">
-								@example.Input
-							</CardGrid>
-							<CardGrid Style="width: 50%">
-								@example.Output
-							</CardGrid>
-						}
-						else {
-							<CardGrid Style="width: 100%">
-								@example.Output
-							</CardGrid>
-						}
-						@if (example.Explanation is not null) {
-							<CardGrid Style="width: 100%">
-								@example.Explanation
-							</CardGrid>
-						}
-					</Card>
-				}
+			<Card Title="@("样例")" Class="content-card">
+				<Row Gutter="16">
+					@foreach (var example in Examples!) {
+						<AntDesign.Col Span="12">
+							<Descriptions Bordered Column="2">
+								@if (example.Input is not null) {
+									<DescriptionsItem Title="输入">
+										@example.Input
+									</DescriptionsItem>
+								}
+								<DescriptionsItem Title="输出" Span="@(example.Input is null ? 2 : 1)">
+									@example.Output
+								</DescriptionsItem>
+								@if (example.Explanation is not null) {
+									<DescriptionsItem Title="样例解释" Span="2">
+										@example.Explanation
+									</DescriptionsItem>
+								}
+							</Descriptions>
+						</AntDesign.Col>
+					}
+				</Row>
 			</Card>
 		}
 

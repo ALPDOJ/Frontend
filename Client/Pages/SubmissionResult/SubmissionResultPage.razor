@@ -21,20 +21,10 @@
 		<div style="display: flex">
 			<Statistic Title="@("总得分")" Value="@("/")">
 				<PrefixTemplate>
-					@if (Results is null) {
-						<Spin />
-					}
-					else {
-						<AntDesign.Text>@Results.Values.Average(r => r.Score).ToString("F1")</AntDesign.Text>
-					}
+					<TextOrSpin Value="@Results?.Values.Average(r => r.Score).ToString("F1")" />
 				</PrefixTemplate>
 				<SuffixTemplate>
-					@if (SubmissionLimit is null) {
-						<Spin />
-					}
-					else {
-						<AntDesign.Text>@SubmissionLimit.GetTotalScore().ToString("F1")</AntDesign.Text>
-					}
+					<TextOrSpin Value="@SubmissionLimit?.GetTotalScore().ToString("F1")" />
 				</SuffixTemplate>
 			</Statistic>
 			@if (DisplayingCompilerResult is not null && SubmissionLimit is not null) {
@@ -44,7 +34,7 @@
 	</ExtraContent>
 	<Content>
 		@if (Submission is not null && Problem is not null) {
-			<Descriptions Bordered Column="3" Size="@AntSizeLDSType.Small" Class="headerList">
+			<Descriptions Bordered Column="3" Size="@AntSizeLDSType.Small" Class="header-list">
 				<DescriptionsItem Title="@("评测序号")">@Id</DescriptionsItem>
 				<DescriptionsItem Title="@("提交时间")">@Submission.Timestamp.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
 				<DescriptionsItem Title="@("提交模式")">@(Submission.Test ? "测试提交" : "正式提交")</DescriptionsItem>
@@ -67,11 +57,26 @@
 					</Steps>
 				</Card>
 				@if (DisplayingCompilerResult is not null) {
-					@if (DisplayingCompilerResult.Message is not null) {
-						<Alert Type="@AlertType.Error" Message="编译信息" Description="@DisplayingCompilerResult.Message" />
+					@if (DisplayingCompilerResult.Message?.Errors is not null) {
+						<Alert Type="@AlertType.Error" Message="编译错误" Style="margin-bottom: 1em">
+							<AntList Bordered DataSource="@DisplayingCompilerResult.Message.Errors" Size="@AntSizeLDSType.Small">
+								<ListItem>
+									@context
+								</ListItem>
+							</AntList>
+						</Alert>
 					}
-					else {
-						<Card BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Style="margin-bottom: 24px" Title="@("测试点状态")">
+					@if (DisplayingCompilerResult.Message?.Warnings is not null) {
+						<Alert Type="@AlertType.Warning" Message="编译警告" Style="margin-bottom: 1em">
+							<AntList Bordered DataSource="@DisplayingCompilerResult.Message.Warnings" Size="@AntSizeLDSType.Small">
+								<ListItem>
+									@context
+								</ListItem>
+							</AntList>
+						</Alert>
+					}
+					@if (DisplayingCompilerResult.TestCases is not null) {
+						<Card Title="测试点状态" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Style="margin-bottom: 24px">
 							@foreach (var result in DisplayingCompilerResult.TestCases!) {
 								<TestCaseResultCard Result="@result" />
 							}

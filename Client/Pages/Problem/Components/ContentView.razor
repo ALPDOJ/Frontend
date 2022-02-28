@@ -24,8 +24,8 @@
 
 		@if (Examples?.Count > 0) {
 			<Card Title="@("样例")" Class="content-card">
-				<Row Gutter="16">
-					@foreach (var example in Examples!) {
+				<Row Gutter="@((Gutter, Gutter))" Align="top">
+					@foreach (var example in Examples) {
 						<AntDesign.Col Span="12">
 							<Descriptions Bordered Column="2">
 								@if (example.Input is not null) {
@@ -34,7 +34,7 @@
 									</DescriptionsItem>
 								}
 								<DescriptionsItem Title="输出" Span="@(example.Input is null ? 2 : 1)">
-									@example.Output
+									@example.Expect
 								</DescriptionsItem>
 								@if (example.Explanation is not null) {
 									<DescriptionsItem Title="样例解释" Span="2">
@@ -73,11 +73,18 @@
 </style>
 
 @code {
+	private static Dictionary<string, int> Gutter { get; } = new() {
+		["xs"] = 8,
+		["sm"] = 16,
+		["md"] = 24,
+		["lg"] = 32,
+		["xl"] = 48,
+		["xxl"] = 64
+	};
 
 	[Parameter]
 	public Problem? Problem { get; set; }
 
 	[Parameter]
 	public IList<TestCase>? Examples { get; set; }
-
 }

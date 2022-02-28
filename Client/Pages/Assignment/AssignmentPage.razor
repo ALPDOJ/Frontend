@@ -2,21 +2,24 @@
 @page "/assignment"
 @using TrueMogician.Extensions.Enumerable
 
-<div class="standardList">
+<div class="standard-list">
 	<Card>
 		<Row Gutter="24">
 			<AntDesign.Col Sm="6" Xs="24">
-				@RenderHeaderInfo("已完成", _problemSummaries.Count(CompletedFilter).ToString(), true)
+				@RenderHeaderInfo("已完成", ProblemSummaries?.Count(CompletedFilter).ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@RenderHeaderInfo("进行中", _problemSummaries.Count(OngoingFilter).ToString(), true)
+				@RenderHeaderInfo("进行中", ProblemSummaries?.Count(OngoingFilter).ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@RenderHeaderInfo("已延期", _problemSummaries.Count(DelayedFilter).ToString(), true)
+				@RenderHeaderInfo("已延期", ProblemSummaries?.Count(DelayedFilter).ToString(), true)
 			</AntDesign.Col>
 			<AntDesign.Col Sm="6" Xs="24">
-				@if (LatestDeadline.HasValue) {
-					<CountDown Class="headerInfo" Title="最近截止日期" Value="@LatestDeadline.Value" Format="dd:hh:mm:ss" OnFinish="StateHasChanged" />
+				@if (ProblemSummaries is null) {
+					@RenderHeaderInfo("最近截止日期", null)
+				}
+				else if (LatestDeadline.HasValue) {
+					<CountDown Class="header-info" Title="最近截止日期" Value="@LatestDeadline.Value" Format="dd:hh:mm:ss" OnFinish="StateHasChanged" />
 				}
 				else {
 					@RenderHeaderInfo("最近截止日期", "无")
@@ -25,17 +28,16 @@
 		</Row>
 	</Card>
 
-	<Card BodyStyle="padding: 0 32px 40px 32px" Class="listCard" Style="margin-top: 24px;"
-		Title="题目">
+	<Card Class="list-card" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px" Title="题目">
 		<Extra>
-			<div class="extraContent" style="display: flex">
-				<RadioGroup Class="filterRatioGroup" Style="display: flex" @bind-Value="StatusFilter">
+			<div class="extra-content" style="display: flex">
+				<RadioGroup @bind-Value="StatusFilter" Class="filter-ratio-group" Style="display: flex">
 					<Radio RadioButton Value="@ProblemStatusFilter.All">所有</Radio>
 					<Radio RadioButton Value="@ProblemStatusFilter.Delayed">已延期</Radio>
 					<Radio RadioButton Value="@ProblemStatusFilter.Ongoing">进行中</Radio>
 					<Radio RadioButton Value="@ProblemStatusFilter.Completed">已完成</Radio>
 				</RadioGroup>
-				<Search Class="extraContentSearch" @bind-Value="SearchKeyword" Placeholder="请输入关键字" />
+				<Search @bind-Value="SearchKeyword" Placeholder="请输入关键字" Class="extra-content-search"/>
 			</div>
 		</Extra>
 		<ChildContent>
@@ -46,16 +48,16 @@
 							<a href="@($"/problem/{context.Id}")">@context.Title</a>
 						</TitleTemplate>
 					</ListItemMeta>
-					<div class="listContent">
-						<div class="listContentItem">
+					<div class="list-content">
+						<div class="list-content-item">
 							<span>剩余次数</span>
 							<p>@(context.Times - context.SubmittedTimes)</p>
 						</div>
-						<div class="listContentItem">
+						<div class="list-content-item">
 							<span>@(context.Deadline < DateTimeOffset.Now ? "已过期" : "剩余时间")</span>
 							<p>@((context.Deadline - DateTimeOffset.Now).Duration().ToString(@"d\天h\时m\分"))</p>
 						</div>
-						<div class="listContentItem">
+						<div class="list-content-item">
 							<AntDesign.Progress Percent="@((context.Score ?? 0) * 100 / context.TotalScore)"
 								Status="@GetProgressStatus(context)" StrokeWidth="6" Style="width: 180px;" />
 						</div>
@@ -67,32 +69,32 @@
 </div>
 
 <style lang="css" scoped>
-	.standardList .ant-card-head { border-bottom: none; }
+	.standard-list .ant-card-head { border-bottom: none; }
 
-	.standardList .ant-card-head-title {
+	.standard-list .ant-card-head-title {
 		line-height: 32px;
 		padding: 24px 0;
 	}
 
-	.standardList .ant-card-extra { padding: 24px 0; }
+	.standard-list .ant-card-extra { padding: 24px 0; }
 
-	.standardList .ant-list-pagination {
+	.standard-list .ant-list-pagination {
 		margin-top: 24px;
 		text-align: right;
 	}
 
-	.standardList .ant-avatar-lg {
+	.standard-list .ant-avatar-lg {
 		height: 48px;
 		line-height: 48px;
 		width: 48px;
 	}
 
-	.standardList .headerInfo {
+	.standard-list .header-info {
 		position: relative;
 		text-align: center;
 	}
 
-	.standardList .headerInfo > span {
+	.standard-list .header-info > span {
 		opacity: 0.45;
 		display: inline-block;
 		font-size: 14px;
@@ -100,14 +102,14 @@
 		margin-bottom: 4px;
 	}
 
-	.standardList .headerInfo > p {
+	.standard-list .header-info > p {
 		opacity: 0.85;
 		font-size: 24px;
 		line-height: 32px;
 		margin: 0;
 	}
 
-	.standardList .headerInfo > em {
+	.standard-list .header-info > em {
 		background-color: #f0f0f0;
 		height: 56px;
 		position: absolute;
@@ -116,12 +118,12 @@
 		width: 1px;
 	}
 
-	.standardList .listContent {
+	.standard-list .list-content {
 		font-size: 0;
 		display: flex;
 	}
 
-	.standardList .listContent .listContentItem {
+	.standard-list .list-content .list-content-item {
 		display: flex;
 		flex-direction: column;
 		font-size: 14px;
@@ -130,86 +132,86 @@
 		justify-content: center;
 	}
 
-	.standardList .listContent .listContentItem > span { line-height: 20px; }
+	.standard-list .list-content .list-content-item > span { line-height: 20px; }
 
-	.standardList .listContent .listContentItem > p {
+	.standard-list .list-content .list-content-item > p {
 		line-height: 22px;
 		margin-bottom: 0;
 		margin-top: 4px;
 	}
 
-	.standardList .extraContentSearch {
+	.standard-list .extra-content-search {
 		margin-left: 16px;
 		width: 272px;
 	}
 
-	.standardList .filterRatioGroup span { white-space: nowrap; }
+	.standard-list .filter-ratio-group span { white-space: nowrap; }
 
 	@@media screen and (max-width: 480px) {
-		.standardList .ant-list-item-content {
+		.standard-list .ant-list-item-content {
 			display: block;
 			flex: none;
 			width: 100%;
 		}
 
-		.standardList .ant-list-item-action { margin-left: 0; }
+		.standard-list .ant-list-item-action { margin-left: 0; }
 
-		.standardList .listContent { margin-left: 0; }
+		.standard-list .list-content { margin-left: 0; }
 
-		.standardList .listContent > div { margin-left: 0; }
+		.standard-list .list-content > div { margin-left: 0; }
 
-		.standardList .listCard .ant-card-head-title { overflow: visible; }
+		.standard-list .list-card .ant-card-head-title { overflow: visible; }
 	}
 
 	@@media screen and (max-width: 576px) {
-		.standardList .extraContentSearch {
+		.standard-list .extra-content-search {
 			margin-left: 0;
 			width: 100%;
 		}
 
-		.standardList .headerInfo { margin-bottom: 16px; }
+		.standard-list .header-info { margin-bottom: 16px; }
 
-		.standardList .headerInfo > em { display: none; }
+		.standard-list .header-info > em { display: none; }
 	}
 
 	@@media screen and (max-width: 768px) {
-		.standardList .listContent > div { display: block; }
+		.standard-list .list-content > div { display: block; }
 
-		.standardList .listContent > div:last-child {
+		.standard-list .list-content > div:last-child {
 			top: 0;
 			width: 100%;
 		}
 
-		.listCard .ant-radio-group {
+		.list-card .ant-radio-group {
 			display: block;
 			margin-bottom: 8px;
 		}
 	}
 
 	@@media screen and (max-width: 992px) and (min-width: 768px) {
-		.standardList .listContent > div { display: block; }
+		.standard-list .list-content > div { display: block; }
 
-		.standardList .listContent > div:last-child {
+		.standard-list .list-content > div:last-child {
 			top: 0;
 			width: 100%;
 		}
 	}
 
 	@@media screen and (max-width: 1200px) {
-		.standardList .listContent > div { margin-left: 24px; }
+		.standard-list .list-content > div { margin-left: 24px; }
 
-		.standardList .listContent > div:last-child { top: 0; }
+		.standard-list .list-content > div:last-child { top: 0; }
 	}
 
 	@@media screen and (max-width: 1400px) {
-		.standardList .listContent { text-align: right; }
+		.standard-list .list-content { text-align: right; }
 
-		.standardList .listContent > div:last-child { top: 0; }
+		.standard-list .list-content > div:last-child { top: 0; }
 	}
 
-	.standardListForm .ant-form-item { margin-bottom: 12px; }
+	.standard-listForm .ant-form-item { margin-bottom: 12px; }
 
-	.standardListForm .ant-form-item:last-child {
+	.standard-listForm .ant-form-item:last-child {
 		margin-bottom: 32px;
 		padding-top: 4px;
 	}
@@ -226,37 +228,7 @@
 
 	private static readonly Func<UserProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0);
 
-	private ICollection<UserProblemSummary> _problemSummaries = new [] {
-		new UserProblemSummary {
-			Id = 1,
-			Title = "A+B问题",
-			Manual = false,
-			Tags = new []{"入门"},
-			Times = 2,
-			SubmittedTimes = 1,
-			Deadline = DateTime.Now + TimeSpan.FromHours(1),
-			Score = 10
-		},
-		new UserProblemSummary {
-			Id = 2,
-			Title = "A-B问题",
-			Manual = false,
-			Tags = new []{"一般"},
-			Times = 2,
-			SubmittedTimes = 2,
-			Deadline = DateTime.Now,
-			Score = 5
-		},
-		new UserProblemSummary {
-			Id = 2,
-			Title = "A*B问题",
-			Manual = false,
-			Tags = new []{"困难"},
-			Times = 2,
-			SubmittedTimes = 0,
-			Deadline = DateTime.Now - TimeSpan.FromHours(2)
-		}
-	};
+	private ICollection<UserProblemSummary>? ProblemSummaries { get; set; }
 
 	private ProblemStatusFilter _statusFilter;
 
@@ -289,9 +261,24 @@
 
 	private DateTime? LatestDeadline {
 		get {
-			var comingDeadlines = _problemSummaries.Select(p => p.Deadline).Where(d => d > DateTimeOffset.Now).ToArray();
+			if (ProblemSummaries is null)
+				return null;
+			var comingDeadlines = ProblemSummaries.Select(p => p.Deadline).Where(d => d > DateTimeOffset.Now).ToArray();
 			return comingDeadlines.Length == 0 ? null : comingDeadlines.Min();
 		}
+	}
+
+	protected override async Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
+		var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
+		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
+		ProblemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
+		DisplayedProblemSummaries = ProblemSummaries;
+	}
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		StatusFilter = ProblemStatusFilter.All;
 	}
 
 	private static ProgressStatus GetProgressStatus(UserProblemSummary summary) {
@@ -304,17 +291,22 @@
 		return ProgressStatus.Normal;
 	}
 
-	private RenderFragment RenderHeaderInfo(string title, string value, bool bordered = false) =>
-		@<div class="headerInfo">
+	private RenderFragment RenderHeaderInfo(string title, string? value, bool bordered = false) =>
+		@<div class="header-info">
 			<span>@title</span>
-			<p>@value</p>
+			@if (value is null) {
+				<Spin Style="margin-left: 1em" />
+			}
+			else {
+				<p>@value</p>
+			}
 			@if (bordered) {
 				<em></em>
 			}
 		</div>;
 
 	private void FilterProblemSummaries() {
-		DisplayedProblemSummaries = _problemSummaries;
+		DisplayedProblemSummaries = ProblemSummaries!;
 		if (!string.IsNullOrEmpty(SearchKeyword))
 			DisplayedProblemSummaries = DisplayedProblemSummaries.Where(p => p.Title.Contains(SearchKeyword)).ToArray();
 		if (StatusFilter != ProblemStatusFilter.All)
@@ -323,14 +315,6 @@
 				ProblemStatusFilter.Ongoing => OngoingFilter,
 				ProblemStatusFilter.Completed => CompletedFilter
 			}).ToArray();
-	}
-
-	protected override async Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
-		var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
-		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
-		_problemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
-		DisplayedProblemSummaries = _problemSummaries;
 	}
 
 	private enum ProblemStatusFilter:byte {

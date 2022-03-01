@@ -1,47 +1,63 @@
 ﻿@namespace Client.Pages.Main
 @page "/"
+@page "/index"
 
 <GridContent>
-	<Row Gutter="24">
-		<AntDesign.Col Lg="24" Md="24" Sm="24" Style="margin-bottom: 24px;" Xl="18" Xs="24">
-			@if (CarouselUrls is null) {
-				<Skeleton Class="carousel" />
-			}
-			else {
-				<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
+	<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
+		<AntDesign.Col Lg="24" Md="24" Sm="24" Xl="18" Xs="24" Style="margin-bottom: 24px">
+			<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
+				@if (CarouselUrls is null) {
+					<Empty />
+				}
+				else {
 					@foreach (var url in CarouselUrls) {
 						<CarouselSlick>
 							<Image Src="@url" Preview="false" />
 						</CarouselSlick>
 					}
-				</Carousel>
-			}
+				}
+			</Carousel>
 		</AntDesign.Col>
-		<AntDesign.Col Lg="24" Md="24" Sm="24" Style="margin-bottom: 24px;" Xl="6" Xs="24">
-			<Card Title="@("Title")" Style="height: 260px">
-				Content
-			</Card>
-			<Card Title="@("Title")" Style="height: 240px; margin-top: 20px">
-				Content
-			</Card>
+		<AntDesign.Col Lg="24" Md="24" Sm="24" Xl="6" Xs="24" Flex="@(1)">
+			<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
+				<Col Flex="@(1)">
+					<Card Title="@("Title")" Class="extra-card" >
+						Content
+					</Card>
+				</Col>
+				<Col Flex="@(1)">
+					<Card Title="@("Title")" Class="extra-card" >
+						Content
+					</Card>
+				</Col>
+			</Row>
 		</AntDesign.Col>
 	</Row>
 </GridContent>
 
 <style lang="css" scoped>
-	.ant-carousel .slick-slide {
-		text-align: center;
-		height: 520px;
-		line-height: 160px;
-		overflow: hidden;
+	.carousel {
+		min-width: 75%;
 	}
 
-	.ant-carousel .slick-slide h3 {
-		color: #fff;
+	.ant-carousel .slick-slide {
+		text-align: center;
+		min-width: 75%;
+		line-height: 160px;
+		overflow: hidden;
 	}
 </style>
 
 @code {
+
+	private static Dictionary<string, int> ResponsiveGutter { get; } = new() {
+		["xs"] = 8,
+		["sm"] = 16,
+		["md"] = 24,
+		["lg"] = 32,
+		["xl"] = 48,
+		["xxl"] = 64
+	};
 
 	[Inject]
 	private ApiClient Api { get; set; }

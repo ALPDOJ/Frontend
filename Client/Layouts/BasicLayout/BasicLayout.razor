@@ -3,7 +3,7 @@
 @using Blazored.LocalStorage
 
 <CascadingValue Value="@this" IsFixed>
-	<AntDesign.ProLayout.BasicLayout Logo="@($"{Api.BaseUrl}/asset/logo")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
+	<AntDesign.ProLayout.BasicLayout Logo="@("/assets/logo.png")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
 		<RightContentRender>
 			<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
 		</RightContentRender>
@@ -31,18 +31,6 @@
 			Name = "作业",
 			Key = "list",
 			Icon = "unordered-list"
-		},
-		new MenuDataItem {
-			Path = "/question",
-			Name = "Q & A",
-			Key = "question",
-			Icon = "question-circle"
-		},
-		new MenuDataItem {
-			Path = "/about",
-			Name = "关于课程",
-			Key = "about",
-			Icon = "info-circle"
 		}
 	};
 

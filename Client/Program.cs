@@ -11,10 +11,14 @@ public class Program {
 		builder.RootComponents.Add<App>("#app");
 
 		builder.Services.AddAntDesign();
-		builder.Services.Configure<ProSettings>(builder.Configuration.GetSection("ProSettings"));
+		builder.Services.Configure<ProSettings>(builder.Configuration.GetSection("proSettings"));
 		var httpClient = new HttpClient();
 		builder.Services.AddSingleton(httpClient);
-		builder.Services.AddSingleton(new ApiClient(httpClient));
+		var apiClient = new ApiClient(httpClient) {
+			BaseUrl = builder.Configuration["baseUrl"]!
+		};
+		builder.Services.AddSingleton(apiClient);
+		builder.Services.AddSingleton<ErrorHandler>();
 		builder.Services.AddBlazoredLocalStorage();
 
 		await builder.Build().RunAsync();

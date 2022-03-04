@@ -1,0 +1,24 @@
+﻿@if (Avatar is not null) {
+	<Avatar Src="@Avatar" />
+}
+else if (AvatarUrl is not null) {
+	<Avatar Src="@AvatarUrl" />
+}
+else {
+	<Avatar>
+		@Username ?? "User"
+	</Avatar>
+}
+
+@code {
+
+	[Parameter]
+	public string? Username { get; set; }
+
+	[Parameter]
+	public string? Avatar { get; set; }
+
+	[Parameter]
+	public string? AvatarUrl { get; set; }
+
+}

@@ -1,22 +1,27 @@
 ﻿@namespace Client.Pages.Main
 @page "/"
 @page "/index"
+@using Blazored.LocalStorage
 
 <GridContent>
 	<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
 		<AntDesign.Col Lg="24" Md="24" Sm="24" Xl="18" Xs="24" Style="margin-bottom: 24px">
-			<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
-				@if (CarouselUrls is null) {
-					<Empty />
-				}
-				else {
-					@foreach (var url in CarouselUrls) {
+			<div>
+				<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
+					@if (CarouselUrls is null) {
 						<CarouselSlick>
-							<Image Src="@url" Preview="false" />
+							<Empty />
 						</CarouselSlick>
 					}
-				}
-			</Carousel>
+					else {
+						@foreach (var url in CarouselUrls) {
+							<CarouselSlick>
+								<Image Src="@url" Preview="false" />
+							</CarouselSlick>
+						}
+					}
+				</Carousel>
+			</div>
 		</AntDesign.Col>
 		<AntDesign.Col Lg="24" Md="24" Sm="24" Xl="6" Xs="24" Flex="@(1)">
 			<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
@@ -38,6 +43,7 @@
 <style lang="css" scoped>
 	.carousel {
 		min-width: 75%;
+		max-height: 100%;
 	}
 
 	.ant-carousel .slick-slide {
@@ -62,7 +68,34 @@
 	[Inject]
 	private ApiClient Api { get; set; }
 
+	[Inject]
+	private ErrorHandler ErrorHandler { get; set; }
+
+	[Inject]
+	private ISyncLocalStorageService LocalStorage { get; set; }
+
 	private IList<string>? CarouselUrls { get; set; }
+
+	protected override async Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
+		User? currentUser = null;
+		try {
+			currentUser = (await Api.GetCurrentUserAsync()).Result;
+			LocalStorage.SetItem("currentUser", currentUser);
+		}
+		catch (ApiException ex) {
+			LocalStorage.RemoveItem("currentUser");
+			ErrorHandler.Handle(ex, 401);
+		}
+		try {
+			var resp = await Api.GetUserAvatarAsync(currentUser!.Id);
+			var memoryStream = new MemoryStream();
+			await resp.Stream.CopyToAsync(memoryStream);
+			var base64Image = Convert.ToBase64String(memoryStream.ToArray());
+			LocalStorage.SetItem("currentUserAvatar", $"data:{resp.Headers["Content-Type"].Single()};base64,{base64Image}");
+		}
+		catch (ApiException) {}
+	}
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();

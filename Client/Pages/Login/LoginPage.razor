@@ -144,20 +144,6 @@
 				LocalStorage.RemoveItem("id");
 				LocalStorage.RemoveItem("password");
 			}
-			LocalStorage.SetItem("currentUser", (await Api.GetCurrentUserAsync()).Result);
-			try {
-				var resp = await Api.GetUserAvatarAsync(id);
-				var memoryStream = new MemoryStream();
-				await resp.Stream.CopyToAsync(memoryStream);
-				var base64Image = Convert.ToBase64String(memoryStream.ToArray());
-				LocalStorage.SetItem("currentUserAvatar", $"data:{resp.Headers["Content-Type"].Single()};base64,{base64Image}");
-			}
-			catch (ApiException ex) {
-				if (ex.StatusCode == 404)
-					LocalStorage.SetItem<string?>("currentUserAvatar", null);
-				else
-					throw;
-			}
 			Navigator.NavigateTo("/");
 		}
 		catch (ApiException ex) {

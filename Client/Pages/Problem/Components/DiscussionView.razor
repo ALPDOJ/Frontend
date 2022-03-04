@@ -13,7 +13,7 @@
 	<Comment>
 		<AvatarTemplate>
 			@if (string.IsNullOrEmpty(CurrentUserAvatar)) {
-				<Avatar>@CurrentUser.Username[0]</Avatar>
+				<Avatar>@CurrentUser.GetDisplayingName()</Avatar>
 			}
 			else {
 				<Avatar Src="@CurrentUserAvatar" />
@@ -53,7 +53,7 @@
 	[Inject]
 	public ISyncLocalStorageService LocalStorage { get; set; }
 
-	private Forest<ValuedTreeNode<Comment>> CommentForest { get; set; }
+	private Forest<ValuedTreeNode<Comment>>? CommentForest { get; set; }
 
 	private User CurrentUser { get; set; }
 
@@ -65,8 +65,8 @@
 
 	private TextArea TextAreaElement { get; set; }
 
-	protected async override Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
+	protected async override Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
 		Comments = (await Api.GetProblemCommentsAsync(ProblemId)).Result;
 		CurrentUser = LocalStorage.GetItem<User>("currentUser");
 		CurrentUserAvatar = LocalStorage.GetItem<string?>("currentUserAvatar");

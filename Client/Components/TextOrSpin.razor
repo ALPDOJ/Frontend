@@ -2,12 +2,17 @@
 	<Spin />
 }
 else {
-	@Value
+	@(Formatter is null ? Value.ToString() : Formatter(Value))
 }
+
+@typeparam T
 
 @code {
 
 	[Parameter]
-	public string? Value { get; set; }
+	public T? Value { get; set; }
+
+	[Parameter]
+	public Func<T, string>? Formatter { get; set; }
 
 }

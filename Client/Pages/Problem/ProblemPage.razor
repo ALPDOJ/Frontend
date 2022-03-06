@@ -3,63 +3,64 @@
 @using Client.Utils
 @using Newtonsoft.Json
 
-@if (Problem is null) {
-	<Skeleton Active />
-}
-else {
-	<PageContainer TabList="_tabList" Title="@Problem.Title" Class="pageHeader" OnTabChange="OnTabChange">
-		<Extra>
-			<ButtonGroup>
-				<Button Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(true)">测试</Button>
-				<Button Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(false)">提交</Button>
-			</ButtonGroup>
-		</Extra>
-		<ExtraContent>
-			@if (Summary is not null) {
-				<div class="more-info">
-					<Statistic Title="@("剩余次数")" Value="@(Summary.Times - Summary.SubmittedTimes)" />
-					<Statistic Title="@("当前分数")" Value="@($"{Summary.Score ?? 0} / {Summary.TotalScore}")" />
-				</div>
-			}
-		</ExtraContent>
-		<Content>
-			<Descriptions Class="header-list" Column="2" Size="small">
-				<DescriptionsItem Title="@("题目序号")">@Id</DescriptionsItem>
-				<DescriptionsItem Title="@("题目标签")">
+<PageContainer TabList="@_tabList" Title="@(Problem?.Title ?? "加载中...")" Class="page-header" OnTabChange="OnTabChange">
+	<Extra>
+		<ButtonGroup>
+			<Button Loading="@Submitting" Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(true)">测试</Button>
+			<Button Loading="@Submitting" Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(false)">提交</Button>
+		</ButtonGroup>
+	</Extra>
+	<ExtraContent>
+		@if (Summary is not null) {
+			<div class="more-info">
+				<Statistic Title="@("剩余次数")" Value="@(Summary.Times - Summary.SubmittedTimes)" />
+				<Statistic Title="@("当前分数")" Value="@($"{Summary.Score ?? 0} / {Summary.TotalScore}")" />
+			</div>
+		}
+	</ExtraContent>
+	<Content>
+		<Descriptions Class="header-list" Column="2" Size="small">
+			<DescriptionsItem Title="@("题目序号")">@Id</DescriptionsItem>
+			<DescriptionsItem Title="@("题目标签")">
+				@if (Problem is null) {
+					<Spin />
+				}
+				else {
 					@foreach (var tag in Problem.Tags) {
 						<Tag>@tag</Tag>
 					}
-				</DescriptionsItem>
-				<DescriptionsItem Title="@("批阅模式")">@(Problem.Manual ? "人工批阅" : "自动评测")</DescriptionsItem>
-				<DescriptionsItem Title="@("截止日期")"><TextOrSpin Value="@Summary?.Deadline.ToString("yyyy-MM-dd hh:mm:ss")" /></DescriptionsItem>
-				<DescriptionsItem Title="@("运行时间限制")">@($"{Problem.Limit.Time} ms")</DescriptionsItem>
-				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limit.Memory)</DescriptionsItem>
-			</Descriptions>
-		</Content>
-		<ChildContent>
-			<div class="main__b__3">
-				@switch (TabKey) {
-					case "content":
-						<ContentView Problem="@Problem" Examples="@Examples" />
-						break;
-					case "submission":
-						<SubmissionView />
-						break;
-					case "discussion":
-						<DiscussionView ProblemId="@Id" />
-						break;
 				}
-			</div>
-		</ChildContent>
-	</PageContainer>
-}
+			</DescriptionsItem>
+			<DescriptionsItem Title="@("批阅模式")"><TextOrSpin Value="@Problem?.Manual" Formatter="@(v => v == true ? "人工批阅" : "自动评测")" /></DescriptionsItem>
+			<DescriptionsItem Title="@("截止日期")"><TextOrSpin Value="@Summary?.Deadline.ToString("yyyy-MM-dd hh:mm:ss")" /></DescriptionsItem>
+			<DescriptionsItem Title="@("运行时间限制")"><TextOrSpin Value="@Problem?.Limit.Time" Formatter="@(v => $"{v} ms")" /></DescriptionsItem>
+			<DescriptionsItem Title="@("运行内存限制")"><TextOrSpin Value="@Problem?.Limit.Memory" Formatter="@(v => Formatter.FormatSize(v!.Value))" /></DescriptionsItem>
+		</Descriptions>
+	</Content>
+	<ChildContent>
+		<div class="main__b__3">
+			@switch (TabKey) {
+				case "content":
+					<ContentView Problem="@Problem" Examples="@Examples" />
+					break;
+				case "submission":
+					<SubmissionView />
+					break;
+				case "discussion":
+					<DiscussionView ProblemId="@Id" />
+					break;
+			}
+		</div>
+	</ChildContent>
+</PageContainer>
 
 @code {
 
 	private readonly IList<TabPaneItem> _tabList = new List<TabPaneItem> {
 		new() { Key = "content", Tab = "题目内容" },
+		new() { Key = "discussion", Tab = "提问讨论" },
 		new() { Key = "submission", Tab = "评测记录" },
-		new() { Key = "discussion", Tab = "提问讨论" }
+		new() { Key = "statistics", Tab = "题目统计" }
 	};
 
 	[Parameter]
@@ -72,18 +73,23 @@ else {
 	private UserProblemSummary? Summary { get; set; }
 
 	[Inject]
-	private NavigationManager Navigator { get; set; }
+	private NavigationManager Navigator { get; init; }
 
 	[Inject]
-	private ModalService ModalService { get; set; }
+	private ModalService ModalService { get; init; }
 
 	[Inject]
-	private MessageService MessageService { get; set; }
+	private MessageService MessageService { get; init; }
 
 	[Inject]
-	private ApiClient Api { get; set; }
+	private ApiClient Api { get; init; }
+
+	[Inject]
+	private ErrorHandler ErrorHandler { get; init; }
 
 	private string TabKey { get; set; } = "content";
+
+	private bool Submitting { get; set; }
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
@@ -92,7 +98,10 @@ else {
 			Examples = (await Api.GetExampleTestCasesAsync(Id)).Result;
 			Summary = (await Api.GetProblemSummaryAsync(Id)).Result;
 		}
-		catch { }
+		catch (ApiException ex) {
+			if (!ErrorHandler.Handle(ex, 500))
+				throw;
+		}
 	}
 
 	private async Task<Files?> ShowUploadModal(ModalOptions options,UploadModalArgument argument) {
@@ -121,6 +130,8 @@ else {
 		var files = await ShowUploadModal(options, argument);
 		if (files is null)
 			return;
+		Submitting = true;
+		StateHasChanged();
 		try {
 			var resp = await Api.SubmitAsync(new NewSubmission {
 				Test = test,
@@ -133,6 +144,10 @@ else {
 		catch (ApiException ex) {
 			Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
 			var _ = MessageService.Error($"提交失败：{ex.Message}");
+		}
+		finally {
+			Submitting = false;
+			StateHasChanged();
 		}
 	}
 

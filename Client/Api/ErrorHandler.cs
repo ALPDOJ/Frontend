@@ -1,38 +1,53 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AntDesign;
+using Microsoft.AspNetCore.Components;
+using Newtonsoft.Json;
 
 namespace Client.Api;
 
 public class ErrorHandler {
+	public ErrorHandler(ApiClient api, NavigationManager navigator, MessageService messageService) {
+		Api = api;
+		Navigator = navigator;
+		MessageService = messageService;
+	}
+
 	private ApiClient Api { get; }
 
 	private NavigationManager Navigator { get; }
 
-	public ErrorHandler(ApiClient api, NavigationManager navigator) {
-		Api = api;
-		Navigator = navigator;
-	}
+	private MessageService MessageService { get; }
 
-	public void Handle(ApiException exception, params int[] statusCodes) {
+	public bool Handle(ApiException exception, params int[] statusCodes) {
 		if (statusCodes.Length > 0 && !statusCodes.Contains(exception.StatusCode))
-			return;
-		switch (exception.StatusCode) {
-			case 401:
-				HandleUnauthorized(exception);
-				break;
-			case 403:
-				HandleForbidden(exception);
-				break;
-		}
+			return false;
+		return exception.StatusCode switch {
+			401 => HandleUnauthorized(exception),
+			403 => HandleForbidden(exception),
+			500 => HandleInternalError(exception),
+			_   => false
+		};
 	}
 
-	private void HandleUnauthorized(ApiException exception) {
-		if (exception.StatusCode == 401)
-			Navigator.NavigateTo("/login");
+	private bool HandleUnauthorized(ApiException exception) {
+		if (exception.StatusCode != 401)
+			return false;
+		var _ = MessageService.Error("会话已过期，请重新登录");
+		Navigator.NavigateTo("/login");
+		return true;
 	}
 
-	private void HandleForbidden(ApiException exception) {
+	private bool HandleForbidden(ApiException exception) {
 		if (exception.StatusCode != 403)
-			return;
+			return false;
 		Navigator.NavigateTo("/exception?status=403");
+		return true;
+	}
+
+	private bool HandleInternalError(ApiException exception) {
+		if (exception.StatusCode != 500)
+			return false;
+		var _ = MessageService.Error(exception.Message);
+		Console.WriteLine(JsonConvert.SerializeObject(exception, Formatting.Indented));
+		return true;
 	}
 }

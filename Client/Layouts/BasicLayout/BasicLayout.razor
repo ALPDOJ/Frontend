@@ -1,6 +1,5 @@
 ﻿@namespace Client.Layout
 @inherits LayoutComponentBase
-@using Blazored.LocalStorage
 
 <CascadingValue Value="@this" IsFixed>
 	<AntDesign.ProLayout.BasicLayout Logo="@("/assets/logo.png")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
@@ -61,13 +60,10 @@
 		}
 	};
 
+	[Inject]
+	private LocalStorageManager LocalStorageManager { get; init; }
+
 	public Role View { get; set; } = Role.Student;
-
-	[Inject]
-	private ApiClient Api { get; set; }
-
-	[Inject]
-	private ISyncLocalStorageService LocalStorage { get; set; }
 
 	public LinkItem[] Links { get; } = {
 		new() {
@@ -96,10 +92,10 @@
 
 	public void Refresh() => StateHasChanged();
 
-	protected override async Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
-		CurrentUser = LocalStorage.GetItem<User>("currentUser");
-		CurrentUserAvatar = LocalStorage.GetItem<string?>("currentUserAvatar");
+	protected override async Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
+		CurrentUser = await LocalStorageManager.GetCurrentUser();
+		CurrentUserAvatar = await LocalStorageManager.GetCurrentUserAvatar();
 	}
 
 }

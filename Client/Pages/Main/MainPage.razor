@@ -1,7 +1,6 @@
 ﻿@namespace Client.Pages.Main
 @page "/"
 @page "/index"
-@using Blazored.LocalStorage
 
 <GridContent>
 	<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
@@ -66,35 +65,25 @@
 	};
 
 	[Inject]
-	private ApiClient Api { get; set; }
+	private ApiClient Api { get; init; }
 
 	[Inject]
-	private ErrorHandler ErrorHandler { get; set; }
+	private ErrorHandler ErrorHandler { get; init; }
 
 	[Inject]
-	private ISyncLocalStorageService LocalStorage { get; set; }
+	private LocalStorageManager LocalStorageManager { get; init; }
 
 	private IList<string>? CarouselUrls { get; set; }
 
-	protected override async Task OnParametersSetAsync() {
-		await base.OnParametersSetAsync();
-		User? currentUser = null;
+	public override async Task SetParametersAsync(ParameterView parameters) {
+		await base.SetParametersAsync(parameters);
 		try {
-			currentUser = (await Api.GetCurrentUserAsync()).Result;
-			LocalStorage.SetItem("currentUser", currentUser);
+			await LocalStorageManager.Refresh();
 		}
 		catch (ApiException ex) {
-			LocalStorage.RemoveItem("currentUser");
+			await LocalStorageManager.ClearAsync();
 			ErrorHandler.Handle(ex, 401);
 		}
-		try {
-			var resp = await Api.GetUserAvatarAsync(currentUser!.Id);
-			var memoryStream = new MemoryStream();
-			await resp.Stream.CopyToAsync(memoryStream);
-			var base64Image = Convert.ToBase64String(memoryStream.ToArray());
-			LocalStorage.SetItem("currentUserAvatar", $"data:{resp.Headers["Content-Type"].Single()};base64,{base64Image}");
-		}
-		catch (ApiException) {}
 	}
 
 	protected override async Task OnInitializedAsync() {

@@ -13,6 +13,12 @@ public static class ApiClientExtension {
 
 	private static HttpClient GetHttpClient(this ApiClient apiClient) => (HttpClient)ApiClientHttpClientField.GetValue(apiClient)!;
 
+	public static async Task<byte[]> GetByteArray(this FileResponse fileResponse) {
+		var stream = new MemoryStream();
+		await fileResponse.Stream.CopyToAsync(stream);
+		return stream.ToArray();
+	}
+
 	public static async Task<ApiResponse<IdWrapper>> SubmitAsync(this ApiClient api, NewSubmission submission) {
 		var client = api.GetHttpClient();
 		var content = new MultipartFormDataContent {

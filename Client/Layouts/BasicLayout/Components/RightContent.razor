@@ -1,13 +1,11 @@
 ﻿@namespace Client.Components
 @using BasicLayout = Client.Layout.BasicLayout
+@using System.Reflection.Metadata
 @inherits AntDomComponentBase
 
 <Space Class="@ClassMapper.Class" Size="@("24")">
 	<SpaceItem>
-		<HeaderSearch Class="action search"
-			DefaultValue="umi ui"
-			Options="DefaultOptions"
-			Placeholder="全站搜索" />
+		<HeaderSearch Class="action search" Placeholder="全站搜索" />
 	</SpaceItem>
 	@if (User.Role != Role.Student) {
 		<SpaceItem>
@@ -15,10 +13,10 @@
 		</SpaceItem>
 	}
 	<SpaceItem>
-		<AntDesign.Tooltip Placement="@Placement.Bottom" Title="@("Help")">
+		<AntDesign.Tooltip Placement="@Placement.Bottom" Title="@("帮助")">
 			<Unbound>
 				<span class="action" @ref="@context.Current">
-					<Icon Theme="outline" Type="question-circle" />
+					<Icon Theme="@IconThemeType.Outline" Type="@IconType.Outline.QuestionCircle" />
 				</span>
 			</Unbound>
 		</AntDesign.Tooltip>
@@ -30,26 +28,21 @@
 			OnViewMore="HandleViewMore"
 			ViewMoreText="see more">
 			<NoticeList Data="_notifications"
-				EmptyText="You have viewed all notifications"
+				EmptyText="暂时没有通知"
 				ShowViewMore
 				TabKey="notification"
-				Title="Notifications" />
+				Title="通知" />
 			<NoticeList Data="_messages"
-				EmptyText="You have read all messages"
+				EmptyText="暂时没有消息"
 				ShowViewMore
 				TabKey="message"
-				Title="Messages" />
-			<NoticeList Data="_events"
-				EmptyText="You have completed all to do"
-				ShowViewMore
-				TabKey="event"
-				Title="Upcoming" />
+				Title="消息" />
 		</NoticeIcon>
 	</SpaceItem>
 	<SpaceItem>
 		<AvatarDropdown Avatar="@Avatar"
 			MenuItems="@AvatarMenuItems"
-			Name="@User.Username"
+			Name="@User.GetDisplayingName()"
 			OnItemSelected="HandleSelectUser">
 		</AvatarDropdown>
 	</SpaceItem>
@@ -59,11 +52,16 @@
 
 	private int _count = 0;
 
-	private NoticeIconData[] _events = Array.Empty<NoticeIconData>();
-
 	private NoticeIconData[] _messages = Array.Empty<NoticeIconData>();
 
 	private NoticeIconData[] _notifications = Array.Empty<NoticeIconData>();
+
+	private static AvatarMenuItem[] AvatarMenuItems { get; } = {
+		new() { Key = "center", IconType = "user", Option = "个人中心" },
+		new() { Key = "setting", IconType = "setting", Option = "个人设置" },
+		new() { IsDivider = true },
+		new() { Key = "logout", IconType = "logout", Option = "退出登录" }
+	};
 
 	[Parameter]
 	public User User { get; set; }
@@ -73,28 +71,6 @@
 
 	[CascadingParameter]
 	public BasicLayout Layout { get; set; }
-
-	private List<AutoCompleteDataItem<string>> DefaultOptions { get; set; } = new() {
-		new AutoCompleteDataItem<string> {
-			Label = "umi ui",
-			Value = "umi ui"
-		},
-		new AutoCompleteDataItem<string> {
-			Label = "Pro Table",
-			Value = "Pro Table"
-		},
-		new AutoCompleteDataItem<string> {
-			Label = "Pro Layout",
-			Value = "Pro Layout"
-		}
-	};
-
-	public AvatarMenuItem[] AvatarMenuItems { get; set; } = {
-		new() { Key = "center", IconType = "user", Option = "个人中心" },
-		new() { Key = "setting", IconType = "setting", Option = "个人设置" },
-		new() { IsDivider = true },
-		new() { Key = "logout", IconType = "logout", Option = "退出登录" }
-	};
 
 	[Inject]
 	protected NavigationManager Navigator { get; set; }
@@ -107,11 +83,7 @@
 		SetClassMap();
 	}
 
-	protected void SetClassMap() {
-		ClassMapper
-			.Clear()
-			.Add("right");
-	}
+	protected void SetClassMap() => ClassMapper.Clear().Add("right");
 
 	public void HandleSelectUser(MenuItem item) {
 		switch (item.Key) {
@@ -122,12 +94,12 @@
 				Navigator.NavigateTo("/account/settings");
 				break;
 			case "logout":
-				Navigator.NavigateTo("/user/login");
+				Navigator.NavigateTo("/login");
 				break;
 		}
 	}
 
-	public async Task HandleClear(string key) {
+	public void HandleClear(string key) {
 		switch (key) {
 			case "notification":
 				_notifications = Array.Empty<NoticeIconData>();
@@ -135,11 +107,7 @@
 			case "message":
 				_messages = Array.Empty<NoticeIconData>();
 				break;
-			case "event":
-				_events = Array.Empty<NoticeIconData>();
-				break;
 		}
-		await MessageService.Success($"清空了{key}");
 	}
 
 	public async Task HandleViewMore(string key) {

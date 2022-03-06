@@ -57,7 +57,7 @@
 					</Steps>
 				</Card>
 				@if (DisplayingCompilerResult is not null) {
-					@if (DisplayingCompilerResult.Message?.Errors is not null) {
+					@if (DisplayingCompilerResult.Message?.Errors?.Count > 0) {
 						<Alert Type="@AlertType.Error" Message="编译错误" Style="margin-bottom: 1em">
 							<AntList Bordered DataSource="@DisplayingCompilerResult.Message.Errors" Size="@AntSizeLDSType.Small">
 								<ListItem>
@@ -66,7 +66,7 @@
 							</AntList>
 						</Alert>
 					}
-					@if (DisplayingCompilerResult.Message?.Warnings is not null) {
+					@if (DisplayingCompilerResult.Message?.Warnings?.Count > 0) {
 						<Alert Type="@AlertType.Warning" Message="编译警告" Style="margin-bottom: 1em">
 							<AntList Bordered DataSource="@DisplayingCompilerResult.Message.Warnings" Size="@AntSizeLDSType.Small">
 								<ListItem>
@@ -130,37 +130,33 @@
 
 	private CompilerResult? DisplayingCompilerResult => DisplayingCompiler is null ? null : Results?[DisplayingCompiler];
 
-	protected override async Task OnParametersSetAsync() {
-		await base.OnParametersSetAsync();
-		Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
-		Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result;
-		SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result;
-	}
-
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		var interval = TimeSpan.FromSeconds(1);
-#pragma warning disable CS4014
-		Task.Run(async () => {
-			while (true) {
-				try {
-					var time = DateTime.Now;
-					Status = (await Api.GetSubmissionStatusAsync(Id)).Result.SubmissionStatus;
-					if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed)
-						break;
-					var duration = DateTime.Now - time;
-					if (duration < interval)
-						await Task.Delay(interval - duration);
-					StateHasChanged();
+		Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
+		var _ = Task.WhenAll(
+			Task.Run(async () => Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result),
+			Task.Run(async () => SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result),
+			Task.Run(async () => {
+				while (true) {
+					try {
+						var time = DateTime.Now;
+						Status = (await Api.GetSubmissionStatusAsync(Id)).Result.Status;
+						if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed)
+							break;
+						var duration = DateTime.Now - time;
+						if (duration < interval)
+							await Task.Delay(interval - duration);
+						StateHasChanged();
+					}
+					catch (Exception ex) {
+						Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+					}
 				}
-				catch (Exception ex) {
-					Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
-				}
-			}
-			Results = (await Api.GetJudgementResultAsync(Id)).Result;
-			DisplayingCompiler = Results.Keys.First();
-		}).ConfigureAwait(false);
-#pragma warning restore CS4014
+				Results = (await Api.GetJudgementResultAsync(Id)).Result;
+				DisplayingCompiler = Results.Keys.First();
+			})
+		);
 	}
 
 	private void OnReturnToProblemClick() => Navigator.NavigateTo($"/problem/{Problem!.Id}");

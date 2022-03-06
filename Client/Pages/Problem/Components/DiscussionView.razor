@@ -1,15 +1,16 @@
-﻿@namespace Client.Pages.Problem
-@using Comment = Client.Api.Comment
+﻿@using Comment = Client.Api.Comment
 @using TrueMogician.Extensions.Collections.Tree
-@using Blazored.LocalStorage
+@namespace Client.Pages.Problem
 
 <Card Bordered>
-	<CascadingValue Value="@CurrentUser" Name="@("CurrentUser")" IsFixed>
-		@foreach (var tree in CommentForest) {
-			<CommentTree Value="@tree.Root" OnReply="@OnReply" />
+	<CascadingValue IsFixed Value="@CurrentUser">
+		@if (CommentForest?.Any() == true) {
+			@foreach (var tree in CommentForest) {
+				<CommentTree Node="@tree.Root" OnReply="@OnReply" />
+			}
 		}
 	</CascadingValue>
-	
+
 	<Comment>
 		<AvatarTemplate>
 			@if (string.IsNullOrEmpty(CurrentUserAvatar)) {
@@ -20,11 +21,15 @@
 			}
 		</AvatarTemplate>
 		<ContentTemplate>
-			<TextArea @bind-Value="@CommentContent" @ref="TextAreaElement" ShowCount MaxLength="256"></TextArea>
-			<div style="margin-top: 24px; display: flex; justify-content: right">
-				<Button Type="@ButtonType.Primary" OnClick="SubmitComment">@(RepliedCommentId.HasValue ? "回复" : "发布")</Button>
-				<Button Type="@ButtonType.Primary" Disabled="@(!RepliedCommentId.HasValue)" OnClick="() => RepliedCommentId = null">
-					取消回复
+			<TextArea @bind-Value="@CommentContent" MaxLength="256" @ref="TextAreaElement" ShowCount></TextArea>
+			<div style="display: flex; justify-content: right; margin-top: 24px;">
+				@if (RepliedCommentId.HasValue) {
+					<Button OnClick="() => RepliedCommentId = null" Style="margin-right: 12px" Type="@ButtonType.Primary">
+						取消回复
+					</Button>
+				}
+				<Button OnClick="SubmitComment" Type="@ButtonType.Primary">
+					@(RepliedCommentId.HasValue ? "回复" : "发布")
 				</Button>
 			</div>
 		</ContentTemplate>
@@ -35,23 +40,14 @@
 
 	private IList<Comment> _comments;
 
-	public IList<Comment> Comments {
-		get => _comments;
-		set {
-			_comments = value;
-			var dictionary = value.ToDictionary(c => c.Id);
-			CommentForest = TreeUtilities.BuildForest(value, c => dictionary.ContainsKey(c.Id) ? dictionary[c.Id] : null);
-		}
-	}
-
 	[Parameter]
 	public int ProblemId { get; set; }
 
 	[Inject]
-	public ApiClient Api { get; set; }
+	public ApiClient Api { get; init; }
 
 	[Inject]
-	public ISyncLocalStorageService LocalStorage { get; set; }
+	public LocalStorageManager LocalStorageManager { get; init; }
 
 	private Forest<ValuedTreeNode<Comment>>? CommentForest { get; set; }
 
@@ -65,11 +61,24 @@
 
 	private TextArea TextAreaElement { get; set; }
 
-	protected async override Task OnParametersSetAsync() {
-		await base.OnParametersSetAsync();
+	public IList<Comment> Comments {
+		get => _comments;
+		set {
+			_comments = value;
+			var dictionary = value.ToDictionary(c => c.Id);
+			CommentForest = TreeUtilities.BuildForest(value, c => c.ReplyTo is null ? null : dictionary[c.ReplyTo.Value]);
+		}
+	}
+
+	public override async Task SetParametersAsync(ParameterView parameters) {
+		CurrentUser = await LocalStorageManager.GetCurrentUser();
+		CurrentUserAvatar = await LocalStorageManager.GetCurrentUserAvatar();
+		await base.SetParametersAsync(parameters);
+	}
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
 		Comments = (await Api.GetProblemCommentsAsync(ProblemId)).Result;
-		CurrentUser = LocalStorage.GetItem<User>("currentUser");
-		CurrentUserAvatar = LocalStorage.GetItem<string?>("currentUserAvatar");
 	}
 
 	private async Task OnReply(int id) {
@@ -83,8 +92,8 @@
 			Content = CommentContent
 		};
 		var resp = await Api.CommentProblemAsync(ProblemId, new NewComment {
-			ReplyTo = RepliedCommentId, 
-			Content= content
+			ReplyTo = RepliedCommentId,
+			Content = content
 		});
 		var newComment = new Comment {
 			Id = resp.Result.Id,
@@ -94,13 +103,13 @@
 			ReplyTo = RepliedCommentId,
 			Author = new Author {
 				Id = CurrentUser.Id,
-				Username = CurrentUser.GetDisplayingName(),
-				HasAvatar = CurrentUserAvatar is not null
+				Username = CurrentUser.Username,
+				Avatar = CurrentUserAvatar
 			}
 		};
 		Comments.Add(newComment);
 		if (RepliedCommentId.HasValue) {
-			foreach (var tree in CommentForest) {
+			foreach (var tree in CommentForest!) {
 				var target = tree.Root.FirstOrDefault(n => n.Value.Id == RepliedCommentId.Value);
 				if (target is not null) {
 					target.Children.Add(new ValuedTreeNode<Comment>(newComment));
@@ -108,8 +117,10 @@
 				}
 			}
 		}
-		else 
-			CommentForest.Add(new ValuedTreeNode<Comment>(newComment));
+		else
+			CommentForest!.Add(new ValuedTreeNode<Comment>(newComment));
+		CommentContent = "";
+		RepliedCommentId = null;
 		StateHasChanged();
 	}
 

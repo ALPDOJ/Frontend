@@ -2,25 +2,36 @@
 @using TrueMogician.Extensions.Collections.Tree
 @using Blazored.LocalStorage
 @using Client.Utils
+@using Newtonsoft.Json
 @using OneOf.Types
+@using TrueMogician.Exceptions
 @using Comment = Client.Api.Comment
 
-<Comment @ref="@CommentElement" Author="@Value.Value.Author.Username" Datetime="@Formatter.FormatDateTimeRelatively(Value.Value.Time,2)" Actions="new []{LikeAction, DislikeAction, ReplyAction}">
+<Comment 
+	@ref="@CommentElement" 
+	Author="@Comment.Author.GetDisplayingName()"
+	Datetime="@Formatter.FormatDateTimeRelatively(Comment.Time,2)" 
+	Actions="@Actions">
 	<AvatarTemplate>
-		@RenderAvatar(Value.Value.Author)
+		@if (!string.IsNullOrEmpty(Comment.Author.Avatar)) {
+			<Avatar Src="@Comment.Author.Avatar" />
+		}
+		else {
+			<Avatar>author.Username ?? author.Id.ToString()</Avatar>
+		}
 	</AvatarTemplate>
 	<ContentTemplate>
-		@if (Value.Value.Content is null) {
+		@if (Comment.Content is null) {
 			<span><i>该内容已被删除</i></span>
 		}
 		else {
-			<RichTextDisplayer Value="@Value.Value.Content" />
+			<RichTextDisplayer Value="@Comment.Content" />
 		}
 	</ContentTemplate>
 	<ChildContent>
-		@if (!Value.IsLeaf) {
-			@foreach (var child in Value.Children) {
-				<CommentTree Value="@child" OnReply="@OnReply" />
+		@if (!Node.IsLeaf) {
+			@foreach (var child in Node.Children) {
+				<CommentTree Node="@child" OnReply="@OnReply" />
 			}
 		}
 	</ChildContent>
@@ -29,7 +40,7 @@
 @code {
 
 	[Parameter]
-    public ValuedTreeNode<Comment> Value { get; set; }
+	public ValuedTreeNode<Comment> Node { get; set; }
 
 	[Parameter]
 	public EventCallback<int> OnReply { get; set; }
@@ -45,61 +56,95 @@
 
 	private AntDesign.Comment CommentElement { get; set; }
 
-	private CommentReaction CurrentReaction { get; set; }
+	private List<Reaction> CurrentReactions { get; set; } = new();
 
-	private RenderFragment LikeAction =>
-		@<span>
-			<AntDesign.Tooltip Title="@("点赞")">
-				<Icon Type="like" Theme="@(CurrentReaction == CommentReaction.Like ? "fill" : "outline")" OnClick="() => ReactToComment(CommentReaction.Like)" />
-			</AntDesign.Tooltip>
-			<span>@(Value.Value.Likers?.Count ?? 0)</span>
-		</span>;
-
-	private RenderFragment DislikeAction =>
-		@<span>
-			<AntDesign.Tooltip Title="@("点踩")">
-				<Icon Type="dislike" Theme="@(CurrentReaction == CommentReaction.Dislike ? "fill" : "outline")" OnClick="() => ReactToComment(CommentReaction.Dislike)" />
-			</AntDesign.Tooltip>
-			<span>@(Value.Value.Dislikers?.Count ?? 0)</span>
-		</span>;
+	private Comment Comment => Node.Value;
 
 	private RenderFragment ReplyAction =>
-		@<span onclick="@(() => OnReply.InvokeAsync(Value.Value.Id))">回复</span>;
+		@<span onclick="@(() => OnReply.InvokeAsync(Comment.Id))">回复</span>;
 
 	private RenderFragment DeleteAction =>
 		@<span>
 			<AntDesign.Tooltip Title="@("删除")">
-				<Icon Type="delete" OnClick="DeleteComment" />
+				<Icon Type="@IconType.Outline.Delete" OnClick="DeleteComment" />
 			</AntDesign.Tooltip>
 		</span>;
 
+	private RenderFragment[] Actions {
+		get {
+			if (Comment.Content is null)
+				return Array.Empty<RenderFragment>();
+			var result = new List<RenderFragment> {
+				ReplyAction
+			};
+			if (CurrentUser.Role != Role.Student || CurrentUser.Id == Comment.Author.Id)
+				result.Add(DeleteAction);
+			result.AddRange(Enum.GetValues<Reaction>().Select(GetReactAction));
+			return result.ToArray();
+		}
+	}
+
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		CurrentReaction = Value.Value.Likers?.Contains(CurrentUser.Id) == true
-			? CommentReaction.Like : Value.Value.Dislikers?.Contains(CurrentUser.Id) == true 
-				? CommentReaction.Dislike 
-				: CommentReaction.None;
+		if (Comment.Reactions is not null)
+			CurrentReactions.AddRange(Comment.Reactions.Keys.Where(k => Comment.Reactions[k].Contains(CurrentUser.Id)).Select(Enum.Parse<Reaction>));
 	}
 
-	private RenderFragment RenderAvatar(Author author) {
-		if (author.HasAvatar)
-			return @<Avatar Src="@($"/user/{author.Id}/avatar")" />;
-        return @<Avatar>author.Username</Avatar>;
+	private RenderFragment GetReactAction(Reaction reaction) {
+		var title = reaction switch {
+			Reaction.Like => "点赞",
+			Reaction.Dislike => "点踩",
+			Reaction.Laugh => "笑死",
+			Reaction.Hooray => "好耶",
+			Reaction.Confused => "不懂",
+			Reaction.Heart => "比心",
+			Reaction.Rocket => "火箭",
+			Reaction.Eyes => "康康",
+			_ => throw new EnumValueOutOfRangeException(typeof(Reaction))
+		};
+		var icon = reaction switch{
+			Reaction.Like => "👍",
+			Reaction.Dislike => "👎",
+			Reaction.Laugh => "🤣",
+			Reaction.Hooray => "🎉",
+			Reaction.Confused => "🤔",
+			Reaction.Heart => "❤",
+			Reaction.Rocket => "🚀",
+			Reaction.Eyes => "👀",
+			_ => throw new EnumValueOutOfRangeException(typeof(Reaction))
+		};
+		return @<span>
+		   <AntDesign.Tooltip Title="@title">
+			   <Button
+				   Type="@(CurrentReactions.Contains(reaction) ? ButtonType.Primary : ButtonType.Default)"
+				   Size="@ButtonSize.Small"
+				   Shape="@ButtonShape.Round"
+				   OnClick="() => ReactToComment(reaction)">
+				   @icon
+				   @if (Comment.GetReactionCount(reaction) is var count and > 0) {
+					   <Text>@count</Text>
+				   }
+			   </Button>
+		   </AntDesign.Tooltip>
+		</span>;
 	}
 
-	private async Task ReactToComment(CommentReaction button) {
-		var reaction = button == CurrentReaction ? CommentReaction.None : button;
+	private async Task ReactToComment(Reaction reaction) {
+		var newReactions = CurrentReactions.ToHashSet();
+		var remove = newReactions.Contains(reaction);
+		if (remove)
+			newReactions.Remove(reaction);
+		else
+			newReactions.Add(reaction);
 		try {
-			await Api.ReactToCommentAsync(Value.Value.ProblemId, Value.Value.Id, reaction);
-			if (CurrentReaction == CommentReaction.Like)
-				Value.Value.Likers?.Remove(CurrentUser.Id);
-			else if (CurrentReaction == CommentReaction.Dislike)
-				Value.Value.Dislikers?.Remove(CurrentUser.Id);
-			CurrentReaction = reaction;
-			if (reaction == CommentReaction.Like)
-				Value.Value.Likers?.Add(CurrentUser.Id);
-			else if (reaction == CommentReaction.Dislike)
-				Value.Value.Dislikers?.Add(CurrentUser.Id);
+			await Api.ReactToCommentAsync(Comment.ProblemId, Comment.Id, newReactions);
+			var commentReactions = Comment.Reactions?.TryGetValue(Enum.GetName(reaction)!, out var result) == true ? result! : new List<int>();
+			if (remove)
+				commentReactions.Remove(CurrentUser.Id);
+			else
+				commentReactions.Add(CurrentUser.Id);
+			CurrentReactions = newReactions.ToList();
+			StateHasChanged();
 		}
 		catch (ApiException ex) {
 			var _ = MessageService.Error($"{ex.StatusCode}: {ex.Message}");
@@ -108,8 +153,8 @@
 
 	private async Task DeleteComment() {
 		try {
-			await Api.DeleteCommentAsync(Value.Value.ProblemId, Value.Value.Id);
-			Value.Value.Content = null;
+			await Api.DeleteCommentAsync(Comment.ProblemId, Comment.Id);
+			Comment.Content = null;
 			var _ = MessageService.Success("删除成功");
 		}
 		catch (ApiException ex) {

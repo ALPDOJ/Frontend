@@ -26,8 +26,13 @@
 					<Spin />
 				}
 				else {
-					@foreach (var tag in Problem.Tags) {
-						<Tag>@tag</Tag>
+					@if (Problem.Tags is null) {
+						<Text>哦吼，本题没有标签</Text>
+					}
+					else {
+						@foreach (var tag in Problem.Tags) {
+							<Tag>@tag</Tag>
+						}
 					}
 				}
 			</DescriptionsItem>

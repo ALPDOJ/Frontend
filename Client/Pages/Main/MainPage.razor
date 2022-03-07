@@ -4,7 +4,7 @@
 
 <GridContent>
 	<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
-		<AntDesign.Col Lg="24" Md="24" Sm="24" Xl="18" Xs="24" Style="margin-bottom: 24px">
+		<Col Lg="24" Md="24" Sm="24" Xl="18" Xs="24" Style="margin-bottom: 24px">
 			<div>
 				<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
 					@if (CarouselUrls is null) {
@@ -21,8 +21,8 @@
 					}
 				</Carousel>
 			</div>
-		</AntDesign.Col>
-		<AntDesign.Col Lg="24" Md="24" Sm="24" Xl="6" Xs="24" Flex="@(1)">
+		</Col>
+		<Col Lg="24" Md="24" Sm="24" Xl="6" Xs="24" Flex="@(1)">
 			<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
 				<Col Flex="@(1)">
 					<Card Title="@("Title")" Class="extra-card" >
@@ -35,21 +35,19 @@
 					</Card>
 				</Col>
 			</Row>
-		</AntDesign.Col>
+		</Col>
 	</Row>
 </GridContent>
 
 <style lang="css" scoped>
-	.carousel {
-		min-width: 75%;
-		max-height: 100%;
-	}
-
 	.ant-carousel .slick-slide {
 		text-align: center;
-		min-width: 75%;
 		line-height: 160px;
 		overflow: hidden;
+	}
+
+	.extra-card {
+		min-width: 15em;
 	}
 </style>
 

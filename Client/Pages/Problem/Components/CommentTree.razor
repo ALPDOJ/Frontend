@@ -37,6 +37,12 @@
 	</ChildContent>
 </Comment>
 
+<style lang="css" scoped>
+	.more-reactions-dropdown-overlay>span {
+		margin: 0 2px;
+	}
+</style>
+
 @code {
 
 	[Parameter]
@@ -98,53 +104,82 @@
 			CurrentReactions.AddRange(Comment.Reactions.Keys.Where(k => Comment.Reactions[k].Contains(CurrentUser.Id)).Select(Enum.Parse<Reaction>));
 	}
 
-	private RenderFragment RenderReactAction(Reaction reaction) {
+	private RenderFragment RenderReactAction(Reaction reaction, bool useButton = true) {
 		var title = reaction switch {
 			Reaction.Like => "点赞",
 			Reaction.Dislike => "点踩",
 			Reaction.Laugh => "笑死",
+			Reaction.Embarrass => "差不多得了",
+			Reaction.Angry => "愤怒",
+			Reaction.Dog => "狗头",
+			Reaction.Surprise => "惊喜",
 			Reaction.Hooray => "好耶",
-			Reaction.Confused => "不懂",
+			Reaction.Question => "?",
 			Reaction.Heart => "比心",
 			Reaction.Rocket => "火箭",
-			Reaction.Eyes => "康康",
+			Reaction.Applause => "鼓掌",
 			_ => throw new EnumValueOutOfRangeException(typeof(Reaction))
 		};
 		var icon = reaction switch{
 			Reaction.Like => "👍",
 			Reaction.Dislike => "👎",
 			Reaction.Laugh => "🤣",
+			Reaction.Embarrass => "😅",
+			Reaction.Angry => "😡",
 			Reaction.Hooray => "🎉",
-			Reaction.Confused => "🤔",
+			Reaction.Question => "❓",
 			Reaction.Heart => "❤",
 			Reaction.Rocket => "🚀",
-			Reaction.Eyes => "👀",
+			Reaction.Applause => "👏",
+			Reaction.Dog or Reaction.Surprise => null,
 			_ => throw new EnumValueOutOfRangeException(typeof(Reaction))
 		};
-		return @<span>
-		   <AntDesign.Tooltip Title="@title">
-			   <span onclick="@(() => ReactToComment(reaction))">
-				   @icon
-				   @if (Comment.GetReactionCount(reaction) is var count and > 0) {
-					   <Text>@count</Text>
-				   }
-			   </span>
-		   </AntDesign.Tooltip>
-		</span>;
+		RenderFragment content = 
+			@<span>
+				@if (icon is null) {
+					<img src="@($"/assets/reactions/{Enum.GetName(reaction)}.png")" height="18" style="margin-bottom: 3px" />
+				}
+				else {
+					@icon
+				}
+				@if (Comment.GetReactionCount(reaction) is var count and > 0) {
+					<Text>@count</Text>
+				}
+			</span>;
+		return
+			@<span style="margin: 0 3px">
+				<AntDesign.Tooltip Title="@title">
+					@if (useButton) {
+						<Button
+							Type="@(CurrentReactions.Contains(reaction) ? ButtonType.Primary : ButtonType.Default)"
+							Size="@ButtonSize.Small"
+							Shape="@ButtonShape.Round"
+							Style="padding: 0 6px"
+							OnClick="() => ReactToComment(reaction)">
+							@content
+						</Button>
+					}
+					else {
+						<span onclick="@(() => ReactToComment(reaction))">
+							@content
+						</span>
+					}
+				</AntDesign.Tooltip>
+			</span>;
 	}
 
 	private RenderFragment RenderMoreReactions(IList<Reaction> reactions) =>
 		@<Dropdown Placement="@Placement.Right" Trigger="new []{Trigger.Click}">
 			<Overlay>
-				<div style="display: flex">
+				<div class="more-reactions-dropdown-overlay" style="display: flex">
 					@foreach (var reaction in reactions) {
-						@RenderReactAction(reaction)
+						@RenderReactAction(reaction, false)
 					}
 				</div>
 			</Overlay>
 			<ChildContent>
-				<Button Size="@ButtonSize.Small" Shape="@ButtonShape.Round">
-					···
+				<Button Size="@ButtonSize.Small" Shape="@ButtonShape.Circle">
+					🙂
 				</Button>
 			</ChildContent>
 		</Dropdown>;

@@ -79,7 +79,15 @@
 			};
 			if (CurrentUser.Role != Role.Student || CurrentUser.Id == Comment.Author.Id)
 				result.Add(DeleteAction);
-			result.AddRange(Enum.GetValues<Reaction>().Select(GetReactAction));
+			var more = new List<Reaction>();
+			foreach (var reaction in Enum.GetValues<Reaction>()) {
+				if ((reaction is Reaction.Like or Reaction.Dislike) || Comment.GetReactionCount(reaction) > 0)
+					result.Add(RenderReactAction(reaction));
+				else
+					more.Add(reaction);
+			}
+			if (more.Count > 0)
+				result.Add(RenderMoreReactions(more));
 			return result.ToArray();
 		}
 	}
@@ -90,7 +98,7 @@
 			CurrentReactions.AddRange(Comment.Reactions.Keys.Where(k => Comment.Reactions[k].Contains(CurrentUser.Id)).Select(Enum.Parse<Reaction>));
 	}
 
-	private RenderFragment GetReactAction(Reaction reaction) {
+	private RenderFragment RenderReactAction(Reaction reaction) {
 		var title = reaction switch {
 			Reaction.Like => "点赞",
 			Reaction.Dislike => "点踩",
@@ -115,19 +123,31 @@
 		};
 		return @<span>
 		   <AntDesign.Tooltip Title="@title">
-			   <Button
-				   Type="@(CurrentReactions.Contains(reaction) ? ButtonType.Primary : ButtonType.Default)"
-				   Size="@ButtonSize.Small"
-				   Shape="@ButtonShape.Round"
-				   OnClick="() => ReactToComment(reaction)">
+			   <span onclick="@(() => ReactToComment(reaction))">
 				   @icon
 				   @if (Comment.GetReactionCount(reaction) is var count and > 0) {
 					   <Text>@count</Text>
 				   }
-			   </Button>
+			   </span>
 		   </AntDesign.Tooltip>
 		</span>;
 	}
+
+	private RenderFragment RenderMoreReactions(IList<Reaction> reactions) =>
+		@<Dropdown Placement="@Placement.Right" Trigger="new []{Trigger.Click}">
+			<Overlay>
+				<div style="display: flex">
+					@foreach (var reaction in reactions) {
+						@RenderReactAction(reaction)
+					}
+				</div>
+			</Overlay>
+			<ChildContent>
+				<Button Size="@ButtonSize.Small" Shape="@ButtonShape.Round">
+					···
+				</Button>
+			</ChildContent>
+		</Dropdown>;
 
 	private async Task ReactToComment(Reaction reaction) {
 		var newReactions = CurrentReactions.ToHashSet();

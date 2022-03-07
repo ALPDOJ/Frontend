@@ -1,6 +1,7 @@
 ﻿@namespace Client.Pages
 @page "/assignment"
 @using TrueMogician.Extensions.Enumerable
+@using AntDesign.Select.Internal
 
 <div class="standard-list">
 	<Card>
@@ -28,7 +29,7 @@
 		</Row>
 	</Card>
 
-	<Card Title="题目" Class="list-card" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+	<Card Title="题目" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
 		<Extra>
 			<div class="extra-content" style="display: flex">
 				<RadioGroup @bind-Value="StatusFilter" Class="filter-ratio-group" Style="display: flex">
@@ -37,7 +38,22 @@
 					<Radio RadioButton Value="@ProblemStatusFilter.Ongoing">进行中</Radio>
 					<Radio RadioButton Value="@ProblemStatusFilter.Completed">已完成</Radio>
 				</RadioGroup>
-				<Search @bind-Value="SearchKeyword" Placeholder="请输入关键字" Class="extra-content-search"/>
+				<SimpleSelect 
+					@bind-Values="@SearchedTags" 
+					Mode="multiple" 
+					Placeholder="请选择标签" 
+					EnableSearch
+					AllowClear
+					Class="extra-content-select"
+					OnSelectedItemsChanged="@OnSearchedTagsChanged">
+					<SelectOptions>
+						@if (Tags is not null) {
+							@foreach (var tag in Tags) {
+								<SimpleSelectOption Label="@tag" Value="@tag" />
+							}
+						}
+					</SelectOptions>
+				</SimpleSelect>
 			</div>
 		</Extra>
 		<ChildContent>
@@ -89,9 +105,10 @@
 		width: 1px;
 	}
 
-	.extra-content-search {
+	.extra-content-select {
 		margin-left: 16px;
 		width: 272px;
+		min-width: 200px;
 	}
 
 	.filter-ratio-group span {
@@ -99,11 +116,6 @@
 	}
 
 	@@media screen and (max-width: 576px) {
-		.extra-content-search {
-			margin-left: 0;
-			width: 100%;
-		}
-
 		.header-info {
 			margin-bottom: 16px;
 		}
@@ -111,13 +123,16 @@
 		.header-info > em {
 			display: none;
 		}
+
+		.extra-content-select {
+			margin-left: 0;
+			width: 100%;
+		}
 	}
 </style>
 
 @code {
 	private ProblemStatusFilter _statusFilter;
-
-	private string _searchKeyword;
 
 	private static readonly Func<UserProblemSummary, bool> DelayedFilter = p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0;
 
@@ -132,6 +147,8 @@
 
 	private ICollection<UserProblemSummary> DisplayedProblemSummaries { get; set; }
 
+	private List<string>? Tags { get; set; }
+
 	private ProblemStatusFilter StatusFilter {
 		get => _statusFilter;
 		set {
@@ -142,15 +159,7 @@
 		}
 	}
 
-	private string SearchKeyword {
-		get => _searchKeyword;
-		set{
-			if (value != _searchKeyword) {
-				_searchKeyword = value;
-				FilterProblemSummaries();
-			}
-		}
-	}
+	private IEnumerable<string> SearchedTags { get; set; }
 
 	private DateTime? LatestDeadline {
 		get {
@@ -166,6 +175,7 @@
 		var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
 		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
 		ProblemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
+		Tags = ProblemSummaries.SelectMany(s => s.Tags).Distinct().ToList();
 		DisplayedProblemSummaries = ProblemSummaries;
 		StatusFilter = ProblemStatusFilter.All;
 	}
@@ -194,10 +204,16 @@
 			}
 		</div>;
 
+	private void OnSearchedTagsChanged(IEnumerable<string> tags) {
+		SearchedTags = tags;
+		FilterProblemSummaries();
+	}
+
 	private void FilterProblemSummaries() {
 		DisplayedProblemSummaries = ProblemSummaries!;
-		if (!string.IsNullOrEmpty(SearchKeyword))
-			DisplayedProblemSummaries = DisplayedProblemSummaries.Where(p => p.Title.Contains(SearchKeyword)).ToArray();
+		var tags = SearchedTags.ToArray();
+		if (tags.Length > 0)
+			DisplayedProblemSummaries = DisplayedProblemSummaries.Where(p => tags.All(tag => p.Tags.Contains(tag))).ToArray();
 		if (StatusFilter != ProblemStatusFilter.All)
 			DisplayedProblemSummaries = DisplayedProblemSummaries.Where(StatusFilter switch {
 				ProblemStatusFilter.Delayed => DelayedFilter,

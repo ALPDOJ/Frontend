@@ -5,16 +5,16 @@
 <div class="standard-list">
 	<Card>
 		<Row Gutter="24">
-			<AntDesign.Col Sm="6" Xs="24">
+			<Col Sm="6" Xs="24">
 				@RenderHeaderInfo("已完成", ProblemSummaries?.Count(CompletedFilter).ToString(), true)
-			</AntDesign.Col>
-			<AntDesign.Col Sm="6" Xs="24">
+			</Col>
+			<Col Sm="6" Xs="24">
 				@RenderHeaderInfo("进行中", ProblemSummaries?.Count(OngoingFilter).ToString(), true)
-			</AntDesign.Col>
-			<AntDesign.Col Sm="6" Xs="24">
+			</Col>
+			<Col Sm="6" Xs="24">
 				@RenderHeaderInfo("已延期", ProblemSummaries?.Count(DelayedFilter).ToString(), true)
-			</AntDesign.Col>
-			<AntDesign.Col Sm="6" Xs="24">
+			</Col>
+			<Col Sm="6" Xs="24">
 				@if (ProblemSummaries is null) {
 					@RenderHeaderInfo("最近截止日期", null)
 				}
@@ -24,11 +24,11 @@
 				else {
 					@RenderHeaderInfo("最近截止日期", "无")
 				}
-			</AntDesign.Col>
+			</Col>
 		</Row>
 	</Card>
 
-	<Card Class="list-card" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px" Title="题目">
+	<Card Title="题目" Class="list-card" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
 		<Extra>
 			<div class="extra-content" style="display: flex">
 				<RadioGroup @bind-Value="StatusFilter" Class="filter-ratio-group" Style="display: flex">
@@ -41,60 +41,31 @@
 			</div>
 		</Extra>
 		<ChildContent>
-			<AntList TItem="UserProblemSummary" DataSource="DisplayedProblemSummaries" ItemLayout="ListItemLayout.Horizontal">
-				<ListItem>
-					<ListItemMeta>
-						<TitleTemplate>
-							<a href="@($"/problem/{context.Id}")">@context.Title</a>
-						</TitleTemplate>
-					</ListItemMeta>
-					<div class="list-content">
-						<div class="list-content-item">
-							<span>剩余次数</span>
-							<p>@(context.Times - context.SubmittedTimes)</p>
-						</div>
-						<div class="list-content-item">
-							<span>@(context.Deadline < DateTimeOffset.Now ? "已过期" : "剩余时间")</span>
-							<p>@((context.Deadline - DateTimeOffset.Now).Duration().ToString(@"d\天h\时m\分"))</p>
-						</div>
-						<div class="list-content-item">
-							<AntDesign.Progress Percent="@((context.Score ?? 0) * 100 / context.TotalScore)"
-								Status="@GetProgressStatus(context)" StrokeWidth="6" Style="width: 180px;" />
-						</div>
-					</div>
-				</ListItem>
-			</AntList>
+			<Table TItem="UserProblemSummary" DataSource="DisplayedProblemSummaries">
+				<AntDesign.Column TData="int" @bind-Field="@context.Id" Title="序号" Sortable Filterable />
+				<AntDesign.Column TData="string" @bind-Field="@context.Title" Title="标题" Sortable Filterable />
+				<AntDesign.Column TData="IList<string>" Field="@context.Tags" Title="标签">
+					@foreach (var tag in context.Tags) {
+						<Tag>@tag</Tag>
+					}
+				</AntDesign.Column>
+				<AntDesign.Column TData="int" Field="@(context.Times - context.SubmittedTimes)" Title="剩余次数" Sortable Filterable />
+				<AntDesign.Column TData="DateTime" @bind-Field="@context.Deadline" Title="截止日期" Sortable Filterable />
+				<AntDesign.Column TData="double" Field="@(context.Score ?? 0)" Title="当前分数" Sortable Filterable>
+					<AntDesign.Progress Percent="@((context.Score ?? 0) * 100 / context.TotalScore)" Status="@GetProgressStatus(context)" StrokeWidth="6" Style="width: 180px;" />
+				</AntDesign.Column>
+			</Table>
 		</ChildContent>
 	</Card>
 </div>
 
 <style lang="css" scoped>
-	.standard-list .ant-card-head { border-bottom: none; }
-
-	.standard-list .ant-card-head-title {
-		line-height: 32px;
-		padding: 24px 0;
-	}
-
-	.standard-list .ant-card-extra { padding: 24px 0; }
-
-	.standard-list .ant-list-pagination {
-		margin-top: 24px;
-		text-align: right;
-	}
-
-	.standard-list .ant-avatar-lg {
-		height: 48px;
-		line-height: 48px;
-		width: 48px;
-	}
-
-	.standard-list .header-info {
+	.header-info {
 		position: relative;
 		text-align: center;
 	}
 
-	.standard-list .header-info > span {
+	.header-info > span {
 		opacity: 0.45;
 		display: inline-block;
 		font-size: 14px;
@@ -102,14 +73,14 @@
 		margin-bottom: 4px;
 	}
 
-	.standard-list .header-info > p {
+	.header-info > p {
 		opacity: 0.85;
 		font-size: 24px;
 		line-height: 32px;
 		margin: 0;
 	}
 
-	.standard-list .header-info > em {
+	.header-info > em {
 		background-color: #f0f0f0;
 		height: 56px;
 		position: absolute;
@@ -118,124 +89,46 @@
 		width: 1px;
 	}
 
-	.standard-list .list-content {
-		font-size: 0;
-		display: flex;
-	}
-
-	.standard-list .list-content .list-content-item {
-		display: flex;
-		flex-direction: column;
-		font-size: 14px;
-		margin-left: 40px;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.standard-list .list-content .list-content-item > span { line-height: 20px; }
-
-	.standard-list .list-content .list-content-item > p {
-		line-height: 22px;
-		margin-bottom: 0;
-		margin-top: 4px;
-	}
-
-	.standard-list .extra-content-search {
+	.extra-content-search {
 		margin-left: 16px;
 		width: 272px;
 	}
 
-	.standard-list .filter-ratio-group span { white-space: nowrap; }
-
-	@@media screen and (max-width: 480px) {
-		.standard-list .ant-list-item-content {
-			display: block;
-			flex: none;
-			width: 100%;
-		}
-
-		.standard-list .ant-list-item-action { margin-left: 0; }
-
-		.standard-list .list-content { margin-left: 0; }
-
-		.standard-list .list-content > div { margin-left: 0; }
-
-		.standard-list .list-card .ant-card-head-title { overflow: visible; }
+	.filter-ratio-group span {
+		white-space: nowrap;
 	}
 
 	@@media screen and (max-width: 576px) {
-		.standard-list .extra-content-search {
+		.extra-content-search {
 			margin-left: 0;
 			width: 100%;
 		}
 
-		.standard-list .header-info { margin-bottom: 16px; }
-
-		.standard-list .header-info > em { display: none; }
-	}
-
-	@@media screen and (max-width: 768px) {
-		.standard-list .list-content > div { display: block; }
-
-		.standard-list .list-content > div:last-child {
-			top: 0;
-			width: 100%;
+		.header-info {
+			margin-bottom: 16px;
 		}
 
-		.list-card .ant-radio-group {
-			display: block;
-			margin-bottom: 8px;
+		.header-info > em {
+			display: none;
 		}
 	}
-
-	@@media screen and (max-width: 992px) and (min-width: 768px) {
-		.standard-list .list-content > div { display: block; }
-
-		.standard-list .list-content > div:last-child {
-			top: 0;
-			width: 100%;
-		}
-	}
-
-	@@media screen and (max-width: 1200px) {
-		.standard-list .list-content > div { margin-left: 24px; }
-
-		.standard-list .list-content > div:last-child { top: 0; }
-	}
-
-	@@media screen and (max-width: 1400px) {
-		.standard-list .list-content { text-align: right; }
-
-		.standard-list .list-content > div:last-child { top: 0; }
-	}
-
-	.standard-listForm .ant-form-item { margin-bottom: 12px; }
-
-	.standard-listForm .ant-form-item:last-child {
-		margin-bottom: 32px;
-		padding-top: 4px;
-	}
-
-	.formResult { width: 100%; }
-
-	.formResult [class^='title'] { margin-bottom: 8px; }
 </style>
 
 @code {
+	private ProblemStatusFilter _statusFilter;
+
+	private string _searchKeyword;
+
 	private static readonly Func<UserProblemSummary, bool> DelayedFilter = p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0;
 
 	private static readonly Func<UserProblemSummary, bool> OngoingFilter = p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times;
 
 	private static readonly Func<UserProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0);
 
-	private ICollection<UserProblemSummary>? ProblemSummaries { get; set; }
-
-	private ProblemStatusFilter _statusFilter;
-
-	private string _searchKeyword;
-
 	[Inject]
-	protected ApiClient Api { get; set; }
+	protected ApiClient Api { get; init; }
+
+	private ICollection<UserProblemSummary>? ProblemSummaries { get; set; }
 
 	private ICollection<UserProblemSummary> DisplayedProblemSummaries { get; set; }
 
@@ -268,16 +161,12 @@
 		}
 	}
 
-	protected override async Task OnParametersSetAsync() {
-		await base.OnParametersSetAsync();
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
 		var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
 		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
 		ProblemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
 		DisplayedProblemSummaries = ProblemSummaries;
-	}
-
-	protected override async Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
 		StatusFilter = ProblemStatusFilter.All;
 	}
 

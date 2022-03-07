@@ -1,12 +1,12 @@
-﻿@using Comment = Client.Api.Comment
+﻿@namespace Client.Pages.Problem
+@using Comment = Client.Api.Comment
 @using TrueMogician.Extensions.Collections.Tree
-@namespace Client.Pages.Problem
 
 <Card Bordered>
 	<CascadingValue IsFixed Value="@CurrentUser">
-		@if (CommentForest?.Any() == true) {
-			@foreach (var tree in CommentForest) {
-				<CommentTree Node="@tree.Root" OnReply="@OnReply" />
+		@if (Comments?.Count > 0) {
+			@foreach (var node in CommentNodes) {
+				<CommentTree Node="@node" OnReply="@OnReply" />
 			}
 		}
 	</CascadingValue>
@@ -37,9 +37,6 @@
 </Card>
 
 @code {
-
-	private IList<Comment> _comments;
-
 	[Parameter]
 	public int ProblemId { get; set; }
 
@@ -48,8 +45,6 @@
 
 	[Inject]
 	public LocalStorageManager LocalStorageManager { get; init; }
-
-	private Forest<ValuedTreeNode<Comment>>? CommentForest { get; set; }
 
 	private User CurrentUser { get; set; }
 
@@ -61,14 +56,9 @@
 
 	private TextArea TextAreaElement { get; set; }
 
-	public IList<Comment> Comments {
-		get => _comments;
-		set {
-			_comments = value;
-			var dictionary = value.ToDictionary(c => c.Id);
-			CommentForest = TreeUtilities.BuildForest(value, c => c.ReplyTo is null ? null : dictionary[c.ReplyTo.Value]);
-		}
-	}
+	private IList<Comment> Comments { get; set; }
+
+	private IEnumerable<ValuedTreeNode<Comment>> CommentNodes => Comments.Select(c => new ValuedTreeNode<Comment>(c));
 
 	public override async Task SetParametersAsync(ParameterView parameters) {
 		CurrentUser = await LocalStorageManager.GetCurrentUser();
@@ -78,7 +68,7 @@
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		Comments = (await Api.GetProblemCommentsAsync(ProblemId)).Result;
+		Comments = (await Api.GetProblemCommentsAsync(ProblemId, null)).Result;
 	}
 
 	private async Task OnReply(int id) {
@@ -101,7 +91,7 @@
 			Time = resp.Result.Time,
 			Content = content,
 			ReplyTo = RepliedCommentId,
-			Author = new Author {
+			Author = new CommentAuthor {
 				Id = CurrentUser.Id,
 				Username = CurrentUser.Username,
 				Avatar = CurrentUserAvatar
@@ -109,16 +99,14 @@
 		};
 		Comments.Add(newComment);
 		if (RepliedCommentId.HasValue) {
-			foreach (var tree in CommentForest!) {
-				var target = tree.Root.FirstOrDefault(n => n.Value.Id == RepliedCommentId.Value);
+			foreach (var root in CommentNodes) {
+				var target = root.FirstOrDefault(n => n.Value.Id == RepliedCommentId.Value);
 				if (target is not null) {
 					target.Children.Add(new ValuedTreeNode<Comment>(newComment));
 					break;
 				}
 			}
 		}
-		else
-			CommentForest!.Add(new ValuedTreeNode<Comment>(newComment));
 		CommentContent = "";
 		RepliedCommentId = null;
 		StateHasChanged();

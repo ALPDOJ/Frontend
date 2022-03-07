@@ -11,13 +11,14 @@
 	@ref="@CommentElement" 
 	Author="@Comment.Author.GetDisplayingName()"
 	Datetime="@Formatter.FormatDateTimeRelatively(Comment.Time,2)" 
+	Style="@Style"
 	Actions="@Actions">
 	<AvatarTemplate>
 		@if (!string.IsNullOrEmpty(Comment.Author.Avatar)) {
 			<Avatar Src="@Comment.Author.Avatar" />
 		}
 		else {
-			<Avatar>author.Username ?? author.Id.ToString()</Avatar>
+			<Avatar>@Comment.Author.GetDisplayingName()</Avatar>
 		}
 	</AvatarTemplate>
 	<ContentTemplate>
@@ -31,22 +32,27 @@
 	<ChildContent>
 		@if (!Node.IsLeaf) {
 			@foreach (var child in Node.Children) {
-				<CommentTree Node="@child" OnReply="@OnReply" />
+				<CommentTree Node="@child" Style="@DisplayStyle" OnReply="@OnReply"/>
 			}
 		}
 	</ChildContent>
 </Comment>
 
 <style lang="css" scoped>
-	.more-reactions-dropdown-overlay>span {
+	.more-reactions-dropdown-overlay > span {
 		margin: 0 2px;
 	}
 </style>
 
 @code {
 
+	private bool _childrenFetched = false;
+
 	[Parameter]
 	public ValuedTreeNode<Comment> Node { get; set; }
+
+	[Parameter]
+	public string Style { get; set; }
 
 	[Parameter]
 	public EventCallback<int> OnReply { get; set; }
@@ -62,9 +68,15 @@
 
 	private AntDesign.Comment CommentElement { get; set; }
 
+	private bool RepliesVisible { get; set; }
+
 	private List<Reaction> CurrentReactions { get; set; } = new();
 
+	private int ChildrenCount => _childrenFetched ? Node.Children.Count : Comment.Replies;
+
 	private Comment Comment => Node.Value;
+
+	private string DisplayStyle => RepliesVisible ? "" : "display: none";
 
 	private RenderFragment ReplyAction =>
 		@<span onclick="@(() => OnReply.InvokeAsync(Comment.Id))">回复</span>;
@@ -76,6 +88,11 @@
 			</AntDesign.Tooltip>
 		</span>;
 
+	private RenderFragment CollapseAction =>
+		@<span onclick="@CollapseReplies">
+			@(RepliesVisible ? "收起回复":$"回复({ChildrenCount})")
+		</span>;
+
 	private RenderFragment[] Actions {
 		get {
 			if (Comment.Content is null)
@@ -85,6 +102,8 @@
 			};
 			if (CurrentUser.Role != Role.Student || CurrentUser.Id == Comment.Author.Id)
 				result.Add(DeleteAction);
+			if (ChildrenCount > 0)
+				result.Add(CollapseAction);
 			var more = new List<Reaction>();
 			foreach (var reaction in Enum.GetValues<Reaction>()) {
 				if ((reaction is Reaction.Like or Reaction.Dislike) || Comment.GetReactionCount(reaction) > 0)
@@ -148,23 +167,23 @@
 			</span>;
 		return
 			@<span style="margin: 0 3px">
-				<AntDesign.Tooltip Title="@title">
-					@if (useButton) {
+				@if (useButton) {
+					<AntDesign.Tooltip Title="@title">
 						<Button
 							Type="@(CurrentReactions.Contains(reaction) ? ButtonType.Primary : ButtonType.Default)"
 							Size="@ButtonSize.Small"
 							Shape="@ButtonShape.Round"
 							Style="padding: 0 6px"
-							OnClick="() => ReactToComment(reaction)">
+							OnClick="@(() => ReactToComment(reaction))">
 							@content
 						</Button>
-					}
-					else {
-						<span onclick="@(() => ReactToComment(reaction))">
-							@content
-						</span>
-					}
-				</AntDesign.Tooltip>
+					</AntDesign.Tooltip>
+				}
+				else {
+					<span style="cursor: pointer" onclick="@(() => ReactToComment(reaction))">
+						@content
+					</span>
+				}
 			</span>;
 	}
 
@@ -183,6 +202,16 @@
 				</Button>
 			</ChildContent>
 		</Dropdown>;
+
+	private async Task CollapseReplies() {
+		if (!RepliesVisible && !_childrenFetched) {
+			var children = (await Api.GetProblemCommentsAsync(Comment.ProblemId, Comment.Id)).Result;
+			Node.Children.AddRange(children.Select(c => new ValuedTreeNode<Comment>(c)));
+			_childrenFetched = true;
+		}
+		RepliesVisible = !RepliesVisible;
+		StateHasChanged();
+	}
 
 	private async Task ReactToComment(Reaction reaction) {
 		var newReactions = CurrentReactions.ToHashSet();

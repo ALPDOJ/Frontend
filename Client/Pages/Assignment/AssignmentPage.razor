@@ -1,9 +1,8 @@
 ﻿@namespace Client.Pages
 @page "/assignment"
 @using TrueMogician.Extensions.Enumerable
-@using AntDesign.Select.Internal
 
-<div class="standard-list">
+<div class="assignment-list">
 	<Card>
 		<Row Gutter="24">
 			<Col Sm="6" Xs="24">
@@ -59,16 +58,22 @@
 		<ChildContent>
 			<Table TItem="UserProblemSummary" DataSource="DisplayedProblemSummaries">
 				<AntDesign.Column TData="int" @bind-Field="@context.Id" Title="序号" Sortable Filterable />
-				<AntDesign.Column TData="string" @bind-Field="@context.Title" Title="标题" Sortable Filterable />
+				<AntDesign.Column TData="string" @bind-Field="@context.Title" Title="标题" Sortable Filterable>
+					<Link href="@($"/problem/{context.Id}")">@context.Title</Link>
+				</AntDesign.Column>
 				<AntDesign.Column TData="IList<string>" Field="@context.Tags" Title="标签">
 					@foreach (var tag in context.Tags) {
 						<Tag>@tag</Tag>
 					}
 				</AntDesign.Column>
 				<AntDesign.Column TData="int" Field="@(context.Times - context.SubmittedTimes)" Title="剩余次数" Sortable Filterable />
-				<AntDesign.Column TData="DateTime" @bind-Field="@context.Deadline" Title="截止日期" Sortable Filterable />
+				<AntDesign.Column TData="DateTime" @bind-Field="@context.Deadline" Title="截止日期" Format="yyyy-MM-dd HH:mm:ss" Sortable Filterable />
 				<AntDesign.Column TData="double" Field="@(context.Score ?? 0)" Title="当前分数" Sortable Filterable>
-					<AntDesign.Progress Percent="@((context.Score ?? 0) * 100 / context.TotalScore)" Status="@GetProgressStatus(context)" StrokeWidth="6" Style="width: 180px;" />
+					<AntDesign.Progress 
+						Percent="@((context.Score ?? 0) * 100 / context.TotalScore)" 
+						Status="@GetProgressStatus(context)" 
+						StrokeWidth="6" 
+						Style="width: 180px" />
 				</AntDesign.Column>
 			</Table>
 		</ChildContent>
@@ -76,12 +81,12 @@
 </div>
 
 <style lang="css" scoped>
-	.header-info {
+	.assignment-list .header-info {
 		position: relative;
 		text-align: center;
 	}
 
-	.header-info > span {
+	.assignment-list .header-info > span {
 		opacity: 0.45;
 		display: inline-block;
 		font-size: 14px;
@@ -89,14 +94,14 @@
 		margin-bottom: 4px;
 	}
 
-	.header-info > p {
+	.assignment-list .header-info > p {
 		opacity: 0.85;
 		font-size: 24px;
 		line-height: 32px;
 		margin: 0;
 	}
 
-	.header-info > em {
+	.assignment-list .header-info > em {
 		background-color: #f0f0f0;
 		height: 56px;
 		position: absolute;
@@ -105,26 +110,26 @@
 		width: 1px;
 	}
 
-	.extra-content-select {
+	.assignment-list .extra-content-select {
 		margin-left: 16px;
 		width: 272px;
 		min-width: 200px;
 	}
 
-	.filter-ratio-group span {
+	.assignment-list .filter-ratio-group span {
 		white-space: nowrap;
 	}
 
 	@@media screen and (max-width: 576px) {
-		.header-info {
+		.assignment-list .header-info {
 			margin-bottom: 16px;
 		}
 
-		.header-info > em {
+		.assignment-list .header-info > em {
 			display: none;
 		}
 
-		.extra-content-select {
+		.assignment-list .extra-content-select {
 			margin-left: 0;
 			width: 100%;
 		}

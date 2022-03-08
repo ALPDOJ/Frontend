@@ -1,7 +1,70 @@
 ﻿@namespace Client.Pages.Problem
+@using TrueMogician.Extensions.Enumerable
 
-<h3>SubmissionView</h3>
+<Card Loading="@(Submission is null)" Bordered>
+	<Table TItem="(Submission, ScoreSummary)"
+		Loading="@(Submission is null || ScoreSummaries is null)"
+		DataSource="@(Submission!.IndexJoin(ScoreSummaries!))">
+		<AntDesign.Column TData="int" @bind-Field="@context.Item1.Id" Title="提交序号">
+			<Link href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Id</Link>
+		</AntDesign.Column>
+		<AntDesign.Column TData="DateTime" @bind-Field="@context.Item1.Timestamp" Title="提交时间" Sortable Filterable>
+			<Link href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</Link>
+		</AntDesign.Column>
+		<AntDesign.Column TData="bool" @bind-Field="@context.Item1.Test" Title="提交模式" Sortable Filterable>
+			@if (context.Item1.Test) {
+				<Tag PresetColor="@PresetColor.GeekBlue">测试提交</Tag>
+			}
+			else if (context.Item1.Final) {
+				<Tag PresetColor="@PresetColor.Gold">最终提交</Tag>
+			}
+			else {
+				<Tag PresetColor="@PresetColor.Lime">正式提交</Tag>
+			}
+		</AntDesign.Column>
+		@if (ProblemSummary.Manual) {
+			<AntDesign.Column TData="bool" Field="@context.Item2.Review.HasValue" Title="批阅状态" Sortable Filterable>
+				@if (context.Item2.Review.HasValue) {
+					<Tag PresetColor="@PresetColor.Green">已批阅</Tag>
+				}
+				else {
+					<Tag Color="Azure3">未批阅</Tag>
+				}
+			</AntDesign.Column>
+		}
+		else {
+			<AntDesign.Column TData="double" Field="@context.Item2.GetTotalScore()" Title="分数" Sortable>
+				<AntDesign.Progress 
+					Percent="@(context.Item2.GetTotalScore() * 100 / ProblemSummary.TotalScore)" 
+					Status="@GetProgressStatus(context.Item2)" 
+					StrokeWidth="6" 
+					Style="width: 180px" />
+			</AntDesign.Column>
+		}
+	</Table>
+</Card>
 
 @code {
+
+	[Parameter]
+	public UserProblemSummary ProblemSummary { get; set; }
+
+    [Inject]
+    private ApiClient Api { get; init; }
+
+    private IList<Submission>? Submission { get; set; }
+
+	private IList<ScoreSummary>? ScoreSummaries { get; set; }
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		Submission = (await Api.GetSubmissionsAsync(null, ProblemSummary.Id)).Result;
+		ScoreSummaries = await Task.WhenAll(Submission.Select(async s => (await Api.GetSubmissionScoreAsync(s.Id)).Result));
+	}
+
+	private ProgressStatus GetProgressStatus(ScoreSummary scoreSummary) {
+		var score = scoreSummary.GetTotalScore();
+		return Math.Abs(ProblemSummary.TotalScore - score) < double.Epsilon ? ProgressStatus.Success : ProgressStatus.Exception;
+	}
 
 }

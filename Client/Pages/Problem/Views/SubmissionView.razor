@@ -1,17 +1,16 @@
 ﻿@namespace Client.Pages.Problem
-@using TrueMogician.Extensions.Enumerable
 
-<Card Loading="@(Submission is null)" Bordered>
-	<Table TItem="(Submission, ScoreSummary)"
-		Loading="@(Submission is null || ScoreSummaries is null)"
-		DataSource="@(Submission!.IndexJoin(ScoreSummaries!))">
-		<AntDesign.Column TData="int" @bind-Field="@context.Item1.Id" Title="提交序号">
-			<Link href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Id</Link>
+<Card Bordered Loading="@Loading">
+	<Table DataSource="@Data"
+		Loading="@Loading"
+		TItem="(Submission, ScoreSummary)">
+		<AntDesign.Column @bind-Field="@context.Item1.Id" TData="int" Title="提交序号">
+			<a href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Id</a>
 		</AntDesign.Column>
-		<AntDesign.Column TData="DateTime" @bind-Field="@context.Item1.Timestamp" Title="提交时间" Sortable Filterable>
-			<Link href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</Link>
+		<AntDesign.Column @bind-Field="@context.Item1.Timestamp" Filterable Sortable TData="DateTime" Title="提交时间">
+			<a href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</a>
 		</AntDesign.Column>
-		<AntDesign.Column TData="bool" @bind-Field="@context.Item1.Test" Title="提交模式" Sortable Filterable>
+		<AntDesign.Column @bind-Field="@context.Item1.Test" Filterable Sortable TData="bool" Title="提交模式">
 			@if (context.Item1.Test) {
 				<Tag PresetColor="@PresetColor.GeekBlue">测试提交</Tag>
 			}
@@ -23,7 +22,7 @@
 			}
 		</AntDesign.Column>
 		@if (ProblemSummary.Manual) {
-			<AntDesign.Column TData="bool" Field="@context.Item2.Review.HasValue" Title="批阅状态" Sortable Filterable>
+			<AntDesign.Column Field="@context.Item2.Review.HasValue" Filterable Sortable TData="bool" Title="批阅状态">
 				@if (context.Item2.Review.HasValue) {
 					<Tag PresetColor="@PresetColor.Green">已批阅</Tag>
 				}
@@ -33,11 +32,11 @@
 			</AntDesign.Column>
 		}
 		else {
-			<AntDesign.Column TData="double" Field="@context.Item2.GetTotalScore()" Title="分数" Sortable>
-				<AntDesign.Progress 
-					Percent="@(context.Item2.GetTotalScore() * 100 / ProblemSummary.TotalScore)" 
-					Status="@GetProgressStatus(context.Item2)" 
-					StrokeWidth="6" 
+			<AntDesign.Column Field="@context.Item2.GetTotalScore()" Sortable TData="double" Title="分数">
+				<AntDesign.Progress
+					Percent="@(context.Item2.GetTotalScore() * 100 / ProblemSummary.TotalScore)"
+					Status="@GetProgressStatus(context.Item2)"
+					StrokeWidth="6"
 					Style="width: 180px" />
 			</AntDesign.Column>
 		}
@@ -49,21 +48,27 @@
 	[Parameter]
 	public UserProblemSummary ProblemSummary { get; set; }
 
-    [Inject]
-    private ApiClient Api { get; init; }
+	[Inject]
+	private ApiClient Api { get; init; }
 
-    private IList<Submission>? Submission { get; set; }
+	[Inject]
+	private LocalStorageManager LocalStorageManager { get; init; }
 
-	private IList<ScoreSummary>? ScoreSummaries { get; set; }
+	private IList<(Submission, ScoreSummary)>? Data { get; set; }
+
+	private bool Loading { get; set; } = true;
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		Submission = (await Api.GetSubmissionsAsync(null, ProblemSummary.Id)).Result;
-		ScoreSummaries = await Task.WhenAll(Submission.Select(async s => (await Api.GetSubmissionScoreAsync(s.Id)).Result));
+		int userId = (await LocalStorageManager.GetCurrentUser()).Id;
+		var submission = (await Api.GetSubmissionsAsync(userId, ProblemSummary.Id)).Result;
+		Data = new List<(Submission, ScoreSummary)>(submission.Count);
+		await Task.WhenAll(submission.Select(async (s, i) => Data[i] = (s, (await Api.GetSubmissionScoreAsync(s.Id)).Result)));
+		Loading = false;
 	}
 
 	private ProgressStatus GetProgressStatus(ScoreSummary scoreSummary) {
-		var score = scoreSummary.GetTotalScore();
+		double score = scoreSummary.GetTotalScore();
 		return Math.Abs(ProblemSummary.TotalScore - score) < double.Epsilon ? ProgressStatus.Success : ProgressStatus.Exception;
 	}
 

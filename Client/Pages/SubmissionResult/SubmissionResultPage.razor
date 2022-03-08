@@ -75,10 +75,15 @@
 							</AntList>
 						</Alert>
 					}
-					@if (DisplayingCompilerResult.TestCases is not null) {
+					@if (DisplayingCompilerResult.TestCases is not null && VisibleTestCases is not null) {
 						<Card Title="测试点状态" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Style="margin-bottom: 24px">
 							@foreach (var result in DisplayingCompilerResult.TestCases!) {
-								<TestCaseResultCard Result="@result" />
+								if (VisibleTestCases.TryGetValue(result.Id, out var testCase)) {
+									<TestCaseResultCard Result="@result" TestCase="@testCase" />
+								}
+								else {
+									<TestCaseResultCard Result="@result" />
+								}
 							}
 						</Card>
 					}
@@ -106,6 +111,8 @@
 	private Problem? Problem { get; set; }
 
 	private ProblemSubmissionLimit? SubmissionLimit { get; set; }
+
+	private Dictionary<int, TestCase>? VisibleTestCases { get; set; }
 
 	private SubmissionStatus Status { get; set; } = SubmissionStatus.Submitted;
 
@@ -137,6 +144,7 @@
 		var _ = Task.WhenAll(
 			Task.Run(async () => Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result),
 			Task.Run(async () => SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result),
+			Task.Run(async () => VisibleTestCases = (await Api.GetExampleTestCasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id)),
 			Task.Run(async () => {
 				while (true) {
 					try {

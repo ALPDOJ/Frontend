@@ -1,11 +1,13 @@
 ﻿@namespace Client.Pages.SubmissionResult
 @using Client.Utils
 
-<div onclick="@OnClick">
-	<Card Bordered Class="test-case-result-card" Style="@($"background-color: {Color}")">
-		<Text>@($"#{Result.Id}")</Text>
-		<Text>@Text</Text>
-	</Card>
+<div style="@($"cursor: {(TestCase is null ? "default" : "pointer")}")" onclick="@(TestCase is null ? null : OnClick)">
+	<Tooltip Title="@TooltipTitle">
+		<Card Bordered Class="@CardClass" Style="@($"background-color: {Color}")">
+			<Text>@($"#{Result.Id}")</Text>
+			<Text>@Text</Text>
+		</Card>
+	</Tooltip>
 </div>
 
 <style lang="css" scoped>
@@ -16,6 +18,11 @@
 		padding: 15px;
 		text-align: center;
 	}
+
+	.test-case-result-card.test-case-visible {
+		border-color: gold;
+		border-width: 4px;
+	}
 </style>
 
 @code {
@@ -23,14 +30,45 @@
 	[Parameter]
 	public TestCaseResult Result { get; set; }
 
+	[Parameter]
+	public TestCase? TestCase { get; set; }
+
 	[Inject]
-	private ModalService ModalService { get; set; }
+	private ModalService ModalService { get; init; }
+
+	private string CardClass => "test-case-result-card" + (TestCase is null ? "" : " test-case-visible");
+
+	private RenderFragment TooltipTitle => (
+		@<div>
+			<Text>运行时间：@Result.Consumption.Time 毫秒</Text>
+			<Text>内存消耗：@Formatter.FormatSize(Result.Consumption.Memory)</Text>
+		</div>
+	);
 
 	private RenderFragment ModalContent => (
-		@<Descriptions Column="1" Colon>
-			<DescriptionsItem Title="运行时间">@($"{Result.Consumption.Time} 毫秒")</DescriptionsItem>
-			<DescriptionsItem Title="内存消耗">@Formatter.FormatSize(Result.Consumption.Memory)</DescriptionsItem>
-		</Descriptions>
+		@<div>
+			@if (TestCase?.Input is not null) {
+				<Row Gutter="@(16)">
+					<AntDesign.Col>
+						<Card Title="输入数据" Bordered>
+							@TestCase.Input
+						</Card>
+					</AntDesign.Col>
+				</Row>
+			}
+			<Row Gutter="@(16)">
+				<AntDesign.Col Span="12">
+					<Card Title="期望输出" Bordered>
+						@TestCase!.Expect
+					</Card>
+				</AntDesign.Col>
+				<AntDesign.Col Span="12">
+					<Card Title="你的输出" Bordered>
+						@Result.Output
+					</Card>
+				</AntDesign.Col>
+			</Row>
+		</div>
 	);
 
 #pragma warning disable CS8524
@@ -43,11 +81,11 @@
 	};
 
 	private string Text => Result.Result switch {
-		TestCaseStatus.Accepted => "AC",
-		TestCaseStatus.WrongAnswer => "WA",
-		TestCaseStatus.RuntimeError => "RE",
-		TestCaseStatus.TimeLimitExceeded => "TLE",
-		TestCaseStatus.MemoryLimitExceeded => "MLE"
+		TestCaseStatus.Accepted => "通过",
+		TestCaseStatus.WrongAnswer => "答案错误",
+		TestCaseStatus.RuntimeError => "运行时错误",
+		TestCaseStatus.TimeLimitExceeded => "时间超限",
+		TestCaseStatus.MemoryLimitExceeded => "空间超限"
 	};
 #pragma warning restore CS8524
 

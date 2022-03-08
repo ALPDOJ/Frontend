@@ -49,7 +49,7 @@
 					<ContentView Problem="@Problem" Examples="@Examples" />
 					break;
 				case "submission":
-					<SubmissionView />
+					<SubmissionView ProblemSummary="@Summary" />
 					break;
 				case "discussion":
 					<DiscussionView ProblemId="@Id" />
@@ -64,9 +64,12 @@
 	private readonly IList<TabPaneItem> _tabList = new List<TabPaneItem> {
 		new() { Key = "content", Tab = "题目内容" },
 		new() { Key = "discussion", Tab = "提问讨论" },
-		new() { Key = "submission", Tab = "评测记录" },
-		new() { Key = "statistics", Tab = "题目统计" }
+		new() { Key = "submission", Tab = "评测记录" }
 	};
+
+	[SupplyParameterFromQuery(Name = "view")]
+	[Parameter]
+	public string? View { get; set; }
 
 	[Parameter]
 	public int Id { get; set; }
@@ -92,9 +95,14 @@
 	[Inject]
 	private ErrorHandler ErrorHandler { get; init; }
 
-	private string TabKey { get; set; } = "content";
+	private string TabKey { get; set; }
 
 	private bool Submitting { get; set; }
+
+	public override async Task SetParametersAsync(ParameterView parameters) {
+		await base.SetParametersAsync(parameters);
+		TabKey = View ?? "content";
+	}
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();

@@ -104,15 +104,9 @@
 				result.Add(DeleteAction);
 			if (ChildrenCount > 0)
 				result.Add(CollapseAction);
-			var more = new List<Reaction>();
-			foreach (var reaction in Enum.GetValues<Reaction>()) {
-				if ((reaction is Reaction.Like or Reaction.Dislike) || Comment.GetReactionCount(reaction) > 0)
-					result.Add(RenderReactAction(reaction));
-				else
-					more.Add(reaction);
-			}
-			if (more.Count > 0)
-				result.Add(RenderMoreReactions(more));
+			bool ShouldShow(Reaction r) => (r is Reaction.Like or Reaction.Dislike) || Comment.GetReactionCount(r) > 0;
+			result.AddRange(Enum.GetValues<Reaction>().Where(ShouldShow).Select(r => RenderReactAction(r)));
+			result.Add(RenderMoreReactions(Enum.GetValues<Reaction>().Where(r => !ShouldShow(r))));
 			return result.ToArray();
 		}
 	}
@@ -187,7 +181,7 @@
 			</span>;
 	}
 
-	private RenderFragment RenderMoreReactions(IList<Reaction> reactions) =>
+	private RenderFragment RenderMoreReactions(IEnumerable<Reaction> reactions) =>
 		@<Dropdown Placement="@Placement.Right" Trigger="new []{Trigger.Click}">
 			<Overlay>
 				<div class="more-reactions-dropdown-overlay" style="display: flex">
@@ -216,10 +210,17 @@
 	private async Task ReactToComment(Reaction reaction) {
 		var newReactions = CurrentReactions.ToHashSet();
 		var remove = newReactions.Contains(reaction);
+		bool mutex = false;
 		if (remove)
 			newReactions.Remove(reaction);
-		else
+		else {
+			mutex = reaction switch {
+				Reaction.Like    => newReactions.Remove(Reaction.Dislike),
+				Reaction.Dislike => newReactions.Remove(Reaction.Like),
+				_                => false
+				};
 			newReactions.Add(reaction);
+		}
 		try {
 			await Api.ReactToCommentAsync(Comment.ProblemId, Comment.Id, newReactions);
 			var commentReactions = Comment.Reactions?.TryGetValue(Enum.GetName(reaction)!, out var result) == true ? result! : new List<int>();
@@ -227,6 +228,8 @@
 				commentReactions.Remove(CurrentUser.Id);
 			else
 				commentReactions.Add(CurrentUser.Id);
+			if (mutex) 
+				Comment.Reactions![Enum.GetName(reaction == Reaction.Like ? Reaction.Dislike : Reaction.Like)!].Remove(CurrentUser.Id);
 			CurrentReactions = newReactions.ToList();
 			StateHasChanged();
 		}

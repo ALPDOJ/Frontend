@@ -4,7 +4,9 @@
 <CascadingValue Value="@this" IsFixed>
 	<AntDesign.ProLayout.BasicLayout Logo="@("/assets/logo.png")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
 		<RightContentRender>
-			<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
+			@if (CurrentUser is not null) {
+				<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
+			}
 		</RightContentRender>
 		<ChildContent>
 			@Body
@@ -86,14 +88,14 @@
 		}
 	};
 
-	private User CurrentUser { get; set; }
+	private User? CurrentUser { get; set; }
 
 	private string? CurrentUserAvatar { get; set; }
 
 	public void Refresh() => StateHasChanged();
 
-	protected override async Task OnParametersSetAsync() {
-		await base.OnParametersSetAsync();
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
 		CurrentUser = await LocalStorageManager.GetCurrentUser();
 		CurrentUserAvatar = await LocalStorageManager.GetCurrentUserAvatar();
 	}

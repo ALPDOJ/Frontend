@@ -95,13 +95,16 @@
 	[Inject]
 	private ErrorHandler ErrorHandler { get; init; }
 
-	private string TabKey { get; set; }
+	private string TabKey { get; set; } = "content";
 
 	private bool Submitting { get; set; }
 
 	public override async Task SetParametersAsync(ParameterView parameters) {
 		await base.SetParametersAsync(parameters);
-		TabKey = View ?? "content";
+		if (View is not null) {
+			TabKey = View;
+			StateHasChanged();
+		}
 	}
 
 	protected override async Task OnInitializedAsync() {

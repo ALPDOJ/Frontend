@@ -1,0 +1,102 @@
+﻿@namespace Client.Pages.Account
+
+<div class="base-view">
+	<div class="left" style="min-width: 310px;">
+		<Form Style="display:flex;" Model="@User" OnFinish="OnSubmit">
+			<div style="margin-right: 50px">
+				<FormItem Label="昵称">
+					<AntDesign.Input @bind-Value="@context.Name" />
+				</FormItem>
+				<FormItem Label="邮箱">
+					<AntDesign.Input @bind-Value="@context.Email" />
+				</FormItem>
+				<FormItem>
+					<Button HtmlType="submit" Type="@ButtonType.Primary">
+						保存信息
+					</Button>
+				</FormItem>
+			</div>
+			<div>
+				<FormItem Label="头像">
+					<Upload ShowUploadList="false">
+						<div class="avatar">
+							<img alt="avatar" width="128" src="@Avatar" />
+						</div>
+					</Upload>
+				</FormItem>
+			</div>
+		</Form>
+	</div>
+</div>
+
+<style scoped>
+	.base-view {
+		display: flex;
+		padding-top: 12px;
+	}
+
+	.base-view .ant-legacy-form-item .ant-legacy-form-item-control-wrapper { width: 100%; }
+
+	.base-view .left {
+		max-width: 448px;
+		min-width: 224px;
+	}
+
+	.base-view .right__b__1 {
+		flex: 1;
+		padding-left: 104px;
+	}
+
+	.base-view .right__b__1 .avatar_title {
+		color: rgba(0, 0, 0, 0.85);
+		font-size: 14px;
+		height: 22px;
+		line-height: 22px;
+		margin-bottom: 8px;
+	}
+
+	.base-view .right__b__1 .avatar {
+		height: 144px;
+		margin-bottom: 12px;
+		overflow: hidden;
+		width: 144px;
+	}
+
+	.base-view .right__b__1 .avatar img { width: 100%; }
+
+	.base-view .right__b__1 .button_view {
+		text-align: center;
+		width: 144px;
+	}
+
+	@@media screen and (max-width: 1200px) {
+		.base-view { flex-direction: column-reverse; }
+
+		.base-view .right__b__1 {
+			align-items: center;
+			display: flex;
+			flex-direction: column;
+			max-width: 448px;
+			padding: 20px;
+		}
+
+		.base-view .right__b__1 .avatar_title { display: none; }
+	}
+</style>
+
+@code {
+
+	[CascadingParameter]
+	private User User { get; set; }
+
+	[CascadingParameter(Name = "Avatar")]
+	private string? Avatar { get; set; }
+
+	[Inject]
+	private ApiClient Api { get; init; }
+
+	private async Task OnSubmit() {
+		await Api.ModifyUserAsync(User.Id, User);
+	}
+
+}

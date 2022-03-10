@@ -1,34 +1,45 @@
-@namespace Client.Pages.Account.Settings
+@namespace Client.Pages.Account
 @page "/account/settings"
-@using Blazored.LocalStorage
 
 <GridContent>
-	<div class="main__b__2">
-		<CascadingValue Name="CurrentUser" Value="@CurrentUser">
-			<CascadingValue Name="CurrentUserAvatar" Value="@CurrentUserAvatar">
+	@if (User is not null) {
+		<CascadingValue Value="@User">
+			<CascadingValue Name="@("Avatar")" Value="@Avatar">
 				<Tabs Centered>
-					<TabPane Tab="基本资料" Key="1">
-						<BaseView />
+					<TabPane Tab="基本资料" Key="1" Class="tab-pane">
+						<BasicView />
+					</TabPane>
+					<TabPane Tab="邮件提醒" Key="2" Class="tab-pane">
+						<EmailView />
+					</TabPane>
+					<TabPane Tab="消息通知" Key="3" Class="tab-pane">
+						<NotificationView />
 					</TabPane>
 				</Tabs>
 			</CascadingValue>
 		</CascadingValue>
-	</div>
+	}
 </GridContent>
+
+<style scoped>
+	.tab-pane {
+		
+	}
+</style>
 
 @code {
 
 	[Inject]
-	private ISyncLocalStorageService LocalStorage { get; set; }
+	private LocalStorageManager LocalStorageManager { get; init; }
 
-	private User CurrentUser { get; set; }
+	private User? User { get; set; }
 
-	private string? CurrentUserAvatar { get; set; }
+	private string? Avatar { get; set; }
 
-	protected override async Task OnInitializedAsync() {
+	protected override  async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		CurrentUser = LocalStorage.GetItem<User>("currentUser");
-		CurrentUserAvatar = LocalStorage.GetItem<string?>("currentUserAvatar");
+		User = await LocalStorageManager.GetCurrentUser();
+		Avatar = await LocalStorageManager.GetCurrentUserAvatar();
 	}
 
 }

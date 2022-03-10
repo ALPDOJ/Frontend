@@ -47,13 +47,16 @@
 		<div class="main__b__3">
 			<GridContent>
 				<Card Style="margin-bottom: 24px;" Title="@("评测进度")">
-					<Steps Current="@CurrentStep" Direction="horizontal">
-						<ChildContent>
-							<Step Title="@("已提交")" />
-							<Step Title="@("正在排队")" />
-							<Step Title="@("正在评测")" />
-							<Step Title="@("评测结束")" />
-						</ChildContent>
+					<Steps Current="@CurrentStep" Direction="horizontal" Status="@StepsStatus">
+						<Step Title="已提交" />
+						<Step Title="正在排队" />
+						<Step Title="正在评测" />
+						@if (Status == SubmissionStatus.Aborted) {
+							<Step Title="评测故障" />
+						}
+						else {
+							<Step Title="评测结束" />
+						}
 					</Steps>
 				</Card>
 				@if (DisplayingCompilerResult is not null) {
@@ -75,9 +78,9 @@
 							</AntList>
 						</Alert>
 					}
-					@if (DisplayingCompilerResult.TestCases is not null && VisibleTestCases is not null) {
+					@if (DisplayingCompilerResult.Testcases is not null && VisibleTestCases is not null) {
 						<Card Title="测试点状态" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Style="margin-bottom: 24px">
-							@foreach (var result in DisplayingCompilerResult.TestCases!) {
+							@foreach (var result in DisplayingCompilerResult.Testcases!) {
 								if (VisibleTestCases.TryGetValue(result.Id, out var testCase)) {
 									<TestCaseResultCard Result="@result" TestCase="@testCase" />
 								}
@@ -112,7 +115,7 @@
 
 	private ProblemSubmissionLimit? SubmissionLimit { get; set; }
 
-	private Dictionary<int, TestCase>? VisibleTestCases { get; set; }
+	private Dictionary<int, Testcase>? VisibleTestCases { get; set; }
 
 	private SubmissionStatus Status { get; set; } = SubmissionStatus.Submitted;
 
@@ -135,36 +138,53 @@
 		_ => 3
 	};
 
+	private string StepsStatus => Status switch {
+		SubmissionStatus.Submitted or SubmissionStatus.Queueing => "wait",
+		SubmissionStatus.Judging => "process",
+		SubmissionStatus.Aborted => "error",
+		_ => "finish"
+	};
+
 	private CompilerResult? DisplayingCompilerResult => DisplayingCompiler is null ? null : Results?[DisplayingCompiler];
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		var interval = TimeSpan.FromSeconds(1);
 		Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
-		var _ = Task.WhenAll(
-			Task.Run(async () => Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result),
-			Task.Run(async () => SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result),
-			Task.Run(async () => VisibleTestCases = (await Api.GetExampleTestCasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id)),
-			Task.Run(async () => {
-				while (true) {
-					try {
-						var time = DateTime.Now;
-						Status = (await Api.GetSubmissionStatusAsync(Id)).Result.Status;
-						if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed)
-							break;
-						var duration = DateTime.Now - time;
-						if (duration < interval)
-							await Task.Delay(interval - duration);
+		Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result;
+		SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result;
+		VisibleTestCases = (await Api.GetExampleTestcasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id);
+		StateHasChanged();
+		var _ = Task.Run(async () => {
+			while (true) {
+				try {
+					var time = DateTime.Now;
+					var prevStatus = Status;
+					Status = (await Api.GetSubmissionStatusAsync(Id)).Result.Status;
+					if (Status is SubmissionStatus.Judged or SubmissionStatus.Reviewed or SubmissionStatus.Aborted)
+						break;
+					var duration = DateTime.Now - time;
+					if (duration < interval)
+						await Task.Delay(interval - duration);
+					if (Status != prevStatus)
 						StateHasChanged();
-					}
-					catch (Exception ex) {
-						Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
-					}
 				}
-				Results = (await Api.GetJudgementResultAsync(Id)).Result;
-				DisplayingCompiler = Results.Keys.First();
-			})
-		);
+				catch (Exception ex) {
+					Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+					break;
+				}
+			}
+			if (Status != SubmissionStatus.Aborted) {
+				try {
+					Results = (await Api.GetJudgementResultAsync(Id)).Result;
+					DisplayingCompiler = Results.Keys.First();
+				}
+				catch (Exception ex) {
+					Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+				}
+			}
+			StateHasChanged();
+		});
 	}
 
 	private void OnReturnToProblemClick() => Navigator.NavigateTo($"/problem/{Problem!.Id}");

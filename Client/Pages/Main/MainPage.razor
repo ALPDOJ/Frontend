@@ -25,13 +25,17 @@
 		<Col Lg="24" Md="24" Sm="24" Xl="6" Xs="24" Flex="@(1)">
 			<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
 				<Col Flex="@(1)">
-					<Card Title="@("Title")" Class="extra-card" >
-						Content
+					<Card Title="@("高级语言程序设计（荣）")" Class="extra-card" >
+						夯实基础，掌握基础语法与逻辑<br/>
+						促进应用，解决实际应用问题<br/>
+						对接专业，面向信息大类专业背景
 					</Card>
 				</Col>
 				<Col Flex="@(1)">
-					<Card Title="@("Title")" Class="extra-card" >
-						Content
+					<Card Title="@("Advanced Language Programming Design")" Class="extra-card" >
+						Laying a solid foundation on programming grammar and logic<br/>
+						Solving practical application problems through programming<br/>
+						Coupling different majors with information related backgrounds
 					</Card>
 				</Col>
 			</Row>
@@ -47,7 +51,7 @@
 	}
 
 	.extra-card {
-		min-width: 15em;
+		min-width: 20em;
 	}
 </style>
 
@@ -73,20 +77,16 @@
 
 	private IList<string>? CarouselUrls { get; set; }
 
-	public override async Task SetParametersAsync(ParameterView parameters) {
-		await base.SetParametersAsync(parameters);
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
 		try {
 			await LocalStorageManager.Refresh();
+			CarouselUrls = (await Api.GetCarouselImageUrlsAsync()).Result;
 		}
 		catch (ApiException ex) {
 			await LocalStorageManager.ClearAsync();
 			ErrorHandler.Handle(ex, 401);
 		}
-	}
-
-	protected override async Task OnInitializedAsync() {
-		await base.OnInitializedAsync();
-		CarouselUrls = (await Api.GetCarouselImageUrlsAsync()).Result;
 	}
 
 }

@@ -26,7 +26,7 @@
 			<Card Title="@("样例")" Class="content-card">
 				<Row Gutter="@((Gutter, Gutter))" Align="top">
 					@foreach (var example in Examples) {
-						<AntDesign.Col Span="12">
+						<AntDesign.Col Span="24">
 							<Descriptions Bordered Column="2">
 								@if (example.Input is not null) {
 									<DescriptionsItem Title="输入">
@@ -86,5 +86,5 @@
 	public Problem? Problem { get; set; }
 
 	[Parameter]
-	public IList<TestCase>? Examples { get; set; }
+	public IList<Testcase>? Examples { get; set; }
 }

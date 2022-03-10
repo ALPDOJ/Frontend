@@ -76,7 +76,7 @@
 
 	private Problem? Problem { get; set; }
 
-	private IList<TestCase>? Examples { get; set; }
+	private IList<Testcase>? Examples { get; set; }
 
 	private UserProblemSummary? Summary { get; set; }
 
@@ -111,7 +111,7 @@
 		await base.OnInitializedAsync();
 		try {
 			Problem = (await Api.GetProblemAsync(Id)).Result;
-			Examples = (await Api.GetExampleTestCasesAsync(Id)).Result;
+			Examples = (await Api.GetExampleTestcasesAsync(Id)).Result;
 			Summary = (await Api.GetProblemSummaryAsync(Id)).Result;
 		}
 		catch (ApiException ex) {

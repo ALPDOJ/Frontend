@@ -1,7 +1,7 @@
 ﻿@namespace Client.Pages.SubmissionResult
 @using Client.Utils
 
-<div style="@($"cursor: {(TestCase is null ? "default" : "pointer")}")" onclick="@(TestCase is null ? null : OnClick)">
+<div style="@($"cursor: {(Testcase is null ? "default" : "pointer")}")" onclick="@(Testcase is null ? null : OnClick)">
 	<Tooltip Title="@TooltipTitle">
 		<Card Bordered Class="@CardClass" Style="@($"background-color: {Color}")">
 			<Text>@($"#{Result.Id}")</Text>
@@ -28,15 +28,15 @@
 @code {
 
 	[Parameter]
-	public TestCaseResult Result { get; set; }
+	public TestcaseResult Result { get; set; }
 
 	[Parameter]
-	public TestCase? TestCase { get; set; }
+	public Testcase? Testcase { get; set; }
 
 	[Inject]
 	private ModalService ModalService { get; init; }
 
-	private string CardClass => "test-case-result-card" + (TestCase is null ? "" : " test-case-visible");
+	private string CardClass => "test-case-result-card" + (Testcase is null ? "" : " test-case-visible");
 
 	private RenderFragment TooltipTitle => (
 		@<div>
@@ -47,11 +47,11 @@
 
 	private RenderFragment ModalContent => (
 		@<div>
-			@if (TestCase?.Input is not null) {
+			@if (Testcase?.Input is not null) {
 				<Row Gutter="@(16)">
 					<AntDesign.Col>
 						<Card Title="输入数据" Bordered>
-							@TestCase.Input
+							@Testcase.Input
 						</Card>
 					</AntDesign.Col>
 				</Row>
@@ -59,7 +59,7 @@
 			<Row Gutter="@(16)">
 				<AntDesign.Col Span="12">
 					<Card Title="期望输出" Bordered>
-						@TestCase!.Expect
+						@Testcase!.Expect
 					</Card>
 				</AntDesign.Col>
 				<AntDesign.Col Span="12">
@@ -73,19 +73,19 @@
 
 #pragma warning disable CS8524
 	private string Color => Result.Result switch {
-		TestCaseStatus.Accepted => "#00FF7F",
-		TestCaseStatus.WrongAnswer => "#FF6347",
-		TestCaseStatus.RuntimeError => "#8A2BE2",
-		TestCaseStatus.TimeLimitExceeded => "#FFA500",
-		TestCaseStatus.MemoryLimitExceeded => "##838B8B"
+		TestcaseStatus.AC => "#00FF7F",
+		TestcaseStatus.WA => "#FF6347",
+		TestcaseStatus.RE => "#8A2BE2",
+		TestcaseStatus.TLE => "#FFA500",
+		TestcaseStatus.MLE => "##838B8B"
 	};
 
 	private string Text => Result.Result switch {
-		TestCaseStatus.Accepted => "通过",
-		TestCaseStatus.WrongAnswer => "答案错误",
-		TestCaseStatus.RuntimeError => "运行时错误",
-		TestCaseStatus.TimeLimitExceeded => "时间超限",
-		TestCaseStatus.MemoryLimitExceeded => "空间超限"
+		TestcaseStatus.AC => "通过",
+		TestcaseStatus.WA => "答案错误",
+		TestcaseStatus.RE => "运行时错误",
+		TestcaseStatus.TLE => "时间超限",
+		TestcaseStatus.MLE => "空间超限"
 	};
 #pragma warning restore CS8524
 

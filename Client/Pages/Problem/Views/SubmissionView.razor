@@ -1,4 +1,5 @@
-﻿@namespace Client.Pages.Problem
+﻿@using Newtonsoft.Json
+@namespace Client.Pages.Problem
 
 <Card Bordered Loading="@Loading">
 	<Table DataSource="@Data"
@@ -62,8 +63,16 @@
 		await base.OnInitializedAsync();
 		int userId = (await LocalStorageManager.GetCurrentUser()).Id;
 		var submission = (await Api.GetSubmissionsAsync(userId, ProblemSummary.Id)).Result;
-		Data = new List<(Submission, ScoreSummary)>(submission.Count);
-		await Task.WhenAll(submission.Select(async (s, i) => Data[i] = (s, (await Api.GetSubmissionScoreAsync(s.Id)).Result)));
+		Data = new (Submission, ScoreSummary)[submission.Count];
+		await Task.WhenAll(submission.Select(async (s, i) => {
+			try {
+				var summary = (await Api.GetSubmissionScoreAsync(s.Id)).Result;
+				Data[i] = (s, summary);
+			}
+			catch (Exception ex) {
+				Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+			}
+		}));
 		Loading = false;
 	}
 

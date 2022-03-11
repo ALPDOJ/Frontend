@@ -1,6 +1,5 @@
 ﻿@namespace Client.Pages.SubmissionResult
 @page "/submission/{Id:int}/result"
-@using Newtonsoft.Json
 
 <PageContainer Title="评测结果">
 	<Extra>
@@ -104,10 +103,13 @@
 	public int Id { get; set; }
 
 	[Inject]
-	private NavigationManager Navigator { get; set; }
+	private NavigationManager Navigator { get; init; }
 
 	[Inject]
-	private ApiClient Api { get; set; }
+	private ApiClient Api { get; init; }
+
+	[Inject]
+	private ErrorHandler ErrorHandler { get; init; }
 
 	private Submission? Submission { get; set; }
 
@@ -150,10 +152,17 @@
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		var interval = TimeSpan.FromSeconds(1);
-		Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
-		Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result;
-		SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result;
-		VisibleTestCases = (await Api.GetExampleTestcasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id);
+		try {
+			Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
+			Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result;
+			SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result;
+			VisibleTestCases = (await Api.GetExampleTestcasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id);
+		}
+		catch (ApiException ex) {
+			StateHasChanged();
+			if (!ErrorHandler.Handle(ex))
+				throw;
+		}
 		StateHasChanged();
 		var _ = Task.Run(async () => {
 			while (true) {
@@ -170,7 +179,7 @@
 						StateHasChanged();
 				}
 				catch (Exception ex) {
-					Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+					ErrorHandler.Handle(ex);
 					break;
 				}
 			}
@@ -180,7 +189,7 @@
 					DisplayingCompiler = Results.Keys.First();
 				}
 				catch (Exception ex) {
-					Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
+					ErrorHandler.Handle(ex);
 				}
 			}
 			StateHasChanged();

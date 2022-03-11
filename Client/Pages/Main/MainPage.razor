@@ -85,7 +85,8 @@
 		}
 		catch (ApiException ex) {
 			await LocalStorageManager.ClearAsync();
-			ErrorHandler.Handle(ex, 401);
+			if (!ErrorHandler.Handle(ex))
+				throw;
 		}
 	}
 

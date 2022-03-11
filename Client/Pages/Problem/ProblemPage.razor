@@ -1,7 +1,6 @@
 ﻿@namespace Client.Pages.Problem
 @page "/problem/{Id:int}"
 @using Client.Utils
-@using Newtonsoft.Json
 
 <PageContainer TabList="@_tabList" Title="@(Problem?.Title ?? "加载中...")" Class="page-header" OnTabChange="OnTabChange">
 	<Extra>
@@ -115,7 +114,7 @@
 			Summary = (await Api.GetProblemSummaryAsync(Id)).Result;
 		}
 		catch (ApiException ex) {
-			if (!ErrorHandler.Handle(ex, 500))
+			if (!ErrorHandler.Handle(ex))
 				throw;
 		}
 	}
@@ -158,8 +157,8 @@
 			Navigator.NavigateTo($"/submission/{resp.Result.Id}/result");
 		}
 		catch (ApiException ex) {
-			Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
-			var _ = MessageService.Error($"提交失败：{ex.Message}");
+			if (!ErrorHandler.Handle(ex))
+				throw;
 		}
 		finally {
 			Submitting = false;

@@ -28,6 +28,20 @@ public class ErrorHandler {
 		};
 	}
 
+	public bool Handle(Exception exception) {
+		if (exception is ApiException ex)
+			return Handle(ex);
+		LogToConsole(exception);
+		Message(exception);
+		return true;
+	}
+
+	public void LogToConsole(Exception exception) => Console.WriteLine(JsonConvert.SerializeObject(exception, Formatting.Indented));
+
+	public void Message(Exception exception) {
+		var _ = MessageService.Error(exception.Message);
+	}
+
 	private bool HandleUnauthorized(ApiException exception) {
 		if (exception.StatusCode != 401)
 			return false;
@@ -46,8 +60,8 @@ public class ErrorHandler {
 	private bool HandleInternalError(ApiException exception) {
 		if (exception.StatusCode != 500)
 			return false;
-		var _ = MessageService.Error(exception.Message);
-		Console.WriteLine(JsonConvert.SerializeObject(exception, Formatting.Indented));
+		LogToConsole(exception);
+		Message(exception);
 		return true;
 	}
 }

@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
+using JsonException = System.Text.Json.JsonException;
 
 namespace Client.Api;
 

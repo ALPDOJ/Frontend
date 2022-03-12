@@ -20,8 +20,13 @@ public class LocalStorageManager {
 	private ApiClient Api { get; }
 
 	public string? this[string key] {
-		get => LocalStorage.GetItemAsString(key);
-		set => LocalStorage.SetItemAsString(key, value);
+		get => LocalStorage.ContainKey(key) ? LocalStorage.GetItemAsString(key) : null;
+		set {
+			if (value is null)
+				LocalStorage.RemoveItem(key);
+			else
+				LocalStorage.SetItemAsString(key, value);
+		}
 	}
 
 	public bool ContainsKey(string key) => LocalStorage.ContainKey(key);
@@ -33,6 +38,10 @@ public class LocalStorageManager {
 	public void Set<T>(string key, T value) => LocalStorage.SetItem(key, value);
 
 	public ValueTask SetAsync<T>(string key, T value, CancellationToken? cancellationToken = null) => AsyncLocalStorage.SetItemAsync(key, value, cancellationToken);
+
+	public void Remove(params string[] keys) => LocalStorage.RemoveItems(keys);
+
+	public ValueTask RemoveAsync(params string[] keys) => AsyncLocalStorage.RemoveItemsAsync(keys);
 
 	public void Clear() => LocalStorage.Clear();
 

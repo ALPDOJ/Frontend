@@ -1,34 +1,33 @@
 ﻿@namespace Client.Pages
 @page "/login"
 @layout LoginLayout
-@using Blazored.LocalStorage
-@using Newtonsoft.Json
 
 <div class="main__b__0">
 	<div class="login">
-		<Form Model="@Parameters" OnFinish="OnSubmit">
+		<Form Model="@Parameters" OnFinish="() => OnSubmit()">
 			<FormItem Required>
-				<AntDesign.Input @bind-Value="@context.Id" Placeholder="学号" Size="@InputSize.Large" Class="input">
+				<AntDesign.Input @bind-Value="@context.Id" @ref="@IdInputBox" Placeholder="学号" Size="@InputSize.Large" Class="input">
 					<Prefix>
 						<Icon Type="user" />
 					</Prefix>
 				</AntDesign.Input>
 			</FormItem>
 			<FormItem Required>
-				<AntDesign.Input @bind-Value="@context.Password" Placeholder="密码" Size="@InputSize.Large"
-					Type="password" Class="input">
+				<InputPassword @bind-Value="@context.Password" Placeholder="密码" Size="@InputSize.Large" Class="input">
 					<Prefix>
 						<Icon Type="lock" />
 					</Prefix>
-				</AntDesign.Input>
+				</InputPassword>
 			</FormItem>
 			<div>
 				<Checkbox @bind-Value="@AutoLogin">
-					自动登录
+					记住账密
 				</Checkbox>
-				<a style="float: right;">
-					忘记密码
-				</a>
+				<Tooltip Title="@("发送验证邮件给绑定邮箱")" Style="float: right">
+					<a onclick="@OnForgetPassword">
+						忘记密码
+					</a>
+				</Tooltip>
 			</div>
 			<Button
 				Block
@@ -87,17 +86,34 @@
 
 @code {
 
-	[Inject]
-	private NavigationManager Navigator { get; set; }
+	[SupplyParameterFromQuery(Name = "id")]
+	[Parameter]
+	public int? UserId { get; set; }
+
+	[SupplyParameterFromQuery]
+	[Parameter]
+	public string? Password { get; set; }
+
+	[SupplyParameterFromQuery]
+	[Parameter]
+	public string? Target { get; set; }
 
 	[Inject]
-	private ApiClient Api { get; set; }
+	private NavigationManager Navigator { get; init; }
 
 	[Inject]
-	private MessageService MessageService { get; set; }
+	private ApiClient Api { get; init; }
 
 	[Inject]
-	private ISyncLocalStorageService LocalStorage { get; set; }
+	private MessageService MessageService { get; init; }
+
+	[Inject]
+	private LocalStorageManager LocalStorageManager { get; init; }
+
+	[Inject]
+	private ErrorHandler ErrorHandler { get; init; }
+
+	private Input<int?> IdInputBox { get; set; }
 
 	private LoginParameters Parameters { get; } = new();
 
@@ -105,25 +121,25 @@
 
 	private bool LoggingIn { get; set; }
 
-	protected async override Task OnParametersSetAsync() {
-		await base.OnParametersSetAsync();
-		bool hasId = LocalStorage.ContainKey("id"), hasPassword = LocalStorage.ContainKey("password");
-		if (hasId) {
-			var id = LocalStorage.GetItemAsString("id");
-			if (int.TryParse(id, out var result))
-				Parameters.Id = result;
+	protected async override Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		if (UserId.HasValue || Password is not null) {
+			if (UserId.HasValue)
+				Parameters.Id = UserId;
+			if (Password is not null)
+				Parameters.Password = Password;
+			if (UserId.HasValue && Password is not null) 
+				OnSubmit(true);
 		}
-		if (hasPassword) {
-			var password = LocalStorage.GetItemAsString("password");
-			Parameters.Password = password;
-		}
-		if (hasId && hasPassword)
-			AutoLogin = true;
-		if (hasId || hasPassword)
-			StateHasChanged();
+		if (LocalStorageManager["id"] is {} id)
+			Parameters.Id ??= int.Parse(id);
+		if (LocalStorageManager["password"] is {} password)
+			Parameters.Password ??= password;
+		AutoLogin = !UserId.HasValue && Password is null && Parameters.Id.HasValue && Parameters.Password is not null;
+		StateHasChanged();
 	}
 
-	private async void OnSubmit() {
+	private async void OnSubmit(bool fromQuery = false) {
 		if (Parameters.Id is null) {
 			var _ = MessageService.Error("学号不可为空");
 			return;
@@ -136,29 +152,52 @@
 		LoggingIn = true;
 		try {
 			await Api.LoginAsync(id, Parameters.Password);
-			if (AutoLogin) {
-				LocalStorage.SetItemAsString("id", id.ToString());
-				LocalStorage.SetItemAsString("password", Parameters.Password!);
+			if (!fromQuery) {
+				if (AutoLogin) {
+					LocalStorageManager["id"] = id.ToString();
+					LocalStorageManager["password"] = Parameters.Password;
+				}
+				else
+					await LocalStorageManager.RemoveAsync("id", "password");
 			}
-			else {
-				LocalStorage.RemoveItem("id");
-				LocalStorage.RemoveItem("password");
-			}
-			Navigator.NavigateTo("/");
+			Navigator.NavigateTo(Target ?? "/");
 		}
 		catch (ApiException ex) {
 			if (ex.StatusCode == 401) {
 				var _ = MessageService.Error("用户名或密码错误，请重新输入");
 				Parameters.Password = null;
 			}
-			else {
-				Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
-				var _ = MessageService.Error(ex.Message);
-			}
+			else
+				ErrorHandler.Handle(ex);
 		}
 		finally {
 			LoggingIn = false;
 			StateHasChanged();
+		}
+	}
+
+	private async Task OnForgetPassword() {
+		if (Parameters.Id is null) {
+			var _ = MessageService.Warn("请先填写学号", 5);
+			await IdInputBox.Focus();
+			return;
+		}
+		var config = new MessageConfig {
+			Key = Guid.NewGuid().ToString("N")
+		};
+		try {
+			config.Content = "邮件发送中...";
+			config.Duration = -1;
+			var _ = MessageService.Loading(config);
+			await Api.SendPasswordResetEmailAsync(Parameters.Id.Value, null);
+			config.Content = "重置密码邮件已发送到绑定的邮箱，有效时间10分钟，请前往邮箱查看";
+			config.Duration = 5;
+			var __ = MessageService.Success(config);
+		}
+		catch (ApiException ex) {
+			config.Content = $"发送失败：{ex.Response}";
+			config.Duration = 5;
+			var _ = MessageService.Error(config);
 		}
 	}
 }

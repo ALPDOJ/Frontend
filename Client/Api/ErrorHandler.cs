@@ -21,6 +21,7 @@ public class ErrorHandler {
 		if (statusCodes.Length > 0 && !statusCodes.Contains(exception.StatusCode))
 			return false;
 		return exception.StatusCode switch {
+			400 => HandleBadRequest(exception),
 			401 => HandleUnauthorized(exception),
 			403 => HandleForbidden(exception),
 			500 => HandleInternalError(exception),
@@ -40,6 +41,13 @@ public class ErrorHandler {
 
 	public void Message(Exception exception) {
 		var _ = MessageService.Error(exception.Message);
+	}
+
+	private bool HandleBadRequest(ApiException exception) {
+		if (exception.StatusCode != 400)
+			return false;
+		var _ = MessageService.Error(exception.Response);
+		return true;
 	}
 
 	private bool HandleUnauthorized(ApiException exception) {

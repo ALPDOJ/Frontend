@@ -1,47 +1,32 @@
 ﻿@using Newtonsoft.Json
+@using TrueMogician.Exceptions
 @namespace Client.Pages.Problem
 
-<Card Bordered Loading="@Loading">
-	<Table DataSource="@Data"
-		Loading="@Loading"
-		TItem="(Submission, ScoreSummary)">
-		<AntDesign.Column @bind-Field="@context.Item1.Id" TData="int" Title="提交序号">
-			<a href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Id</a>
-		</AntDesign.Column>
-		<AntDesign.Column @bind-Field="@context.Item1.Timestamp" Filterable Sortable TData="DateTime" Title="提交时间">
-			<a href="@($"/submission/{context.Item1.Id}/result")">@context.Item1.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</a>
-		</AntDesign.Column>
-		<AntDesign.Column @bind-Field="@context.Item1.Test" Filterable Sortable TData="bool" Title="提交模式">
-			@if (context.Item1.Test) {
-				<Tag PresetColor="@PresetColor.GeekBlue">测试提交</Tag>
-			}
-			else if (context.Item1.Final) {
-				<Tag PresetColor="@PresetColor.Gold">最终提交</Tag>
-			}
-			else {
-				<Tag PresetColor="@PresetColor.Lime">正式提交</Tag>
-			}
-		</AntDesign.Column>
-		@if (ProblemSummary.Manual) {
-			<AntDesign.Column Field="@context.Item2.Review.HasValue" Filterable Sortable TData="bool" Title="批阅状态">
-				@if (context.Item2.Review.HasValue) {
-					<Tag PresetColor="@PresetColor.Green">已批阅</Tag>
+<Card Bordered Loading="@(Submissions is null)">
+	@if (Submissions is not null) {
+		<Table TItem="Submission" DataSource="@Submissions">
+			<AntDesign.Column TData="int" @bind-Field="@context.Id" Title="提交序号" Align="ColumnAlign.Center">
+				<a href="@($"/submission/{context.Id}/result")">@context.Id</a>
+			</AntDesign.Column>
+			<AntDesign.Column TData="DateTime" @bind-Field="@context.Timestamp" Filterable Sortable Title="提交时间" Align="ColumnAlign.Center">
+				<a href="@($"/submission/{context.Id}/result")">@context.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</a>
+			</AntDesign.Column>
+			<AntDesign.Column TData="bool" @bind-Field="@context.Test" Filterable Sortable Title="提交模式" Align="ColumnAlign.Center">
+				@if (context.Test) {
+					<Tag PresetColor="@PresetColor.GeekBlue">测试提交</Tag>
+				}
+				else if (context.Final) {
+					<Tag PresetColor="@PresetColor.Gold">最终提交</Tag>
 				}
 				else {
-					<Tag Color="Azure3">未批阅</Tag>
+					<Tag PresetColor="@PresetColor.Lime">正式提交</Tag>
 				}
 			</AntDesign.Column>
-		}
-		else {
-			<AntDesign.Column Field="@context.Item2.GetTotalScore()" Sortable TData="double" Title="分数">
-				<AntDesign.Progress
-					Percent="@(context.Item2.GetTotalScore() * 100 / ProblemSummary.TotalScore)"
-					Status="@GetProgressStatus(context.Item2)"
-					StrokeWidth="6"
-					Style="width: 180px" />
+			<AntDesign.Column TData="SubmissionStatus" Field="@context.Status" Title="提交状态" Align="ColumnAlign.Center">
+				@GetStatusTag(context.Status)
 			</AntDesign.Column>
-		}
-	</Table>
+		</Table>
+	}
 </Card>
 
 @code {
@@ -53,27 +38,30 @@
 	private ApiClient Api { get; init; }
 
 	[Inject]
+	private ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
 	private LocalStorageManager LocalStorageManager { get; init; }
 
-	private IList<(Submission, ScoreSummary)>? Data { get; set; }
-
-	private bool Loading { get; set; } = true;
+	private IList<Submission>? Submissions { get; set; }
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		int userId = (await LocalStorageManager.GetCurrentUser()).Id;
-		var submission = (await Api.GetSubmissionsAsync(userId, ProblemSummary.Id)).Result;
-		Data = new (Submission, ScoreSummary)[submission.Count];
-		await Task.WhenAll(submission.Select(async (s, i) => {
-			try {
-				var summary = (await Api.GetSubmissionScoreAsync(s.Id)).Result;
-				Data[i] = (s, summary);
-			}
-			catch (Exception ex) {
-				Console.WriteLine(JsonConvert.SerializeObject(ex, Formatting.Indented));
-			}
-		}));
-		Loading = false;
+		Submissions = (await Api.GetSubmissionsAsync(userId, ProblemSummary.Id)).Result;
+	}
+
+	private static RenderFragment GetStatusTag(SubmissionStatus status) {
+		var (color, text) = status switch {
+			SubmissionStatus.Submitted => ("Violet","已提交"),
+			SubmissionStatus.Queueing => ("Gray","排队中"),
+			SubmissionStatus.Judging => ("DeepSkyBlue","评测中"),
+			SubmissionStatus.Judged => ("SpringGreen","已测完"),
+			SubmissionStatus.Reviewed => ("Gold","已批阅"),
+			SubmissionStatus.Aborted => ("Crimson","评测异常"),
+			_ => throw new EnumValueOutOfRangeException(typeof(SubmissionStatus), status)
+		};
+		return @<Tag Color="@color">@text</Tag>;
 	}
 
 	private ProgressStatus GetProgressStatus(ScoreSummary scoreSummary) {

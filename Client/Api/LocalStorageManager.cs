@@ -9,9 +9,25 @@ public class LocalStorageManager {
 		Api = api;
 	}
 
-	public User? CurrentUser => LocalStorage.GetItem<User?>("currentUser");
+	public int? Id {
+		get => this["id"] is { } id ? int.Parse(id) : null;
+		set => this["id"] = value?.ToString();
+	}
 
-	public string? CurrentUserAvatar => LocalStorage.GetItemAsString("currentUserAvatar");
+	public string? Password {
+		get => this["currentUserAvatar"];
+		set => this["currentUserAvatar"] = value;
+	}
+
+	public User? CurrentUser {
+		get => Get<User?>("currentUser");
+		set => Set("currentUser", value);
+	}
+
+	public string? CurrentUserAvatar {
+		get => this["currentUserAvatar"];
+		set => this["currentUserAvatar"] = value;
+	}
 
 	private ISyncLocalStorageService LocalStorage { get; }
 
@@ -52,7 +68,9 @@ public class LocalStorageManager {
 		var response = await Api.GetUserAvatarAsync(user.Id);
 		string avatar = Convert.ToBase64String(await response.GetByteArray());
 		await SetAsync("currentUser", user);
-		this["currentUserAvatar"] = $"data:{response.Headers["Content-Type"].Single()};base64,{avatar}";
+		this["currentUserAvatar"] = string.IsNullOrEmpty(avatar)
+			? null
+			: $"data:{response.Headers["Content-Type"].Single()};base64,{avatar}";
 	}
 
 	public async Task RefreshIfNotExisted() {

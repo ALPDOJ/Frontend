@@ -2,61 +2,59 @@
 @page "/login"
 @layout LoginLayout
 
-<div class="main__b__0">
-	<div class="login">
-		<Form Model="@Parameters" OnFinish="() => OnSubmit()">
-			<FormItem Required>
-				<AntDesign.Input @bind-Value="@context.Id" @ref="@IdInputBox" Placeholder="学号" Size="@InputSize.Large" Class="input">
-					<Prefix>
-						<Icon Type="user" />
-					</Prefix>
-				</AntDesign.Input>
-			</FormItem>
-			<FormItem Required>
-				<InputPassword @bind-Value="@context.Password" Placeholder="密码" Size="@InputSize.Large" Class="input">
-					<Prefix>
-						<Icon Type="lock" />
-					</Prefix>
-				</InputPassword>
-			</FormItem>
-			<div>
-				<Checkbox @bind-Value="@AutoLogin">
-					记住账密
-				</Checkbox>
-				<Tooltip Title="@("发送验证邮件给绑定邮箱")" Style="float: right">
-					<a onclick="@OnForgetPassword">
-						忘记密码
-					</a>
-				</Tooltip>
-			</div>
-			<Button
-				Block
-				Loading="@LoggingIn"
-				HtmlType="submit"
-				Size="@ButtonSize.Large"
-				Type="@ButtonType.Primary"
-				Class="submit">
-				登录
-			</Button>
-		</Form>
-	</div>
+<div class="login-page">
+	<Form Model="@Parameters" OnFinish="@OnSubmit">
+		<FormItem Required>
+			<AntDesign.Input @bind-Value="@context.Id" @ref="@IdInputBox" Placeholder="学号" Size="@InputSize.Large" Class="input">
+				<Prefix>
+					<Icon Type="user" />
+				</Prefix>
+			</AntDesign.Input>
+		</FormItem>
+		<FormItem Required>
+			<InputPassword @bind-Value="@context.Password" Placeholder="密码" Size="@InputSize.Large" Class="input">
+				<Prefix>
+					<Icon Type="lock" />
+				</Prefix>
+			</InputPassword>
+		</FormItem>
+		<div>
+			<Checkbox @bind-Value="@AutoLogin">
+				记住账密
+			</Checkbox>
+			<Tooltip Title="@("发送验证邮件给绑定邮箱")" Style="float: right">
+				<a onclick="@OnForgetPassword">
+					忘记密码
+				</a>
+			</Tooltip>
+		</div>
+		<Button
+			Block
+			Loading="@LoggingIn"
+			HtmlType="submit"
+			Size="@ButtonSize.Large"
+			Type="@ButtonType.Primary"
+			Class="submit">
+			登录
+		</Button>
+	</Form>
 </div>
 
 <style lang="css" scoped>
-	.main__b__0 {
+	.login-page {
 		margin: 0 auto;
 		width: 368px;
 	}
 
-	.main__b__0 .login .icon { color: #1890ff; }
+	.login-page .icon { color: #1890ff; }
 
-	.main__b__0 .login .other {
+	.login-page .other {
 		line-height: 22px;
 		margin-top: 24px;
 		text-align: left;
 	}
 
-	.main__b__0 .login .other .icon {
+	.login-page .other .icon {
 		color: rgba(0, 0, 0, 0.45);
 		cursor: pointer;
 		font-size: 24px;
@@ -65,21 +63,21 @@
 		vertical-align: middle;
 	}
 
-	.main__b__0 .login .other .icon:hover { color: #1890ff; }
+	.login-page .other .icon:hover { color: #1890ff; }
 
-	.main__b__0 .login .other .register { float: right; }
+	.login-page .other .register { float: right; }
 
-	.main__b__0 .login .prefixIcon {
+	.login-page .prefixIcon {
 		color: rgba(0, 0, 0, 0.25);
 		font-size: 14px;
 	}
 
-	.main__b__0 .login .submit {
+	.login-page .submit {
 		margin-top: 32px;
 		width: 100%;
 	}
 
-	.main__b__0 .input {
+	.login-page .input {
 		border-radius: 5px;
 	}
 </style>
@@ -88,15 +86,15 @@
 
 	[SupplyParameterFromQuery(Name = "id")]
 	[Parameter]
-	public int? UserId { get; set; }
+	public int? UserId { get; init; }
 
 	[SupplyParameterFromQuery]
 	[Parameter]
-	public string? Password { get; set; }
+	public string? Password { get; init; }
 
 	[SupplyParameterFromQuery]
 	[Parameter]
-	public string? Target { get; set; }
+	public string? Target { get; init; }
 
 	[Inject]
 	private NavigationManager Navigator { get; init; }
@@ -129,17 +127,19 @@
 			if (Password is not null)
 				Parameters.Password = Password;
 			if (UserId.HasValue && Password is not null) 
-				OnSubmit(true);
+				await OnSubmit(true);
 		}
-		if (LocalStorageManager["id"] is {} id)
-			Parameters.Id ??= int.Parse(id);
-		if (LocalStorageManager["password"] is {} password)
+		if (LocalStorageManager.Id is {} id)
+			Parameters.Id ??= id;
+		if (LocalStorageManager.Password is {} password)
 			Parameters.Password ??= password;
 		AutoLogin = !UserId.HasValue && Password is null && Parameters.Id.HasValue && Parameters.Password is not null;
 		StateHasChanged();
 	}
 
-	private async void OnSubmit(bool fromQuery = false) {
+	private Task OnSubmit() => OnSubmit(false);
+
+	private async Task OnSubmit(bool fromQuery) {
 		if (Parameters.Id is null) {
 			var _ = MessageService.Error("学号不可为空");
 			return;
@@ -154,8 +154,8 @@
 			await Api.LoginAsync(id, Parameters.Password);
 			if (!fromQuery) {
 				if (AutoLogin) {
-					LocalStorageManager["id"] = id.ToString();
-					LocalStorageManager["password"] = Parameters.Password;
+					LocalStorageManager.Id = id;
+					LocalStorageManager.Password = Parameters.Password;
 				}
 				else
 					await LocalStorageManager.RemoveAsync("id", "password");

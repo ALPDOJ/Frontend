@@ -15,8 +15,8 @@ public class LocalStorageManager {
 	}
 
 	public string? Password {
-		get => this["currentUserAvatar"];
-		set => this["currentUserAvatar"] = value;
+		get => this["password"];
+		set => this["password"] = value;
 	}
 
 	public User? CurrentUser {
@@ -63,30 +63,31 @@ public class LocalStorageManager {
 
 	public ValueTask ClearAsync(CancellationToken? cancellationToken = null) => AsyncLocalStorage.ClearAsync(cancellationToken);
 
-	public async Task Refresh() {
-		var user = (await Api.GetCurrentUserAsync()).Result;
-		var response = await Api.GetUserAvatarAsync(user.Id);
+	public async Task<User> RefreshCurrentUser() => CurrentUser = (await Api.GetCurrentUserAsync()).Result;
+
+	public async Task<string?> RefreshCurrentUserAvatar() {
+		int id = (await GetCurrentUser()).Id;
+		var response = await Api.GetUserAvatarAsync(id);
 		string avatar = Convert.ToBase64String(await response.GetByteArray());
-		await SetAsync("currentUser", user);
-		this["currentUserAvatar"] = string.IsNullOrEmpty(avatar)
+		return CurrentUserAvatar = string.IsNullOrEmpty(avatar)
 			? null
 			: $"data:{response.Headers["Content-Type"].Single()};base64,{avatar}";
 	}
 
-	public async Task RefreshIfNotExisted() {
-		if (!ContainsKey("currentUser") || !ContainsKey("currentUserAvatar"))
-			await Refresh();
+	public async Task Refresh() {
+		await RefreshCurrentUser();
+		await RefreshCurrentUserAvatar();
 	}
 
-	public async Task<User> GetCurrentUser() {
-		if (!LocalStorage.ContainKey("currentUser"))
-			await Refresh();
-		return CurrentUser!;
+	public async Task<User> GetCurrentUser(bool force = false) {
+		if (force)
+			return await RefreshCurrentUser();
+		return CurrentUser ?? await RefreshCurrentUser();
 	}
 
-	public async Task<string?> GetCurrentUserAvatar() {
-		if (!LocalStorage.ContainKey("currentUserAvatar"))
-			await Refresh();
-		return CurrentUserAvatar;
+	public async Task<string?> GetCurrentUserAvatar(bool force = false) {
+		if (force)
+			return await RefreshCurrentUserAvatar();
+		return CurrentUserAvatar ?? await RefreshCurrentUserAvatar();
 	}
 }

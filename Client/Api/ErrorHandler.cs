@@ -5,13 +5,10 @@ using Newtonsoft.Json;
 namespace Client.Api;
 
 public class ErrorHandler {
-	public ErrorHandler(ApiClient api, NavigationManager navigator, MessageService messageService) {
-		Api = api;
+	public ErrorHandler(NavigationManager navigator, MessageService messageService) {
 		Navigator = navigator;
 		MessageService = messageService;
 	}
-
-	private ApiClient Api { get; }
 
 	private NavigationManager Navigator { get; }
 
@@ -30,14 +27,20 @@ public class ErrorHandler {
 	}
 
 	public bool Handle(Exception exception) {
-		if (exception is ApiException ex)
-			return Handle(ex);
-		LogToConsole(exception);
-		Message(exception);
-		return true;
+		switch (exception) {
+			case ApiException ex: return Handle(ex);
+			case NotImplementedException ex:
+				string text = string.IsNullOrEmpty(ex.Message) ? "功能尚未实现，敬请期待" : ex.Message;
+				var _ = MessageService.Info(text);
+				return true;
+			default:
+				LogToConsole(exception);
+				Message(exception);
+				return true;
+		}
 	}
 
-	public void LogToConsole(Exception exception) => Console.WriteLine(JsonConvert.SerializeObject(exception, Formatting.Indented));
+	public static void LogToConsole(Exception exception) => Console.WriteLine(JsonConvert.SerializeObject(exception, Formatting.Indented));
 
 	public void Message(Exception exception) {
 		var _ = MessageService.Error(exception.Message);

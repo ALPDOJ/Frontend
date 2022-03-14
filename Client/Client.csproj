@@ -24,7 +24,7 @@
 		<PackageReference Include="AntDesign.Charts" Version="0.2.2" />
 		<PackageReference Include="AntDesign.ProLayout" Version="0.1.9" />
 		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
-		<PackageReference Include="Markdig" Version="0.27.0" />
+		<PackageReference Include="Markdig" Version="0.28.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.2" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="6.0.2">
@@ -41,6 +41,7 @@
 		<PackageReference Include="TrueMogician.Exceptions" Version="1.4.1" />
 		<PackageReference Include="TrueMogician.Extensions.Collections" Version="0.5.1" />
 		<PackageReference Include="TrueMogician.Extensions.Enumerable" Version="1.7.0" />
+		<PackageReference Include="TrueMogician.Extensions.Number" Version="0.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>

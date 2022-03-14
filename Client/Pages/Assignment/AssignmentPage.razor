@@ -1,6 +1,7 @@
 ﻿@namespace Client.Pages
 @page "/assignment"
 @using TrueMogician.Extensions.Enumerable
+@using TrueMogician.Extensions.Number
 
 <div class="assignment-list">
 	<Card>
@@ -139,13 +140,13 @@
 </style>
 
 @code {
-	private ProblemStatusFilter _statusFilter;
-
 	private static readonly Func<UserProblemSummary, bool> DelayedFilter = p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0;
 
-	private static readonly Func<UserProblemSummary, bool> OngoingFilter = p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times;
+	private static readonly Func<UserProblemSummary, bool> OngoingFilter = p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times && (!p.Score.HasValue || !p.TotalScore.EqualsWithTolerance(p.Score.Value, 1e-3f));
 
-	private static readonly Func<UserProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0);
+	private static readonly Func<UserProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0) || (p.Score.HasValue && p.TotalScore.EqualsWithTolerance(p.Score.Value, 1e-3f));
+
+	private ProblemStatusFilter _statusFilter;
 
 	[Inject]
 	protected ApiClient Api { get; init; }

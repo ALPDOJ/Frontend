@@ -4,12 +4,14 @@
 <CascadingValue Value="@this" IsFixed>
 	<AntDesign.ProLayout.BasicLayout Logo="@("/assets/logo.png")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
 		<RightContentRender>
-			@if (CurrentUser is not null) {
-				<Client.Components.RightContent User="@CurrentUser" Avatar="@CurrentUserAvatar" />
+			@if (User is not null) {
+				<RightContent @ref="@RightContent" User="@User" Avatar="@Avatar" />
 			}
 		</RightContentRender>
 		<ChildContent>
-			@Body
+			<CascadingValue Value="@RightContent" IsFixed>
+				@Body
+			</CascadingValue>
 		</ChildContent>
 		<FooterRender>
 			<FooterView Style="margin-top:24px" Copyright="飞姐" Links="Links" />
@@ -62,12 +64,7 @@
 		}
 	};
 
-	[Inject]
-	private LocalStorageManager LocalStorageManager { get; init; }
-
-	public Role View { get; set; } = Role.Student;
-
-	public LinkItem[] Links { get; } = {
+	private static LinkItem[] Links { get; } = {
 		new() {
 			Key = "Ant Design",
 			Title = "Ant Design",
@@ -88,16 +85,23 @@
 		}
 	};
 
-	private User? CurrentUser { get; set; }
+	internal Role View { get; set; } = Role.Student;
 
-	private string? CurrentUserAvatar { get; set; }
+	internal RightContent RightContent { get; set; }
+
+	[Inject]
+	private LocalStorageManager LocalStorageManager { get; init; }
+
+	private User? User { get; set; }
+
+	private string? Avatar { get; set; }
 
 	public void Refresh() => StateHasChanged();
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		CurrentUser = await LocalStorageManager.GetCurrentUser();
-		CurrentUserAvatar = await LocalStorageManager.GetCurrentUserAvatar();
+		User = await LocalStorageManager.GetCurrentUser();
+		Avatar = await LocalStorageManager.GetCurrentUserAvatar();
 	}
 
 }

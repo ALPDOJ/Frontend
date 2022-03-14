@@ -1,7 +1,7 @@
 ﻿@namespace Client.Components
+@inherits AntDomComponentBase
 @using BasicLayout = Client.Layout.BasicLayout
 @using System.Reflection.Metadata
-@inherits AntDomComponentBase
 
 <Space Class="@ClassMapper.Class" Size="@("24")">
 	<SpaceItem>
@@ -57,8 +57,7 @@
 	private NoticeIconData[] _notifications = Array.Empty<NoticeIconData>();
 
 	private static AvatarMenuItem[] AvatarMenuItems { get; } = {
-		new() { Key = "center", IconType = "user", Option = "个人中心" },
-		new() { Key = "setting", IconType = "setting", Option = "个人设置" },
+		new() { Key = "setting", IconType = "setting", Option = "账户设置" },
 		new() { IsDivider = true },
 		new() { Key = "logout", IconType = "logout", Option = "退出登录" }
 	};
@@ -70,28 +69,35 @@
 	public string? Avatar { get; set; }
 
 	[CascadingParameter]
-	public BasicLayout Layout { get; set; }
+	private BasicLayout Layout { get; init; }
 
 	[Inject]
-	protected NavigationManager Navigator { get; set; }
+	private NavigationManager Navigator { get; init; }
 
 	[Inject]
-	protected MessageService MessageService { get; set; }
+	private MessageService MessageService { get; init; }
+
+	internal void OnUpdateUser(User user) {
+		User = user;
+		StateHasChanged();
+	}
+
+	internal void OnUpdateAvatar(string avatar) {
+		Avatar = avatar;
+		StateHasChanged();
+	}
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		SetClassMap();
 	}
 
-	protected void SetClassMap() => ClassMapper.Clear().Add("right");
+	private void SetClassMap() => ClassMapper.Clear().Add("right");
 
-	public void HandleSelectUser(MenuItem item) {
+	private void HandleSelectUser(MenuItem item) {
 		switch (item.Key) {
-			case "center":
-				Navigator.NavigateTo("/account/center");
-				break;
 			case "setting":
-				Navigator.NavigateTo("/account/settings");
+				Navigator.NavigateTo("/account");
 				break;
 			case "logout":
 				Navigator.NavigateTo("/login");
@@ -99,7 +105,7 @@
 		}
 	}
 
-	public void HandleClear(string key) {
+	private void HandleClear(string key) {
 		switch (key) {
 			case "notification":
 				_notifications = Array.Empty<NoticeIconData>();
@@ -110,7 +116,7 @@
 		}
 	}
 
-	public async Task HandleViewMore(string key) {
+	private async Task HandleViewMore(string key) {
 		await MessageService.Info("Click on view more");
 	}
 

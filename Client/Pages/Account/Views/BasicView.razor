@@ -1,53 +1,71 @@
-﻿@namespace Client.Pages.Account
+﻿@using System.Text.RegularExpressions
+@using System.Timers
+@namespace Client.Pages.Account
 
-<div class="base-view">
-	<div class="left" style="min-width: 310px;">
-		<Form Style="display:flex;" Model="@User" OnFinish="OnSubmit">
-			<div style="margin-right: 50px">
-				<FormItem Label="昵称">
-					<AntDesign.Input @bind-Value="@context.Name" />
-				</FormItem>
-				<FormItem Label="邮箱">
-					<AntDesign.Input @bind-Value="@context.Email" />
-				</FormItem>
-				<FormItem>
-					<Button HtmlType="submit" Type="@ButtonType.Primary">
-						保存信息
-					</Button>
-				</FormItem>
-			</div>
-			<div>
-				<FormItem Label="头像">
-					<Upload ShowUploadList="false">
-						<div class="avatar">
-							<img alt="avatar" width="128" src="@Avatar" />
+<div class="@($"basic-view {Class}")">
+	<Form Style="display: flex; flex-wrap: wrap; justify-content: center" Model="@NewUserInfo" ValidateOnChange>
+		<div style="margin-right: 3em; min-width: 15em">
+			<FormItem Label="学号">
+				<AntDesign.Input @bind-Value="@User.Id" Disabled />
+			</FormItem>
+			<FormItem Label="姓名">
+				<AntDesign.Input @bind-Value="@User.Name" Disabled />
+			</FormItem>
+			<FormItem Label="昵称" ValidateStatus="@UsernameValidateStatus">
+				<InputGroup Compact>
+					<AntDesign.Input TValue="string" @bind-Value="@context.Username" OnChange="@ValidateUsername"/>
+					<Button Type="@ButtonType.Primary" Disabled="@UsernameDisabled" OnClick="@OnSaveUsername">保存</Button>
+				</InputGroup>
+			</FormItem>
+			<FormItem Label="邮箱" ValidateStatus="@EmailValidateStatus">
+				<InputGroup Compact>
+					<AntDesign.Input TValue="string" @bind-Value="@context.Email" OnChange="@ValidateEmail"/>
+					<Tooltip Title="@("向该邮箱发送激活邮件")">
+						<Button Type="@ButtonType.Primary" Disabled="@EmailDisabled" OnClick="@OnActivateEmail">@EmailButtonText</Button>
+					</Tooltip>
+				</InputGroup>
+			</FormItem>
+			<FormItem Label="密码" ValidateStatus="@PasswordValidateStatus">
+				<InputGroup Compact>
+					<AntDesign.InputPassword @bind-Value="@context.Password" OnChange="@ValidatePassword" />
+					<Tooltip Title="@("向绑定邮箱发送验证邮件")">
+						<Button Type="@ButtonType.Primary" Disabled="@PasswordDisabled" OnClick="@OnChangePassword">@PasswordButtonText</Button>
+					</Tooltip>
+				</InputGroup>
+			</FormItem>
+		</div>
+		<div>
+			<FormItem Label="头像">
+				<Upload Method="PUT" Accept="image/*" Name="avatar" Action="@($"/api/user/{User.Id}/avatar")" ShowUploadList="false" OnCompleted="@OnUploadAvatar">
+					@if (string.IsNullOrEmpty(Avatar)) {
+						<div class="upload-container">
+							<Icon Type="@IconType.Outline.Plus" />
+							<div>上传头像</div>
 						</div>
-					</Upload>
-				</FormItem>
-			</div>
-		</Form>
-	</div>
+					}
+					else {
+						<Image Height="128px" Width="128px" Src="@Avatar" Preview="false" />
+					}
+				</Upload>
+			</FormItem>
+		</div>
+	</Form>
 </div>
 
 <style scoped>
-	.base-view {
-		display: flex;
-		padding-top: 12px;
+	.basic-view .ant-legacy-form-item .ant-legacy-form-item-control-wrapper { width: 100%; }
+
+	.basic-view {
+		max-width: 480px;
+		min-width: 320px;
 	}
 
-	.base-view .ant-legacy-form-item .ant-legacy-form-item-control-wrapper { width: 100%; }
-
-	.base-view .left {
-		max-width: 448px;
-		min-width: 224px;
-	}
-
-	.base-view .right__b__1 {
+	.basic-view .right__b__1 {
 		flex: 1;
 		padding-left: 104px;
 	}
 
-	.base-view .right__b__1 .avatar_title {
+	.basic-view .right__b__1 .avatar_title {
 		color: rgba(0, 0, 0, 0.85);
 		font-size: 14px;
 		height: 22px;
@@ -55,24 +73,36 @@
 		margin-bottom: 8px;
 	}
 
-	.base-view .right__b__1 .avatar {
+	.basic-view .right__b__1 .avatar {
 		height: 144px;
 		margin-bottom: 12px;
 		overflow: hidden;
 		width: 144px;
 	}
 
-	.base-view .right__b__1 .avatar img { width: 100%; }
+	.basic-view .right__b__1 .avatar img { width: 100%; }
 
-	.base-view .right__b__1 .button_view {
+	.basic-view .right__b__1 .button_view {
 		text-align: center;
 		width: 144px;
 	}
 
-	@@media screen and (max-width: 1200px) {
-		.base-view { flex-direction: column-reverse; }
+	.upload-container {
+		height: 128px; 
+		width: 128px; 
+		display: flex;
+		flex-direction: column; 
+		align-items: center; 
+		justify-content: center;
+		border-width: 2px;
+		border-style: dashed;
+		cursor: pointer;
+	}
 
-		.base-view .right__b__1 {
+	@@media screen and (max-width: 1200px) {
+		.basic-view { flex-direction: column-reverse; }
+
+		.basic-view .right__b__1 {
 			align-items: center;
 			display: flex;
 			flex-direction: column;
@@ -80,14 +110,37 @@
 			padding: 20px;
 		}
 
-		.base-view .right__b__1 .avatar_title { display: none; }
+		.basic-view .right__b__1 .avatar_title { display: none; }
 	}
 </style>
 
 @code {
 
+	private static Regex EmailPattern { get; } = new Regex(@"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|""(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*"")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])", RegexOptions.Compiled);
+
+	private User _user;
+
+	private int _emailCooldown;
+
+	private int _passwordCooldown;
+
+	[Parameter]
+	public string Class { get; init; }
+
 	[CascadingParameter]
-	private User User { get; set; }
+	private AccountPage Page { get; init; }
+
+	[CascadingParameter]
+	private RightContent RightContent { get; init; }
+
+	[CascadingParameter]
+	private User User {
+		get => _user;
+		set {
+			_user = value;
+			NewUserInfo = new EditableUserInfo(value);
+		}
+	}
 
 	[CascadingParameter(Name = "Avatar")]
 	private string? Avatar { get; set; }
@@ -95,8 +148,115 @@
 	[Inject]
 	private ApiClient Api { get; init; }
 
-	private async Task OnSubmit() {
-		await Api.ModifyUserAsync(User.Id, User);
+	[Inject]
+	private ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	private LocalStorageManager LocalStorageManager { get; init; }
+
+	[Inject]
+	private MessageService MessageService { get; init; }
+
+	private EditableUserInfo NewUserInfo { get; set; }
+
+	private FormValidateStatus EmailValidateStatus { get; set; }
+
+	private FormValidateStatus UsernameValidateStatus { get; set; }
+
+	private FormValidateStatus PasswordValidateStatus { get; set; }
+
+	private string EmailButtonText => "激活" + (_emailCooldown <= 0 ? "" : $"({_emailCooldown})");
+
+	private string PasswordButtonText => "验证" + (_passwordCooldown <= 0 ? "" : $"({_passwordCooldown})");
+
+	private bool UsernameDisabled => NewUserInfo.Username == User.Username || UsernameValidateStatus != FormValidateStatus.Success;
+
+	private bool EmailDisabled => _emailCooldown > 0 || _passwordCooldown > 0 || NewUserInfo.Email == User.Email || EmailValidateStatus != FormValidateStatus.Success;
+
+	private bool PasswordDisabled => _emailCooldown > 0 || _passwordCooldown > 0 ||NewUserInfo.Password is null || string.IsNullOrEmpty(User.Email) || PasswordValidateStatus != FormValidateStatus.Success;
+
+	private void ValidateUsername(string username) => UsernameValidateStatus = username.Length <= 32 ? FormValidateStatus.Success : FormValidateStatus.Error;
+
+	private void ValidateEmail(string email) => EmailValidateStatus = email.Length <= 256 && EmailPattern.IsMatch(email) ? FormValidateStatus.Success : FormValidateStatus.Error;
+
+	private void ValidatePassword(string password) => PasswordValidateStatus = password.Length is >= 8 and <= 64 ? FormValidateStatus.Success : FormValidateStatus.Error;
+
+	private async Task OnSaveUsername() {
+		try {
+			await Api.ModifyUserAsync(User.Id, new User { Username = NewUserInfo.Username });
+			User.Username = NewUserInfo.Username;
+			Page.OnChangeUser(User);
+			RightContent.OnUpdateUser(User);
+		}
+		catch (ApiException ex) {
+			if (!ErrorHandler.Handle(ex))
+				throw;
+		}
+	}
+
+	private async Task OnActivateEmail() {
+		var config = new MessageConfig {
+			Key = Guid.NewGuid().ToString("N")
+		};
+		_emailCooldown = 60;
+		try {
+			config.Content = "邮件发送中...";
+			config.Duration = -1;
+			var _ = MessageService.Loading(config);
+			await Api.ActivateEmailAsync(new EmailPayload { Email = NewUserInfo.Email! });
+			config.Content = $"邮箱激活邮件已发送到{NewUserInfo.Email}，有效时间30分钟，请前往邮箱查看";
+			config.Duration = 5;
+			var __ = MessageService.Success(config);
+		}
+		catch (ApiException ex) {
+			config.Content = $"发送失败：{ex.Response}";
+			config.Duration = 5;
+			var _ = MessageService.Error(config);
+		}
+		var timer = new Timer(1000);
+		timer.Elapsed += (_, _) => {
+			--_emailCooldown;
+			if (_emailCooldown <= 0)
+				timer.Stop();
+			StateHasChanged();
+		};
+		timer.Start();
+	}
+
+	private async Task OnChangePassword() {
+		var config = new MessageConfig {
+			Key = Guid.NewGuid().ToString("N")
+		};
+		_passwordCooldown = 60;
+		try {
+			config.Content = "邮件发送中...";
+			config.Duration = -1;
+			var _ = MessageService.Loading(config);
+			await Api.SendPasswordResetEmailAsync(User.Id, new PasswordPayload { Password = NewUserInfo.Password });
+			config.Content = "修改密码邮件已发送到绑定的邮箱，有效时间10分钟，请前往邮箱查看";
+			config.Duration = 5;
+			var __ = MessageService.Success(config);
+		}
+		catch (ApiException ex) {
+			config.Content = $"发送失败：{ex.Response}";
+			config.Duration = 5;
+			var _ = MessageService.Error(config);
+		}
+		var timer = new Timer(1000);
+		timer.Elapsed += (_, _) => {
+			--_passwordCooldown;
+			if (_passwordCooldown <= 0)
+				timer.Stop();
+			StateHasChanged();
+		};
+		timer.Start();
+	}
+
+	private async Task OnUploadAvatar(UploadInfo info) {
+		var _ = MessageService.Success("头像上传成功");
+		var avatar = (await LocalStorageManager.GetCurrentUserAvatar(true))!;
+		Page.OnChangeAvatar(avatar);
+		RightContent.OnUpdateAvatar(avatar);
 	}
 
 }

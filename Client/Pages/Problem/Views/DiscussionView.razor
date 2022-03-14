@@ -60,14 +60,10 @@
 
 	private IEnumerable<ValuedTreeNode<Comment>> CommentNodes => Comments.Select(c => new ValuedTreeNode<Comment>(c));
 
-	public override async Task SetParametersAsync(ParameterView parameters) {
-		CurrentUser = await LocalStorageManager.GetCurrentUser();
-		CurrentUserAvatar = await LocalStorageManager.GetCurrentUserAvatar();
-		await base.SetParametersAsync(parameters);
-	}
-
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
+		CurrentUser = await LocalStorageManager.GetCurrentUser();
+		CurrentUserAvatar = await LocalStorageManager.GetCurrentUserAvatar();
 		Comments = (await Api.GetProblemCommentsAsync(ProblemId, null)).Result;
 	}
 

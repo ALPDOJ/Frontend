@@ -1,0 +1,61 @@
+﻿@namespace Client.Pages
+@page "/result/email-activation"
+@layout LoginLayout
+
+@if (Success.HasValue) {
+	<Result Status="@(Success.Value ? "success" : "error")" Title="@Title" SubTitle="@SubTitle" Extra="@Extra" />
+}
+
+@code {
+
+	[SupplyParameterFromQuery(Name = "user-id")]
+	[Parameter]
+	public int Id { get; init; }
+
+	[SupplyParameterFromQuery(Name = "value")]
+	[Parameter]
+	public string EscapedEmail { get; init; }
+
+	[SupplyParameterFromQuery(Name = "token")]
+	[Parameter]
+	public string EscapedToken { get; init; }
+
+	public string Email => Uri.UnescapeDataString(EscapedEmail);
+
+	public string Token => Uri.UnescapeDataString(EscapedToken);
+
+	[Inject]
+	private NavigationManager Navigator { get; init; }
+
+	[Inject]
+	private ApiClient Api { get; init; }
+
+	[Inject]
+	private LocalStorageManager LocalStorageManager { get; init; }
+
+	private bool? Success { get; set; }
+
+	private string? ErrorMessage { get; set; }
+
+	private RenderFragment Extra => @<Button OnClick="@(() => Navigator.NavigateTo("/account"))">返回账户设置</Button>;
+
+	private string Title => $"邮箱激活{(Success!.Value ? "成功" :"失败")}";
+
+	private string? SubTitle => Success == true ? null : $"错误信息：{ErrorMessage}";
+
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+		try {
+			await Api.SetUserEmailAsync(Id, Token, new EmailPayload { Email = Email });
+			Success = true;
+			if (LocalStorageManager.CurrentUser is {} user) {
+				user.Email = Email;
+				LocalStorageManager.CurrentUser = user;
+			}
+		}
+		catch (ApiException ex) {
+			Success = false;
+			ErrorMessage = ex.Response;
+		}
+	}
+}

@@ -1,29 +1,41 @@
 @namespace Client.Pages.Account
-@page "/account/settings"
+@page "/account"
 
 <GridContent>
 	@if (User is not null) {
-		<CascadingValue Value="@User">
-			<CascadingValue Name="@("Avatar")" Value="@Avatar">
-				<Tabs Centered>
-					<TabPane Tab="基本资料" Key="1" Class="tab-pane">
-						<BasicView />
-					</TabPane>
-					<TabPane Tab="邮件提醒" Key="2" Class="tab-pane">
-						<EmailView />
-					</TabPane>
-					<TabPane Tab="消息通知" Key="3" Class="tab-pane">
-						<NotificationView />
-					</TabPane>
-				</Tabs>
+		<CascadingValue Value="@this" IsFixed>
+			<CascadingValue Value="@User">
+				<CascadingValue Name="@("Avatar")" Value="@Avatar">
+					<Tabs Centered>
+						<TabPane Tab="基本资料" Key="1">
+							<BasicView Class="account-view" />
+						</TabPane>
+						<TabPane Tab="邮件提醒" Key="2">
+							<EmailView Class="account-view" />
+						</TabPane>
+						<TabPane Tab="消息通知" Key="3">
+							<NotificationView Class="account-view" />
+						</TabPane>
+					</Tabs>
+				</CascadingValue>
 			</CascadingValue>
 		</CascadingValue>
 	}
 </GridContent>
 
 <style scoped>
-	.tab-pane {
-		
+	.ant-tabs-tabpane.ant-tabs-tabpane-active {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.account-view {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1em;
+		min-width: 100%;
 	}
 </style>
 
@@ -36,10 +48,22 @@
 
 	private string? Avatar { get; set; }
 
-	protected override  async Task OnInitializedAsync() {
+	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		User = await LocalStorageManager.GetCurrentUser();
 		Avatar = await LocalStorageManager.GetCurrentUserAvatar();
+	}
+
+	internal void OnChangeUser(User user) {
+		User = user;
+		LocalStorageManager.CurrentUser = user;
+		StateHasChanged();
+	}
+
+	internal void OnChangeAvatar(string avatar) {
+		Avatar = avatar;
+		LocalStorageManager.CurrentUserAvatar = avatar;
+		StateHasChanged();
 	}
 
 }

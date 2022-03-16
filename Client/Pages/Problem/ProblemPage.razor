@@ -5,7 +5,9 @@
 <PageContainer TabList="@_tabList" Title="@(Problem?.Title ?? "加载中...")" Class="page-header" OnTabChange="OnTabChange">
 	<Extra>
 		<ButtonGroup>
-			<Button Loading="@Submitting" Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(true)">测试</Button>
+			@if (Problem?.Manual == false){
+				<Button Loading="@Submitting" Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(true)">测试</Button>
+			}
 			<Button Loading="@Submitting" Type="@ButtonType.Primary" OnClick="() => OnSubmitButtonClick(false)">提交</Button>
 		</ButtonGroup>
 	</Extra>
@@ -86,6 +88,9 @@
 	private ModalService ModalService { get; init; }
 
 	[Inject]
+	private ConfirmService ConfirmService { get; init; }
+
+	[Inject]
 	private MessageService MessageService { get; init; }
 
 	[Inject]
@@ -153,8 +158,13 @@
 				ProblemId = Id,
 				Files = files
 			});
-			var _ = MessageService.Success($"提交成功，ID为{resp.Result.Id}");
-			Navigator.NavigateTo($"/submission/{resp.Result.Id}/result");
+			if (Problem.Manual) {
+				var _ = ConfirmService.Show("请耐心等待助教和老师批阅", "提交成功", ConfirmButtons.OK, ConfirmIcon.Success);
+			}
+			else {
+				var _ = MessageService.Success("提交成功");
+				Navigator.NavigateTo($"/submission/{resp.Result.Id}/result");
+			}
 		}
 		catch (ApiException ex) {
 			if (!ErrorHandler.Handle(ex))

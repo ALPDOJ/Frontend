@@ -39,8 +39,10 @@
 			</DescriptionsItem>
 			<DescriptionsItem Title="@("批阅模式")"><TextOrSpin Value="@Problem?.Manual" Formatter="@(v => v == true ? "人工批阅" : "自动评测")" /></DescriptionsItem>
 			<DescriptionsItem Title="@("截止日期")"><TextOrSpin Value="@Summary?.Deadline.ToString("yyyy-MM-dd hh:mm:ss")" /></DescriptionsItem>
-			<DescriptionsItem Title="@("运行时间限制")"><TextOrSpin Value="@Problem?.Limit.Time" Formatter="@(v => $"{v} ms")" /></DescriptionsItem>
-			<DescriptionsItem Title="@("运行内存限制")"><TextOrSpin Value="@Problem?.Limit.Memory" Formatter="@(v => Formatter.FormatSize(v!.Value))" /></DescriptionsItem>
+			@if (Problem?.Manual == false) {
+				<DescriptionsItem Title="@("运行时间限制")">@Problem.Limit.Time ms</DescriptionsItem>
+				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limit.Memory!.Value)</DescriptionsItem>
+			}
 		</Descriptions>
 	</Content>
 	<ChildContent>
@@ -122,6 +124,7 @@
 			if (!ErrorHandler.Handle(ex))
 				throw;
 		}
+		StateHasChanged();
 	}
 
 	private async Task<Files?> ShowUploadModal(ModalOptions options,UploadModalArgument argument) {

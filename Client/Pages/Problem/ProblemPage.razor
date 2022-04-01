@@ -170,7 +170,10 @@
 			}
 		}
 		catch (ApiException ex) {
-			if (!ErrorHandler.Handle(ex))
+			if (ex.StatusCode == 413) {
+				var _ = MessageService.Error($"提交文件超出提交文件大小限制（{Formatter.FormatSize(Problem.Limit.FileSize)}）");
+			}
+			else if (!ErrorHandler.Handle(ex))
 				throw;
 		}
 		finally {

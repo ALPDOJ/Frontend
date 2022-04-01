@@ -84,7 +84,8 @@
 			CarouselUrls = (await Api.GetCarouselImageUrlsAsync()).Result;
 		}
 		catch (ApiException ex) {
-			await LocalStorageManager.ClearAsync();
+			LocalStorageManager.CurrentUser = null;
+			LocalStorageManager.CurrentUserAvatar = null;
 			if (!ErrorHandler.Handle(ex))
 				throw;
 		}

@@ -21,7 +21,12 @@ public class LocalStorageManager {
 
 	public User? CurrentUser {
 		get => Get<User?>("currentUser");
-		set => Set("currentUser", value);
+		set {
+			if (value is null)
+				Remove("currentUser");
+			else
+				Set("currentUser", value);
+		}
 	}
 
 	public string? CurrentUserAvatar {

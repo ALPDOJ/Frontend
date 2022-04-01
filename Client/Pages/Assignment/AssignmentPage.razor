@@ -151,6 +151,9 @@
 	[Inject]
 	protected ApiClient Api { get; init; }
 
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
 	private ICollection<UserProblemSummary>? ProblemSummaries { get; set; }
 
 	private ICollection<UserProblemSummary> DisplayedProblemSummaries { get; set; }
@@ -180,11 +183,17 @@
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
-		var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
-		Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
-		ProblemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
-		Tags = ProblemSummaries.SelectMany(s => s.Tags).Distinct().ToList();
-		DisplayedProblemSummaries = ProblemSummaries;
+		try {
+			var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
+			Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
+			ProblemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
+			Tags = ProblemSummaries.SelectMany(s => s.Tags).Distinct().ToList();
+			DisplayedProblemSummaries = ProblemSummaries;
+		}
+		catch (ApiException exception) {
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
 		StatusFilter = ProblemStatusFilter.All;
 	}
 

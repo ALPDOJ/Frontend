@@ -1,16 +1,13 @@
 ﻿@namespace Client.Pages.Problem
 @using TrueMogician.Extensions.Collections.Tree
-@using Blazored.LocalStorage
 @using Client.Utils
-@using Newtonsoft.Json
-@using OneOf.Types
 @using TrueMogician.Exceptions
 @using Comment = Client.Api.Comment
 
 <Comment 
 	@ref="@CommentElement" 
 	Author="@Comment.Author.GetDisplayingName()"
-	Datetime="@Formatter.FormatDateTimeRelatively(Comment.Time,2)" 
+	Datetime="@Formatter.FormatDateTimeRelatively(Comment.Time,smallestUnit: Formatter.TimeSpanUnit.Minute)" 
 	Style="@Style"
 	Actions="@Actions">
 	<AvatarTemplate>
@@ -61,10 +58,13 @@
 	public User CurrentUser { get; set; }
 
 	[Inject]
-	public ApiClient Api { get; set; }
+	private ApiClient Api { get; init; }
 
 	[Inject]
-	public MessageService MessageService { get; set; }
+	private ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	private MessageService MessageService { get; init; }
 
 	private AntDesign.Comment CommentElement { get; set; }
 
@@ -95,15 +95,13 @@
 
 	private RenderFragment[] Actions {
 		get {
-			if (Comment.Content is null)
-				return Array.Empty<RenderFragment>();
-			var result = new List<RenderFragment> {
-				ReplyAction
-			};
-			if (CurrentUser.Role != Role.Student || CurrentUser.Id == Comment.Author.Id)
+			var result = new List<RenderFragment> { ReplyAction };
+			if (Comment.Content is not null && (CurrentUser.Role != Role.Student || CurrentUser.Id == Comment.Author.Id))
 				result.Add(DeleteAction);
 			if (ChildrenCount > 0)
 				result.Add(CollapseAction);
+			if (Comment.Content is null)
+				return result.ToArray();
 			bool ShouldShow(Reaction r) => (r is Reaction.Like or Reaction.Dislike) || Comment.GetReactionCount(r) > 0;
 			result.AddRange(Enum.GetValues<Reaction>().Where(ShouldShow).Select(r => RenderReactAction(r)));
 			result.Add(RenderMoreReactions(Enum.GetValues<Reaction>().Where(r => !ShouldShow(r))));
@@ -124,7 +122,7 @@
 			Reaction.Laugh => "笑死",
 			Reaction.Embarrass => "差不多得了",
 			Reaction.Angry => "愤怒",
-			Reaction.Dog => "狗头",
+			Reaction.Doge => "狗头",
 			Reaction.Surprise => "惊喜",
 			Reaction.Hooray => "好耶",
 			Reaction.Question => "?",
@@ -144,7 +142,7 @@
 			Reaction.Heart => "❤",
 			Reaction.Rocket => "🚀",
 			Reaction.Applause => "👏",
-			Reaction.Dog or Reaction.Surprise => null,
+			Reaction.Doge or Reaction.Surprise => null,
 			_ => throw new EnumValueOutOfRangeException(typeof(Reaction))
 		};
 		RenderFragment content = 
@@ -192,7 +190,7 @@
 			</Overlay>
 			<ChildContent>
 				<Button Size="@ButtonSize.Small" Shape="@ButtonShape.Circle">
-					🙂
+					···
 				</Button>
 			</ChildContent>
 		</Dropdown>;
@@ -234,7 +232,8 @@
 			StateHasChanged();
 		}
 		catch (ApiException ex) {
-			var _ = MessageService.Error($"{ex.StatusCode}: {ex.Message}");
+			if (!ErrorHandler.Handle(ex))
+				throw;
 		}
 	}
 

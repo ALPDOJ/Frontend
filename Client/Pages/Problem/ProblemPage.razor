@@ -40,8 +40,8 @@
 			<DescriptionsItem Title="@("批阅模式")"><TextOrSpin Value="@Problem?.Manual" Formatter="@(v => v == true ? "人工批阅" : "自动评测")" /></DescriptionsItem>
 			<DescriptionsItem Title="@("截止日期")"><TextOrSpin Value="@Summary?.Deadline.ToString("yyyy-MM-dd hh:mm:ss")" /></DescriptionsItem>
 			@if (Problem?.Manual == false) {
-				<DescriptionsItem Title="@("运行时间限制")">@Problem.Limit.Time ms</DescriptionsItem>
-				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limit.Memory!.Value)</DescriptionsItem>
+				<DescriptionsItem Title="@("运行时间限制")">@Problem.Limits.Time ms</DescriptionsItem>
+				<DescriptionsItem Title="@("运行内存限制")">@Formatter.FormatSize(Problem.Limits.Memory!.Value)</DescriptionsItem>
 			}
 		</Descriptions>
 	</Content>
@@ -81,7 +81,7 @@
 
 	private IList<Testcase>? Examples { get; set; }
 
-	private UserProblemSummary? Summary { get; set; }
+	private ProblemSummary? Summary { get; set; }
 
 	[Inject]
 	private NavigationManager Navigator { get; init; }
@@ -171,7 +171,7 @@
 		}
 		catch (ApiException ex) {
 			if (ex.StatusCode == 413) {
-				var _ = MessageService.Error($"提交文件超出提交文件大小限制（{Formatter.FormatSize(Problem.Limit.FileSize)}）");
+				var _ = MessageService.Error($"提交文件超出提交文件大小限制（{Formatter.FormatSize(Problem.Limits.FileSize)}）");
 			}
 			else if (!ErrorHandler.Handle(ex))
 				throw;

@@ -20,14 +20,19 @@
 		<div style="display: flex">
 			<Statistic Title="@("总得分")" Value="@("/")">
 				<PrefixTemplate>
-					<TextOrSpin Value="@Results?.Values.Average(r => r.Score).ToString("F1")" />
+					@if (Status == SubmissionStatus.Aborted) {
+						<Icon Type="@IconType.Outline.CloseCircle" Style="color:crimson" />
+					}
+					else {
+						<TextOrSpin Value="@Results?.Values.Average(r => r.Score).ToString("F1")" />
+					}
 				</PrefixTemplate>
 				<SuffixTemplate>
-					<TextOrSpin Value="@SubmissionLimit?.GetTotalScore().ToString("F1")" />
+					<TextOrSpin Value="@SubmissionLimit?.TotalScore.ToString("F1")" />
 				</SuffixTemplate>
 			</Statistic>
 			@if (DisplayingCompilerResult is not null && SubmissionLimit is not null) {
-				<Statistic Suffix="@($"/ {SubmissionLimit.GetTotalScore():F1}")" Title="@("当前编译器得分")" Value="@DisplayingCompilerResult.Score" Style="margin-left: 12px" />
+				<Statistic Suffix="@($"/ {SubmissionLimit.TotalScore:F1}")" Title="@("当前编译器得分")" Value="@DisplayingCompilerResult.Score" Style="margin-left: 12px" />
 			}
 		</div>
 	</ExtraContent>
@@ -35,7 +40,7 @@
 		@if (Submission is not null && Problem is not null) {
 			<Descriptions Bordered Column="3" Size="@AntSizeLDSType.Small" Class="header-list">
 				<DescriptionsItem Title="@("评测序号")">@Id</DescriptionsItem>
-				<DescriptionsItem Title="@("提交时间")">@Submission.Timestamp.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
+				<DescriptionsItem Title="@("提交时间")">@Submission.CreatedTime.ToString("yyyy-MM-dd hh:mm:ss")</DescriptionsItem>
 				<DescriptionsItem Title="@("提交模式")">@(Submission.Test ? "测试提交" : "正式提交")</DescriptionsItem>
 				<DescriptionsItem Title="@("题目")" Span="2">@Problem.Title</DescriptionsItem>
 				<DescriptionsItem Title="@("用户")">@Submission.UserId</DescriptionsItem>
@@ -49,9 +54,10 @@
 					<Steps Current="@CurrentStep" Direction="horizontal" Status="@StepsStatus">
 						<Step Title="已提交" />
 						<Step Title="正在排队" />
-						<Step Title="正在评测" />
+						<Step Title="正在编译" />
+						<Step Title="正在运行" />
 						@if (Status == SubmissionStatus.Aborted) {
-							<Step Title="评测故障" />
+							<Step Title="评测异常" />
 						}
 						else {
 							<Step Title="评测结束" />
@@ -77,16 +83,16 @@
 							</AntList>
 						</Alert>
 					}
-					@if (DisplayingCompilerResult.Testcases is not null && VisibleTestCases is not null) {
+					@if (DisplayingCompilerResult.Testcases is not null && VisibleTestcases is not null) {
 						<Card Title="测试点状态" BodyStyle="display: flex; flex-wrap: wrap; align-content: space-between" Style="margin-bottom: 24px">
-							@foreach (var result in DisplayingCompilerResult.Testcases!) {
-								if (VisibleTestCases.TryGetValue(result.Id, out var testCase)) {
-									<TestCaseResultCard Result="@result" TestCase="@testCase" />
+							<Space Size="@(("16","16"))" Wrap>
+								@foreach (var result in DisplayingCompilerResult.Testcases!) {
+									VisibleTestcases.TryGetValue(result.Id, out var testcase);
+									<SpaceItem>
+										<TestCaseResultCard Result="@result" Testcase="@testcase" />
+									</SpaceItem>
 								}
-								else {
-									<TestCaseResultCard Result="@result" />
-								}
-							}
+							</Space>
 						</Card>
 					}
 				}
@@ -103,6 +109,9 @@
 	public int Id { get; set; }
 
 	[Inject]
+	private ModalService ModalService { get; init; }
+
+	[Inject]
 	private NavigationManager Navigator { get; init; }
 
 	[Inject]
@@ -117,7 +126,7 @@
 
 	private ProblemSubmissionLimit? SubmissionLimit { get; set; }
 
-	private Dictionary<int, Testcase>? VisibleTestCases { get; set; }
+	private Dictionary<int, Testcase>? VisibleTestcases { get; set; }
 
 	private SubmissionStatus Status { get; set; } = SubmissionStatus.Submitted;
 
@@ -136,13 +145,14 @@
 	private int CurrentStep => Status switch {
 		SubmissionStatus.Submitted => 0,
 		SubmissionStatus.Queueing => 1,
-		SubmissionStatus.Judging => 2,
-		_ => 3
+		SubmissionStatus.Compiling => 2,
+		SubmissionStatus.Running => 3,
+		_ => 4
 	};
 
 	private string StepsStatus => Status switch {
 		SubmissionStatus.Submitted or SubmissionStatus.Queueing => "wait",
-		SubmissionStatus.Judging => "process",
+		SubmissionStatus.Compiling or SubmissionStatus.Running => "process",
 		SubmissionStatus.Aborted => "error",
 		_ => "finish"
 	};
@@ -156,7 +166,7 @@
 			Submission = (await Api.GetSubmissionAsync(Id, false)).Result;
 			Problem = (await Api.GetProblemAsync(Submission.ProblemId)).Result;
 			SubmissionLimit = (await Api.GetProblemSubmissionLimitAsync(Submission.ProblemId)).Result;
-			VisibleTestCases = (await Api.GetExampleTestcasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id);
+			VisibleTestcases = (await Api.GetExampleTestcasesAsync(Submission.ProblemId)).Result.ToDictionary(t => t.Id);
 		}
 		catch (ApiException ex) {
 			StateHasChanged();
@@ -164,6 +174,14 @@
 				throw;
 		}
 		StateHasChanged();
+		if (Problem?.Manual == true) {
+			ModalService.Success(new ConfirmOptions {
+				Title = "提交成功！"
+			});
+
+
+			return;
+		}
 		var _ = Task.Run(async () => {
 			while (true) {
 				try {

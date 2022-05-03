@@ -8,8 +8,8 @@
 			<AntDesign.Column TData="int" @bind-Field="@context.Id" Title="提交序号" Align="ColumnAlign.Center">
 				<a href="@($"/submission/{context.Id}/result")">@context.Id</a>
 			</AntDesign.Column>
-			<AntDesign.Column TData="DateTime" @bind-Field="@context.Timestamp" Filterable Sortable Title="提交时间" Align="ColumnAlign.Center">
-				<a href="@($"/submission/{context.Id}/result")">@context.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</a>
+			<AntDesign.Column TData="DateTime" @bind-Field="@context.CreatedTime" Filterable Sortable Title="提交时间" Align="ColumnAlign.Center">
+				<a href="@($"/submission/{context.Id}/result")">@context.CreatedTime.ToString("yyyy-MM-dd HH:mm:ss")</a>
 			</AntDesign.Column>
 			<AntDesign.Column TData="bool" @bind-Field="@context.Test" Filterable Sortable Title="提交模式" Align="ColumnAlign.Center">
 				@if (context.Test) {
@@ -32,7 +32,7 @@
 @code {
 
 	[Parameter]
-	public UserProblemSummary ProblemSummary { get; set; }
+	public ProblemSummary ProblemSummary { get; set; }
 
 	[Inject]
 	private ApiClient Api { get; init; }
@@ -55,7 +55,8 @@
 		var (color, text) = status switch {
 			SubmissionStatus.Submitted => ("Violet","已提交"),
 			SubmissionStatus.Queueing => ("Gray","排队中"),
-			SubmissionStatus.Judging => ("DeepSkyBlue","评测中"),
+			SubmissionStatus.Compiling => ("DeepSkyBlue","编译中"),
+			SubmissionStatus.Running => ("DeepSkyBlue","运行中"),
 			SubmissionStatus.Judged => ("SpringGreen","已测完"),
 			SubmissionStatus.Reviewed => ("Gold","已批阅"),
 			SubmissionStatus.Aborted => ("Crimson","评测异常"),

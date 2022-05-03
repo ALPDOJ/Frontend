@@ -13,7 +13,8 @@ public static class Formatter {
 		};
 	}
 
-	public static string FormatDateTimeRelatively(DateTime dateTime, int precision = 1) {
+	// TODO: relative datetime with unit
+	public static string FormatDateTimeRelatively(DateTime dateTime, int precision = 1, TimeSpanUnit largestUnit = TimeSpanUnit.Century, TimeSpanUnit smallestUnit = TimeSpanUnit.Millisecond) {
 		var span = dateTime - DateTime.Now;
 		string suffix = span < TimeSpan.Zero ? "前" : "后";
 		span = span.Duration();
@@ -25,5 +26,23 @@ public static class Formatter {
 		components.Add($"{span.Milliseconds}毫秒");
 		int idx = components.FindIndex(c => !c.StartsWith("0"));
 		return string.Join(null, components.Skip(idx).Take(precision + 1)) + suffix;
+	}
+
+	public enum TimeSpanUnit : byte {
+		Millisecond,
+
+		Second,
+
+		Minute,
+
+		Hour,
+
+		Day,
+
+		Month,
+
+		Year,
+
+		Century
 	}
 }

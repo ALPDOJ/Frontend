@@ -41,6 +41,7 @@
 	private RenderFragment TooltipTitle => (
 		@<div>
 			<Text>运行时间：@Result.Consumption.Time 毫秒</Text>
+			<br/>
 			<Text>内存消耗：@Formatter.FormatSize(Result.Consumption.Memory)</Text>
 		</div>
 	);
@@ -59,7 +60,7 @@
 			<Row Gutter="@(16)">
 				<AntDesign.Col Span="12">
 					<Card Title="期望输出" Bordered>
-						@Testcase!.Expect
+						@Testcase!.Output
 					</Card>
 				</AntDesign.Col>
 				<AntDesign.Col Span="12">

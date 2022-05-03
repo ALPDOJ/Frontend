@@ -203,7 +203,7 @@
 			config.Content = "邮件发送中...";
 			config.Duration = -1;
 			var _ = MessageService.Loading(config);
-			await Api.ActivateEmailAsync(new EmailPayload { Email = NewUserInfo.Email! });
+			await Api.SendEmailActivationEmailAsync(new EmailPayload { Email = NewUserInfo.Email! });
 			config.Content = $"邮箱激活邮件已发送到{NewUserInfo.Email}，有效时间30分钟，请前往邮箱查看";
 			config.Duration = 5;
 			var __ = MessageService.Success(config);
@@ -232,7 +232,7 @@
 			config.Content = "邮件发送中...";
 			config.Duration = -1;
 			var _ = MessageService.Loading(config);
-			await Api.SendPasswordResetEmailAsync(User.Id, new PasswordPayload { Password = NewUserInfo.Password });
+			await Api.SendPasswordSetEmailAsync(User.Id, new PasswordPayload { Password = NewUserInfo.Password });
 			config.Content = "修改密码邮件已发送到绑定的邮箱，有效时间10分钟，请前往邮箱查看";
 			config.Duration = 5;
 			var __ = MessageService.Success(config);

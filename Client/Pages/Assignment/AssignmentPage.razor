@@ -57,7 +57,7 @@
 			</div>
 		</Extra>
 		<ChildContent>
-			<Table TItem="UserProblemSummary" DataSource="DisplayedProblemSummaries">
+			<Table TItem="ProblemSummary" DataSource="DisplayedProblemSummaries">
 				<AntDesign.Column TData="int" @bind-Field="@context.Id" Title="序号" Align="@ColumnAlign.Center" Sortable Filterable />
 				<AntDesign.Column TData="string" @bind-Field="@context.Title" Title="标题" Align="ColumnAlign.Center" Sortable Filterable>
 					<a href="@($"/problem/{context.Id}")">@context.Title</a>
@@ -140,11 +140,11 @@
 </style>
 
 @code {
-	private static readonly Func<UserProblemSummary, bool> DelayedFilter = p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0;
+	private static readonly Func<ProblemSummary, bool> DelayedFilter = p => p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes == 0;
 
-	private static readonly Func<UserProblemSummary, bool> OngoingFilter = p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times && (!p.Score.HasValue || !p.TotalScore.EqualsWithTolerance(p.Score.Value, 1e-3f));
+	private static readonly Func<ProblemSummary, bool> OngoingFilter = p => p.Deadline > DateTimeOffset.Now && p.SubmittedTimes < p.Times && (!p.Score.HasValue || !p.TotalScore.EqualsWithTolerance(p.Score.Value, 1e-3f));
 
-	private static readonly Func<UserProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0) || (p.Score.HasValue && p.TotalScore.EqualsWithTolerance(p.Score.Value, 1e-3f));
+	private static readonly Func<ProblemSummary, bool> CompletedFilter = p => p.SubmittedTimes == p.Times || (p.Deadline <= DateTimeOffset.Now && p.SubmittedTimes > 0) || (p.Score.HasValue && p.TotalScore.EqualsWithTolerance(p.Score.Value, 1e-3f));
 
 	private ProblemStatusFilter _statusFilter;
 
@@ -154,9 +154,9 @@
 	[Inject]
 	protected ErrorHandler ErrorHandler { get; init; }
 
-	private ICollection<UserProblemSummary>? ProblemSummaries { get; set; }
+	private ICollection<ProblemSummary>? ProblemSummaries { get; set; }
 
-	private ICollection<UserProblemSummary> DisplayedProblemSummaries { get; set; }
+	private ICollection<ProblemSummary> DisplayedProblemSummaries { get; set; }
 
 	private List<string>? Tags { get; set; }
 
@@ -186,7 +186,7 @@
 		try {
 			var assignmentSummaries = (await Api.GetAssignmentSummariesAsync()).Result.AsArray();
 			Array.Sort(assignmentSummaries, (a, b) => b.Priority - a.Priority);
-			ProblemSummaries = assignmentSummaries.SelectMany(a => a.Tasks).ToHashSet(new UserProblemSummaryComparer()).ToArray();
+			ProblemSummaries = assignmentSummaries.SelectMany(a => a.Problems).ToHashSet(new ProblemSummaryComparer()).ToArray();
 			Tags = ProblemSummaries.SelectMany(s => s.Tags).Distinct().ToList();
 			DisplayedProblemSummaries = ProblemSummaries;
 		}
@@ -197,7 +197,7 @@
 		StatusFilter = ProblemStatusFilter.All;
 	}
 
-	private static ProgressStatus GetProgressStatus(UserProblemSummary summary) {
+	private static ProgressStatus GetProgressStatus(ProblemSummary summary) {
 		if (summary.Score.HasValue && Math.Abs(summary.Score.Value - summary.TotalScore) < float.Epsilon)
 			return ProgressStatus.Success;
 		if (DateTimeOffset.Now >= summary.Deadline && summary.SubmittedTimes == 0)
@@ -249,8 +249,8 @@
 		Completed
 	}
 
-	private class UserProblemSummaryComparer : IEqualityComparer<UserProblemSummary> {
-		public bool Equals(UserProblemSummary? x, UserProblemSummary? y) {
+	private class ProblemSummaryComparer : IEqualityComparer<ProblemSummary> {
+		public bool Equals(ProblemSummary? x, ProblemSummary? y) {
 			if (ReferenceEquals(x, y))
 				return true;
 			if (ReferenceEquals(x, null))
@@ -262,6 +262,6 @@
 			return x.Id == y.Id;
 		}
 
-		public int GetHashCode(UserProblemSummary obj) => obj.Id;
+		public int GetHashCode(ProblemSummary obj) => obj.Id;
 	} 
 }

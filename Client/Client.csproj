@@ -13,7 +13,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<OpenApiReference Include="..\..\Document\openapi.yml" CodeGenerator="NSwagCSharp" OutputPath="ApiClient.cs" Link="OpenAPIs\openapi.yml">
+		<OpenApiReference Include="../openapi.yml" CodeGenerator="NSwagCSharp" OutputPath="ApiClient.cs" Link="OpenAPIs\openapi.yml">
 			<Namespace>Client.Api</Namespace>
 			<ClassName>ApiClient</ClassName>
 			<Options>/GenerateNullableReferenceTypes:true /WrapResponses:true /ExceptionClass:ApiException /ResponseClass:ApiResponse /AdditionalNamespaceUsages:System,System.Collections.Generic /DateType:DateTime /DateTimeType:DateTime /ArrayType:IList /ArrayInstanceType:List /ArrayBaseType:List /ResponseArrayType:IList</Options>

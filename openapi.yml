@@ -1,0 +1,2105 @@
+openapi: '3.0.2'
+info:
+  title: ALPDOJ
+  version: '1.0'
+servers:
+  - url: http://localhost/api
+    description: 正式环境反代服务器
+  - url: http://localhost:47220/api
+    description: 本地测试反代服务器
+security:
+  - sessionCookie: []
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      name: sessionToken
+      in: cookie
+  parameters:
+    PathUserId:
+      name: userId
+      in: path
+      schema:
+        $ref: '#/components/schemas/UserId'
+      required: true
+    PathProblemId:
+      name: problemId
+      in: path
+      schema:
+        $ref: '#/components/schemas/ProblemId'
+      required: true
+    PathCommentId:
+      name: commentId
+      in: path
+      schema:
+        description: 评论ID
+        $ref: '#/components/schemas/Id'
+      required: true
+    PathTestcaseId:
+      name: testcaseId
+      in: path
+      schema:
+        description: 测试点ID
+        $ref: '#/components/schemas/Id'
+      required: true
+    PathAssignmentId:
+      name: assignmentId
+      in: path
+      schema:
+        description: 作业ID
+        $ref: '#/components/schemas/Id'
+      required: true
+    PathSubmissionId:
+      name: submissionId
+      in: path
+      schema:
+        $ref: '#/components/schemas/Id'
+      required: true
+  responses:
+    OK:
+      description: 成功
+    Created:
+      description: 创建成功
+    CreatedWithId:
+      description: 创建成功，返回ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IdWrapper'
+    BadRequest:
+      description: 请求错误，参数或负载非法
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorStatusWrapper'
+    NotFound:
+      description: 资源未找到
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorStatusWrapper'
+    Unauthorized:
+      description: 认证失败
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorStatusWrapper'
+    Forbidden:
+      description: 没有权限
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorStatusWrapper'
+    InternalError:
+      description: 服务器发生未知错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorStatusWrapper'
+  schemas:
+    Id:
+      type: integer
+      format: int32
+      minimum: 1
+      x-api-folder: Domains
+    UserId:
+      description: 学工号
+      $ref: '#/components/schemas/Id'
+      x-api-folder: Domains
+    ProblemId:
+      description: 题目ID
+      $ref: '#/components/schemas/Id'
+      x-apifox-folder: Domains
+    SubmissionId:
+      description: 提交ID
+      $ref: '#/components/schemas/Id'
+      x-apifox-folder: Domains
+    Avatar:
+      description: 用户头像，最大256KB
+      type: string
+      format: binary
+      maxLength: 262144
+      x-apifox-folder: Domains
+    Username:
+      description: 用户名
+      type: string
+      minLength: 4
+      maxLength: 32
+      x-apifox-folder: Domains
+    Password:
+      description: 密码
+      type: string
+      maxLength: 64
+      x-apifox-folder: Domains
+    PasswordCipher:
+      description: 密码密文
+      type: string
+      maxLength: 107
+      x-apifox-folder: Domains
+    Email:
+      description: 邮箱
+      type: string
+      format: email
+      pattern: '(?:[a-z0-9!#$%&''*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&''*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])'
+      maxLength: 256
+      x-apifox-folder: Domains
+    Role:
+      description: 用户角色
+      type: string
+      enum:
+        - Student
+        - TeacherAssistant
+        - Teacher
+        - Administrator
+      x-apifox:
+        enumDescriptions:
+          Student: 学生
+          TeacherAssistant: 助教
+          Teacher: 老师
+          Administrator: 系统管理员
+      x-apifox-folder: Enums
+    Reaction:
+      description: 用户对内容的反应
+      type: string
+      enum:
+        - Like
+        - Dislike
+        - Laugh
+        - Embarrass
+        - Angry
+        - Surprise
+        - Doge
+        - Hooray
+        - Question
+        - Heart
+        - Rocket
+        - Applause
+      x-apifox:
+        enumDescriptions:
+          Like: 赞
+          Dislike: 踩
+          Laugh: 乐
+          Embarrass: 扎不多得了
+          Angry: I am angry!
+          Surprise: 惊喜
+          Doge: 狗头
+          Hooray: 好耶
+          Question: 不懂
+          Heart: 比心
+          Rocket: 火箭
+          Applause: 鼓掌
+      x-apifox-folder: Enums
+    SubmissionStatus:
+      description: 提交状态
+      type: string
+      enum:
+        - Submitted
+        - Queueing
+        - Compiling
+        - Running
+        - Judged
+        - Aborted
+        - Reviewed
+      x-apifox:
+        enumDescriptions:
+          Submitted: 已提交
+          Queueing: 正在排队
+          Compiling: 正在编译
+          Running: 正在运行
+          Judged: 评测结束
+          Aborted: 意外退出
+          Reviewed: 审核完成
+      x-apifox-folder: Enums
+    TestcaseStatus:
+      description: 测试点评测状态
+      type: string
+      enum:
+        - AC
+        - WA
+        - RE
+        - TLE
+        - MLE
+        - OLE
+      x-apifox:
+        enumDescriptions:
+          AC: 通过
+          WA: 答案错误
+          RE: 运行时错误
+          TLE: 运行超时
+          MLE: 内存超限
+          OLE: 输出超限
+      x-apifox-folder: Enums
+    TestcaseMode:
+      description: 测试点评测模式
+      type: string
+      enum:
+        - FullMatch
+        - Regex
+      x-apifox:
+        enumDescriptions:
+          FullMatch: 全匹配模式
+          Regex: 正则匹配模式
+      x-apifox-folder: Enums
+    RichTextFormat:
+      description: 富文本格式
+      type: string
+      enum:
+        - Raw
+        - Markdown
+        - Html
+      x-apifox:
+        enumDescriptions:
+          Raw: 纯文本
+          Markdown: Markdown格式
+          Html: HTML格式
+      x-apifox-folder: Enums
+    Files:
+      description: 多个文件，用于上传下载
+      type: object
+      additionalProperties: 
+        type: string
+        format: binary
+      x-apifox-folder: Dictionaries
+    JudgementResult:
+      description: 评测结果
+      type: object
+      additionalProperties: 
+        $ref: '#/components/schemas/CompilerResult'
+      x-apifox-folder: Dictionaries
+    JudgementScoreSummary:
+      description: 评测成绩概述（编译器为key，编译器分数为value）
+      type: object
+      additionalProperties: 
+        type: number
+        format: double
+      x-apifox-folder: Dictionaries
+    ReactionStatistics:
+      description: 用户反应统计，key为Reaction，value为该反应的所有用户ID
+      type: object
+      additionalProperties: 
+        type: array
+        items:
+          $ref: '#/components/schemas/UserId'
+      x-apifox-folder: Dictionaries
+    IdWrapper:
+      description: 包含一个ID，用于POST接口返回新建记录的ID
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+      required:
+        - id
+      x-apifox-folder: Objects
+    PasswordPayload:
+      description: 包含一个password字段，用于设置密码
+      type: object
+      properties:
+        password:
+          type: string
+          nullable: true
+      x-apifox-folder: Objects
+    EmailPayload:
+      description: 包含一个email字段，用于邮箱激活
+      type: object
+      properties:
+        email:
+          $ref: '#/components/schemas/Email'
+      x-apifox-folder: Objects
+    RichText:
+      description: 富文本
+      type: object
+      properties:
+        format:
+          $ref: '#/components/schemas/RichTextFormat'
+        content:
+          description: 富文本内容
+          type: string
+      required:
+        - format
+        - content
+      x-apifox-folder: Objects
+    UserCredential:
+      description: 用户登录信息
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+        password:
+          $ref: '#/components/schemas/Password'
+      x-apifox-folder: Objects
+    User:
+      description: 用户信息
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+        role:
+          $ref: "#/components/schemas/Role"
+          default: Student
+        groups:
+          description: 所属分组，仅管理用户可见
+          type: array
+          items:
+            description: 组的名字（标识符）
+            type: string
+        username:
+          $ref: '#/components/schemas/Username'
+          nullable: true
+        name:
+          description: 真实姓名，其他用户不可见
+          type: string
+          nullable: true
+          maxLength: 16
+        email:
+          description: 邮箱，其他用户不可见
+          $ref: '#/components/schemas/Email'
+          nullable: true
+      x-apifox-folder: Objects
+    NewUser:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - description: 新建的用户
+          type: object
+          properties:
+            password:
+              description: 初始密码
+              $ref: '#/components/schemas/Password'
+          required:
+            - id
+            - name
+      x-apifox-folder: Objects
+    ProblemDataFormat:
+      description: 题目数据格式
+      type: object
+      properties:
+        input:
+          description: 输入格式描述
+          type: string
+          nullable: true
+        output:
+          description: 输出格式描述
+          type: string
+      x-apifox-folder: Objects
+    ProblemInputRange:
+      description: 数据范围
+      type: object
+      properties:
+        description:
+          description: 范围描述
+          type: string
+        testcaseCount:
+          description: 适用的测试点数量
+          type: integer
+          format: int32
+          nullable: true
+      required:
+        - description
+      x-apifox-folder: Objects
+    ProblemContent:
+      description: 题目内容
+      type: object
+      properties:
+        description:
+          description: 题目描述，富文本形式
+          $ref: '#/components/schemas/RichText'
+        format:
+          $ref: '#/components/schemas/ProblemDataFormat'
+          nullable: true
+        inputRange:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProblemInputRange'
+          nullable: true
+        restriction:
+          description: 代码限制
+          type: string
+          nullable: true
+      x-apifox-folder: Objects
+    ProblemLimits:
+      description: 题目限制
+      type: object
+      properties:
+        time:
+          description: 运行时间限制，单位毫秒
+          type: integer
+          format: int32
+          nullable: true
+        memory:
+          description: 运行内存限制，单位字节
+          type: integer
+          format: int32
+          nullable: true
+        output:
+          description: 输出大小限制，单位字节
+          type: integer
+          format: int32
+          nullable: true
+        stack:
+          description: 栈内存限制，单位字节
+          type: integer
+          format: int32
+          nullable: true
+        thread:
+          description: 线程数量限制，单位字节
+          type: integer
+          format: int32
+          nullable: true
+        fileSize:
+          description: 文件大小限制，单位字节
+          type: integer
+          format: int32
+      x-apifox-folder: Objects
+    NewProblem:
+      description: 新建的题目
+      allOf:
+        - type: object
+          properties:
+            title:
+              description: 题目标题
+              type: string
+              maxLength: 256
+            tags:
+              description: 标签
+              type: array
+              items:
+                type: string
+              nullable: true
+            manual:
+              description: 是否为人工批阅
+              type: boolean
+              default: false
+            limits:
+              $ref: '#/components/schemas/ProblemLimits'
+          required:
+            - title
+            - limit
+        - $ref: '#/components/schemas/ProblemContent'
+      x-apifox-folder: Objects
+    Problem:
+      description: 题目
+      allOf:
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/ProblemId'
+          required:
+            - id
+        - $ref: '#/components/schemas/NewProblem'
+      x-apifox-folder: Objects
+    BriefProblem:
+      description: 题目概述
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ProblemId'
+        title:
+          description: 题目标题
+          type: string
+          maxLength: 256
+        tags:
+          description: 标签
+          type: array
+          items:
+            type: string
+          nullable: true
+        manual:
+          description: 是否为人工批阅
+          type: boolean
+          default: false
+      required:
+        - id
+        - title
+      x-apifox-folder: Objects
+    NewComment:
+      description: 新创建的评论，用于POST /problem/{problemId}/comment
+      type: object
+      properties:
+        replyTo:
+          description: 回复的评论的ID，没有为null
+          $ref: '#/components/schemas/Id'
+          nullable: true
+        content:
+          description: 评论内容，可为富文本
+          $ref: '#/components/schemas/RichText'
+      required:
+        - content
+      x-apifox-folder: Objects
+    CommentAuthor:
+      description: 评论者
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+        username:
+          $ref: '#/components/schemas/Username'
+          nullable: true
+        avatar:
+          description: 用户头像，URL或者base64编码
+          type: string
+          nullable: true
+      required:
+        - id
+      x-apifox-folder: Objects
+    Comment:
+      allOf:
+        - $ref: '#/components/schemas/NewComment'
+        - description: 题目评论
+          type: object
+          properties:
+            id:
+              description: 评论ID
+              $ref: '#/components/schemas/Id'
+            problemId:
+              $ref: '#/components/schemas/ProblemId'
+            author:
+              $ref: '#/components/schemas/CommentAuthor'
+            content:
+              description: 评论内容，如果已删除则为null
+              $ref: '#/components/schemas/RichText'
+              nullable: true
+            time:
+              description: 评论发布时间
+              type: string
+              format: date-time
+            replies:
+              description: 回复数量
+              type: integer
+              format: int32
+            reactions:
+              $ref: '#/components/schemas/ReactionStatistics'
+              nullable: true
+          required:
+            - id
+            - problemId
+            - author
+            - time
+            - replies
+      x-apifox-folder: Objects
+    ScoreWeight:
+      description: 题目编译成功与各测试点的分数权重
+      type: object
+      properties:
+        compile:
+          description: 编译成功的占比
+          type: number
+          format: double
+        testcases:
+          description: 每个测试点的占比
+          type: object
+          nullable: true
+          additionalProperties: 
+            type: number
+            format: double
+      x-apifox-folder: Objects
+    ProblemSubmissionLimit:
+      description: 作业中的题目与相关提交限制
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ProblemId'
+        times:
+          description: 可提交次数
+          type: integer
+          format: int32
+        deadline:
+          description: 截止日期
+          type: string
+          format: date-time
+        totalScore:
+          description: 题目总分
+          type: number
+          format: float
+          nullable: true
+        scoreWeight:
+          $ref: '#/components/schemas/ScoreWeight'
+          nullable: true
+      required:
+        - problemId
+        - deadline
+      x-apifox-folder: Objects
+    NewAssignment:
+      description: 作业，以用户分组为对象，包括一组题目与对应的提交限制
+      type: object
+      properties:
+        group:
+          description: 用户分组名
+          type: string
+        description:
+          description: 作业描述
+          type: string
+          nullable: true
+        priority:
+          description: 优先级，最高为100；当不同分组的作业安排中题目出现冲突时，优先级更高的将被采用
+          type: integer
+          format: int32
+          default: 0
+        problems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProblemSubmissionLimit'
+      required:
+        - group
+        - problems
+      x-apifox-folder: Objects
+    Assignment:
+      allOf:
+        - type: object
+          properties:
+            id:
+              description: 作业安排ID
+              $ref: '#/components/schemas/Id'
+        - $ref: '#/components/schemas/NewAssignment'
+      x-apifox-folder: Objects
+    SubmissionBase:
+      description: 作业提交公共结构
+      type: object
+      properties:
+        test:
+          description: 是否为测试提交
+          type: boolean
+        problemId:
+          $ref: '#/components/schemas/ProblemId'
+      required:
+        - test
+        - problemId
+      x-apifox-folder: Objects
+    NewSubmission:
+      description: 新建的作业提交
+      allOf:
+        - $ref: '#/components/schemas/SubmissionBase'
+        - type: object
+          properties:
+            files:
+              $ref: '#/components/schemas/Files'
+          required:
+            - files
+      x-apifox-folder: Objects
+    Submission:
+      description: 作业提交
+      allOf: 
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/SubmissionId'
+            userId:
+              $ref: '#/components/schemas/UserId'
+            createdTime:
+              description: 提交时间
+              type: string
+              format: date-time
+            final:
+              description: 是否为最终提交
+              type: boolean
+            status:
+              $ref: '#/components/schemas/SubmissionStatus'
+            files:
+              $ref: '#/components/schemas/Files'
+              nullable: true
+          required:
+            - userId
+            - createdTime
+            - final
+        - $ref: '#/components/schemas/SubmissionBase'
+      x-apifox-folder: Objects
+    JudgerFile:
+      description: 评测器文件
+      type: object
+      properties:
+        src:
+          description: 文件绝对路径
+          type: string
+          nullable: true
+        content:
+          description: 文件内容
+          type: string
+          nullable: true
+        fileId:
+          description: 文件在评测器中的ID
+          type: string
+          nullable: true
+      minProperties: 1
+      maxProperties: 1
+      x-apifox-folder: Objects
+    RunOptions:
+      description: 测试点运行的额外选项
+      type: object
+      properties:
+        args:
+          description: 命令行参数
+          type: array
+          items:
+            type: string
+          nullable: true
+        env:
+          description: 环境变量
+          type: array
+          items:
+            type: string
+          nullable: true
+        inFiles:
+          description: 输入文件
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/JudgerFile'
+          nullable: true
+        outFiles:
+          description: 输出文件
+          type: array
+          items:
+            type: string
+          nullable: true
+      x-apifox-folder: Objects
+    Expectation:
+      description: 评阅时的期望结果
+      type: object
+      properties:
+        stdout:
+          type: string
+          nullable: true
+        stderr:
+          type: string
+          nullable: true
+        files:
+          type: object
+          additionalProperties: 
+            type: string
+          nullable: true
+      x-apifox-folder: Objects
+    ReviewConfig:
+      description: 评阅配置
+      type: object
+      properties:
+        expectation:
+          $ref: '#/components/schemas/Expectation'
+        options:
+          type: object
+      required:
+        - expectation
+      x-apifox-folder: Objects
+    NewTestcase:
+      description: 新建的测试点
+      type: object
+      properties:
+        visible:
+          description: 测试点数据对评测者是否可见
+          type: boolean
+          default: false
+        mode:
+          $ref: '#/components/schemas/TestcaseMode'
+        input:
+          description: 测试点输入数据，对于某些特殊题目可以为空
+          type: string
+          nullable: true
+        range:
+          description: 测试点数据范围
+          type: string
+          nullable: true
+        explanation:
+          description: 测试点解释，主要用于题目页样例展示
+          type: string
+          nullable: true
+        output:
+          description: 测试点输出数据，如果评测点不可见，可以为空
+          type: string
+          nullable: true
+        runOptions:
+          $ref: '#/components/schemas/RunOptions'
+          nullable: true
+        reviewConfig:
+          $ref: '#/components/schemas/ReviewConfig'
+          nullable: true
+      required:
+        - mode
+      x-apifox-folder: Objects
+    Testcase:
+      description: 测试点
+      allOf:
+        - type: object
+          properties:
+            id:
+              description: 测试点ID
+              $ref: '#/components/schemas/Id'
+            problemId:
+              $ref: '#/components/schemas/ProblemId'
+          required:
+            - id
+            - problemId
+        - $ref: '#/components/schemas/NewTestcase'
+      x-apifox-folder: Objects
+    TestcaseResult:
+      description: 测试点的具体结果
+      type: object
+      properties:
+        id:
+          description: 测试点ID
+          $ref: '#/components/schemas/Id'
+        result:
+          $ref: '#/components/schemas/TestcaseStatus'
+        output:
+          description: 评测程序输出
+          type: string
+          nullable: true
+        consumption:
+          description: 资源消耗
+          type: object
+          properties:
+            time:
+              description: 运行时间，单位毫秒
+              type: number
+              format: float
+            memory:
+              description: 运行内存，单位字节
+              type: integer
+              format: int32
+      x-apifox-folder: Objects
+    CompilationMessage:
+      description: 编译信息
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+          nullable: true
+        warnings:
+          type: array
+          items:
+            type: string
+          nullable: true
+      x-apifox-folder: Objects
+    CompilerResult:
+      description: 某个编译器编译运行的评测结果
+      type: object
+      properties:
+        message:
+          description: 编译信息，无错误无警告为null
+          $ref: '#/components/schemas/CompilationMessage'
+          nullable: true
+        score:
+          description: 评测成绩
+          type: number
+          format: float
+        testcases:
+          description: 每个测试点的具体结果，如果编译未通过则为null
+          type: array
+          items:
+            $ref: '#/components/schemas/TestcaseResult'
+          nullable: true
+      x-apifox-folder: Objects
+    ScoreSummary:
+      description: 提交的成绩概述
+      type: object
+      properties:
+        judgement:
+          $ref: '#/components/schemas/JudgementScoreSummary'
+          nullable: true
+        review:
+          description: 审核成绩
+          type: number
+          format: double
+          nullable: true
+      x-apifox-folder: Objects
+    ReviewResult:
+      description: 审核/人工批阅结果
+      type: object
+      properties:
+        reviewer:
+          description: 审核/批阅者ID
+          $ref: '#/components/schemas/UserId'
+        score:
+          description: 审核/人工批阅成绩
+          type: number
+          format: float
+        checkpoints:
+          description: 审核检查点
+          type: array
+          items:
+            type: string
+        comment:
+          description: 审核评语
+          type: string
+          nullable: true
+      x-apifox-folder: Objects
+    ProblemSummary:
+      description: 用户题目评测结果概述
+      type: object
+      properties:
+        id:
+          description: 题目ID
+          $ref: '#/components/schemas/Id'
+        title:
+          description: 题目标题
+          type: string
+          maxLength: 256
+        manual:
+          description: 是否为人工批阅
+          type: boolean
+        tags:
+          description: 标签
+          type: array
+          items:
+            type: string
+        times:
+          description: 可提交次数
+          type: integer
+          format: int32
+        submittedTimes:
+          description: 已提交次数
+          type: integer
+          format: int32
+          default: 0
+        deadline:
+          description: 截止日期
+          type: string
+          format: date-time
+        score:
+          description: 当前成绩，尚未提交则为null
+          type: number
+          format: float
+          nullable: true
+        totalScore:
+          description: 总分，默认为10.0，每个测试点的小分平均分配
+          type: number
+          format: float
+          default: 10.0
+      required:
+        - id
+        - title
+        - manual
+        - tags
+        - times
+        - deadline
+      x-apifox-folder: Objects
+    AssignmentSummary:
+      description: 用户作业评测结果概述
+      type: object
+      properties:
+        id:
+          description: 作业ID
+          $ref: '#/components/schemas/Id'
+        description:
+          description: 作业描述
+          type: string
+          nullable: true
+        priority:
+          description: 优先级，最高为100；当不同分组的作业安排中题目出现冲突时，优先级更高的将被采用
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+          maximum: 100
+        problems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProblemSummary'
+      required:
+        - id
+        - problems
+      x-apifox-folder: Objects
+    NewResource:
+      description: 新建的课程资源
+      type: object
+      properties:
+        file:
+          description: 文件
+          type: string
+          format: binary
+        description:
+          description: 文件描述
+          type: string
+          nullable: true
+      required:
+        - file
+      x-apifox-folder: Objects
+    Resource:
+      description: 课程资源
+      type: object
+      properties:
+        id:
+          description: 资源ID
+          $ref: '#/components/schemas/Id'
+        filename:
+          description: 文件名
+          type: string
+        description:
+          description: 文件描述
+          type: string
+          nullable: true
+        size:
+          description: 文件大小，单位字节
+          type: integer
+          format: int32
+        createdTime:
+          description: 创建日期
+          type: string
+          format: date-time
+        url:
+          description: 下载地址
+          type: string
+      required:
+        - filename
+        - size
+        - createdTime
+        - url
+      x-apifox-folder: Objects
+    ErrorStatusWrapper:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+          format: int64
+        status:
+          type: integer
+          format: int32
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+      x-apifox-folder: Objects
+tags:
+  - name: Authentication
+    description: 认证相关接口
+  - name: Asset
+    description: 静态资源相关接口
+  - name: User
+    description: 用户相关接口
+  - name: Problem
+    description: 题目相关接口
+  - name: Submission
+    description: 提交相关接口
+  - name: Assignment
+    description: 作业相关接口
+  - name: Comment
+    description: 评论相关接口
+  - name: Testcase
+    description: 测试点相关接口
+  - name: AllowAnonymous
+    description: 匿名可用（不需认证）的API
+  - name: AdminOnly
+    description: 管理（非学生）用户可用API
+  - name: OwnerOnly
+    description: 数据所有者可用API
+paths:
+  /auth:
+    get:
+      description: 登录
+      operationId: Login
+      tags:
+        - Authentication
+        - AllowAnonymous
+      parameters:
+        - name: id
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserId'
+          required: true
+        - name: password
+          in: query
+          schema:
+            $ref: '#/components/schemas/Password'
+          required: true
+      responses:
+        '200':
+          description: 登录成功
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                pattern: '([\w-]+=.+(; ?(Secure|HttpOnly|SameSite=(Strict|Lax|None)|(Expires|Max-Age|Domain|Path)=.+))*)+'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      description: 登出
+      operationId: Logout
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: 登出成功
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /asset/carousel/urls:
+    get:
+      description: 获取展示在主页走马灯里的图片URL
+      operationId: GetCarouselImageUrls
+      tags:
+        - Asset
+        - AllowAnonymous
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+  /asset/resources:
+    get:
+      description: 获取课程资源
+      operationId: GetResources
+      tags:
+        - Asset
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /asset/resource:
+    post:
+      description: 获取课程资源
+      operationId: CreateResource
+      tags:
+        - Asset
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewResource'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /asset/resource/{resourceId}:
+    delete:
+      description: 删除课程资源
+      operationId: DeleteResource
+      tags:
+        - Asset
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /user:
+    get:
+      description: 获取当前用户信息
+      operationId: GetCurrentUser
+      tags:
+        - User
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功获取
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      description: 创建用户
+      operationId: CreateUser
+      tags:
+        - User
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /user/{userId}:
+    get:
+      description: 获取用户详细信息
+      operationId: GetUser
+      tags:
+        - User
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      description: 修改用户信息，注意不同用户对不同字段的权限不同
+      operationId: ModifyUser
+      tags:
+        - User
+        - AdminOnly
+        - OwnerOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      description: 删除用户
+      operationId: DeleteUser
+      tags:
+        - User
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /user/{userId}/email:
+    put:
+      description: 激活用户邮箱
+      operationId: SetUserEmail
+      tags:
+        - User
+        - AllowAnonymous
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+        - in: query
+          name: token
+          description: 邮件验证口令
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /user/{userId}/password:
+    put:
+      description: 设置用户登陆密码
+      operationId: SetUserPassword
+      tags:
+        - User
+        - AllowAnonymous
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+        - in: query
+          name: token
+          description: 邮件验证口令
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /user/{userId}/avatar:
+    get:
+      description: 获取用户头像
+      operationId: GetUserAvatar
+      tags:
+        - User
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            image/png:
+              schema:
+                $ref: '#/components/schemas/Avatar'
+            image/jpeg:
+              schema:
+                $ref: '#/components/schemas/Avatar'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      description: 设置用户头像
+      operationId: SetUserAvatar
+      tags:
+        - User
+        - OwnerOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathUserId'
+      requestBody:
+        content:
+          image/png:
+            schema:
+              $ref: '#/components/schemas/Avatar'
+          image/jpeg:
+            schema:
+              $ref: '#/components/schemas/Avatar'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /users:
+    get:
+      description: 获取所有用户
+      operationId: GetUsers
+      tags:
+        - User
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problems:
+    get:
+      description: 获取所有题目概述
+      operationId: GetBriefProblems
+      tags:
+        - Problem
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BriefProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem:
+    post:
+      description: 创建题目
+      operationId: CreateProblem
+      tags:
+        - Problem
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewProblem'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedWithId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem/{problemId}:
+    get:
+      description: 获取题目信息
+      operationId: GetProblem
+      tags:
+        - Problem
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      description: 修改题目信息
+      operationId: ModifyProblem
+      tags:
+        - Problem
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Problem'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem/{problemId}/submission-limit:
+    get:
+      description: 获取当前用户对该题目的提交限制，如有多个，则返回优先级最高的Assignment对应的限制
+      operationId: GetProblemSubmissionLimit
+      tags:
+        - Assignment
+        - Problem
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemSubmissionLimit'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /problem/{problemId}/comments:
+    get:
+      description: 获取问题评论
+      operationId: GetProblemComments
+      tags:
+        - Comment
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+        - name: parent-id
+          description: 父级评论ID
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+            default: null
+            nullable: true
+          required: false
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /problem/{problemId}/comment:
+    post:
+      description: 发布问题评论
+      operationId: CommentProblem
+      tags:
+        - Comment
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewComment'
+      responses:
+        '201':
+          description: 成功发布
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/IdWrapper'
+                  - type: object
+                    properties:
+                      time:
+                        type: string
+                        format: date-time
+                    required:
+                      - time
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /problem/{problemId}/comment/{commentId}:
+    delete:
+      description: 删除评论，注意为保留回复依赖关系，删除时不应该cascade
+      operationId: DeleteComment
+      tags:
+        - Comment
+        - AdminOnly
+        - OwnerOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+        - $ref: '#/components/parameters/PathCommentId'
+      responses:
+        '200':
+          description: 成功删除
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem/{problemId}/comment/{commentId}/reaction:
+    put:
+      description: 对评论表态
+      operationId: ReactToComment
+      tags:
+        - Comment
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+        - $ref: '#/components/parameters/PathCommentId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Reaction'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /problem/{problemId}/testcases:
+    get:
+      description: 获取题目的测试数据
+      operationId: GetTestcases
+      tags:
+        - Testcase
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Testcase'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem/{problemId}/testcases/example:
+    get:
+      description: 获取题目的样例数据
+      operationId: GetExampleTestcases
+      tags:
+        - Testcase
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Testcase'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /problem/{problemId}/testcase:
+    post:
+      description: 创建测试点
+      operationId: CreateTestcase
+      tags:
+        - Testcase
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTestcase'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedWithId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem/{problemId}/testcase/{testcaseId}:
+    get:
+      description: 获取某个测试点的数据，注意学生用户不可获取visible为false的测试点数据
+      operationId: GetTestcase
+      tags:
+        - Testcase
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+        - $ref: '#/components/parameters/PathTestcaseId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Testcase'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      description: 删除某个测试点
+      operationId: DeleteTestcase
+      tags:
+        - Testcase
+        - AdminOnly
+      parameters:
+        - $ref: '#/components/parameters/PathProblemId'
+        - $ref: '#/components/parameters/PathTestcaseId'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /submissions:
+    get:
+      description: 获取提交记录，注意学生应无法获取其他人提交的内容
+      operationId: GetSubmissions
+      tags:
+        - Submission
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserId'
+        - name: problemId
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProblemId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /submission:
+    post:
+      description: 提交作业
+      operationId: Submit
+      tags:
+        - Submission
+      security:
+        - sessionCookie: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NewSubmission'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedWithId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /submission/{submissionId}:
+    get:
+      description: 获取提交记录
+      operationId: GetSubmission
+      tags:
+        - Submission
+        - AdminOnly
+        - OwnerOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathSubmissionId'
+        - in: query
+          description: 是否需要获取提交的文件
+          name: include-files
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /submission/{submissionId}/score-summary:
+    get:
+      description: 获取提交记录的成绩概述
+      operationId: GetSubmissionScore
+      tags:
+        - Submission
+        - AdminOnly
+        - OwnerOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathSubmissionId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScoreSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /submission/{submissionId}/status:
+    get:
+      description: 获取评测状态
+      operationId: GetSubmissionStatus
+      tags:
+        - Submission
+      security:
+        - sessionCookie: []
+      parameters: 
+        - $ref: '#/components/parameters/PathSubmissionId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/SubmissionStatus'
+                required:
+                  - status
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /submission/{submissionId}/judgement-result:
+    get:
+      description: 获取评测结果
+      operationId: GetJudgementResult
+      tags:
+        - Submission
+      security:
+        - sessionCookie: []
+      parameters: 
+        - $ref: '#/components/parameters/PathSubmissionId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JudgementResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /submission/{submissionId}/review-result:
+    get:
+      description: 获取批阅/人工审核结果
+      operationId: GetReviewResult
+      tags:
+        - Submission
+      security:
+        - sessionCookie: []
+      parameters: 
+        - $ref: '#/components/parameters/PathSubmissionId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /assignment:
+    post:
+      description: 发布作业安排
+      operationId: CreateAssignment
+      tags:
+        - Assignment
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAssignment'
+      responses:
+        '201':
+          $ref: '#/components/responses/CreatedWithId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assignment/{assignmentId}:
+    get:
+      description: 获取作业信息
+      operationId: GetAssignment
+      tags:
+        - Assignment
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathAssignmentId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      description: 修改作业信息
+      operationId: ModifyAssignment
+      tags:
+        - Assignment
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathAssignmentId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assignment'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      description: 删除作业
+      operationId: DeleteAssignment
+      tags:
+        - Assignment
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      parameters:
+        - $ref: '#/components/parameters/PathAssignmentId'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /assignments:
+    get:
+      description: 获取所有作业安排
+      operationId: GetAssignments
+      tags:
+        - Assignment
+        - AdminOnly
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /problem-summary:
+    get:
+      description: 获取当前用户的题目评测结果概述
+      operationId: GetProblemSummary
+      tags:
+        - Problem
+      security:
+        - sessionCookie: []
+      parameters:
+        - in: query
+          name: problemId
+          schema:
+            $ref: '#/components/schemas/ProblemId'
+          required: true
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /assignment-summaries:
+    get:
+      description: 获取当前用户的作业评测结果概述
+      operationId: GetAssignmentSummaries
+      tags:
+        - Assignment
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /notification/password-set:
+    post:
+      description: 发送修改密码的邮件
+      operationId: SendPasswordSetEmail
+      tags:
+        - User
+        - AllowAnonymous
+      parameters:
+        - in: query
+          name: user-id
+          schema:
+            $ref: '#/components/schemas/UserId'
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /notification/email-activation:
+    post:
+      description: 发送激活邮箱的邮件
+      operationId: SendEmailActivationEmail
+      tags:
+        - User
+      security:
+        - sessionCookie: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'

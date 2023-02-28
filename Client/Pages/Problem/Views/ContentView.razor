@@ -8,16 +8,16 @@
 	}
 	else {
 		<Card Class="content-card" Title="@("题目描述")">
-			<RichTextDisplayer Value="@Problem.Content.Description" />
+			<RichTextDisplayer Value="@Problem.Description" />
 		</Card>
 
-		@if (Problem.Content.Format is not null) {
+		@if (Problem.Format is not null) {
 			<Card Title="@("数据格式")" Class="content-card" BodyStyle="display:flex">
 				<Card Title="输入" Bordered  Style="flex-grow: 1">
-					@Problem.Content.Format.Input
+					@Problem.Format.Input
 				</Card>
 				<Card Title="输出" Bordered  Style="flex-grow: 1">
-					@Problem.Content.Format.Output
+					@Problem.Format.Output
 				</Card>
 			</Card>
 		}
@@ -48,9 +48,9 @@
 			</Card>
 		}
 
-		@if (Problem.Content.InputRange is not null) {
+		@if (Problem.InputRange is not null) {
 			<Card Class="content-card" Title="输入数据范围">
-				<AntList Bordered DataSource="Problem.Content.InputRange!">
+				<AntList Bordered DataSource="Problem.InputRange!">
 					<ListItem>
 						@context.Description
 					</ListItem>
@@ -58,9 +58,9 @@
 			</Card>
 		}
 
-		@if (Problem.Content.Limitation is not null) {
+		@if (Problem.Restriction is not null) {
 			<Card Class="content-card" Title="代码限制">
-				<Text>@Problem.Content.Limitation</Text>
+				<Text>@Problem.Restriction</Text>
 			</Card>
 		}
 	}

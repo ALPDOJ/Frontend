@@ -1,0 +1,161 @@
+﻿@namespace Client.Pages
+@page "/admin/problem/{Id:int}/testcase"
+@using TrueMogician.Extensions.Enumerable
+@using Microsoft.AspNetCore.Components
+
+<div class="assignment-list">
+	<Card Title="测试集管理" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<Extra>
+			<Button OnClick="() => OpenModal(null)">添加测试点</Button>
+		</Extra>
+		<ChildContent>
+			<Table TItem="Testcase" DataSource="Testcases">
+				<AntDesign.Column TData="int" @bind-Field="context.Id" Title="测试点ID" Align="@ColumnAlign.Center" Sortable Filterable/>
+				<AntDesign.Column TData="string" @bind-Field="context.Input" Title="输入" Align="ColumnAlign.Center" Sortable Filterable Ellipsis/>
+				<AntDesign.Column TData="string" @bind-Field="context.Output" Title="输出" Align="ColumnAlign.Center" Sortable Filterable Ellipsis/>
+				<AntDesign.Column TData="bool" Field="context.Visible" Title="可见性" Align="ColumnAlign.Center" Filterable>
+					<Checkbox @bind-Value="context.Visible" Disabled/>
+				</AntDesign.Column>
+				<AntDesign.ActionColumn Align="ColumnAlign.Center">
+					<Button Type="primary" OnClick="() => OpenModal(context)">详情</Button>
+					<Popconfirm Placement="@Placement.Top"
+					            Title="@("确认要删除该测试点吗？")"
+					            OkText="确认" CancelText="取消" OnConfirm="async () => await DeleteTestcase(context.Id)">
+						<Button Danger>删除</Button>
+					</Popconfirm>
+				</AntDesign.ActionColumn>
+			</Table>
+		</ChildContent>
+	</Card>
+
+	<Modal Title="测试点信息"
+	       Visible="ModalVisible"
+	       OkText="@("保存")"
+	       CancelText="@("取消")"
+	       OnOk="SaveTestcase"
+		   OkButtonProps="OkProps"
+	       OnCancel="() => ModalVisible = false"
+	       DestroyOnClose>
+		<Form Model="@(SelectedTestcase)"
+		      LabelColSpan="8"
+		      WrapperColSpan="16">
+			@if (OkProps.Disabled)
+			{
+				<FormItem Label="测试点ID">
+					<Input TValue="int" @bind-Value="context.Id"/>
+				</FormItem>
+			}
+			<FormItem Label="输入">
+				<TextArea Rows="4" @bind-Value="context.Input"></TextArea>
+			</FormItem>
+			<FormItem Label="输出">
+				<TextArea Rows="4" @bind-Value="context.Output"></TextArea>
+			</FormItem>
+			<FormItem Label="可见性">
+				<Checkbox @bind-Value="context.Visible"/>
+			</FormItem>
+			<FormItem Label="模式">
+				<EnumSelect TEnum="TestcaseMode" @bind-Value="context.Mode"/>
+			</FormItem>
+			<FormItem Label="数据范围">
+				<Input TValue="string" @bind-Value="context.Range"/>
+			</FormItem>
+			<FormItem Label="数据解释">
+				<Input TValue="string" @bind-Value="context.Explanation"/>
+			</FormItem>
+		</Form>
+	</Modal>
+</div>
+
+<style lang="css" scoped>
+	.extra-content-select {
+		margin-left: 16px;
+		width: 272px;
+		min-width: 200px;
+	}
+
+	@@media screen and (max-width: 576px) {
+		.extra-content-select {
+			margin-left: 0;
+			width: 100%;
+		}
+	}
+</style>
+
+@code {
+
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	protected MessageService MessageService { get; init; }
+
+	[Inject]
+	protected NavigationManager NavigationManager { get; init; }
+
+	[Parameter]
+	public int Id { get; init; }
+
+	private ICollection<Testcase> Testcases { get; set; }
+
+	private bool ModalVisible { get; set; }
+
+	private Testcase SelectedTestcase { get; set; }
+
+	private ButtonProps OkProps { get; set; } = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			Testcases = (await Api.GetTestcasesAsync(Id)).Result;
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private void OpenModal(Testcase? testcase)
+	{
+		ModalVisible = true;
+		SelectedTestcase = testcase ?? new Testcase();
+		OkProps.Disabled = testcase is not null;
+	}
+
+	private async Task SaveTestcase()
+	{
+		try
+		{
+			ModalVisible = false;
+			await Api.CreateTestcaseAsync(Id, SelectedTestcase);
+			await MessageService.Success("创建成功");
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private async Task DeleteTestcase(int testcaseId)
+	{
+		try
+		{
+			await Api.DeleteTestcaseAsync(Id, testcaseId);
+			await MessageService.Success("删除成功");
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+}

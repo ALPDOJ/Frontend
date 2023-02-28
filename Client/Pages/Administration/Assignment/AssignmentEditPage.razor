@@ -1,0 +1,155 @@
+﻿@namespace Client.Pages
+@page "/admin/assignment/edit/{Id:int?}"
+@using TrueMogician.Extensions.Enumerable
+@using Microsoft.AspNetCore.Components
+
+<div class="assignment-list">
+	<Card Title="@(Id is null ? "创建作业" : $"{Id} {Assignment.Description}")" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<Extra>
+			<Button Type="primary" OnClick="SaveAssignment">保存</Button>
+		</Extra>
+		<Body>
+		<Form Model="Assignment"
+		      LabelColSpan="4"
+		      WrapperColSpan="16">
+			<Collapse DefaultActiveKey="@(new[] { "1" })" Bordered="false">
+				<Panel Header="作业基本信息" Key="1">
+					@if (Id is not null)
+					{
+						<FormItem Label="作业ID">
+							<Input TValue="int" @bind-Value="context.Id"/>
+						</FormItem>
+					}
+					<FormItem Label="作业描述">
+						<Input TValue="string" @bind-Value="context.Description"/>
+					</FormItem>
+					<FormItem Label="用户组">
+						<Select TItem="string" TItemValue="string"
+						        @bind-Value="context.Group"
+						        EnableSearch>
+							<SelectOptions>
+								@foreach (var group in AllGroups)
+								{
+									<SelectOption TItem="string" TItemValue="string" Label="@group" Value="@group"/>
+								}
+							</SelectOptions>
+						</Select>
+					</FormItem>
+					<FormItem Label="优先级">
+						<Input TValue="int" @bind-Value="context.Priority"/>
+					</FormItem>
+				</Panel>
+				<Panel Header="数据范围" Key="2">
+					<Table TItem="ProblemSubmissionLimit" DataSource="SubmissionLimits">
+						<ChildContent Context="item">
+							<AntDesign.Column TData="int" Title="题目ID">
+								<Select TItem="int" TItemValue="int" @bind-Value="item.Id">
+									<SelectOptions>
+										@foreach (var problem in AllProblems)
+										{
+											<SelectOption
+												TItem="int"
+												TItemValue="int"
+												Value="problem.Id"
+												Label="@($"{problem.Id} {problem.Title}")"
+												Disabled="problem.Id != item.Id && SubmissionLimits.Any(l => l.Id == problem.Id)"/>
+										}
+									</SelectOptions>
+								</Select>
+							</AntDesign.Column>
+							<AntDesign.Column TData="int" Title="可提交次数">
+								<Input TValue="int" @bind-Value="item.Times"/>
+							</AntDesign.Column>
+							<AntDesign.Column TData="DateTime" Title="截止日期">
+								<DatePicker
+									TValue="DateTime"
+									ShowTime="true"
+									Format="yyyy-MM-dd HH:mm:ss"
+									@bind-Value="item.Deadline"/>
+							</AntDesign.Column>
+							<AntDesign.Column TData="float?" Title="题目总分">
+								<Input TValue="float?" @bind-Value="item.TotalScore"/>
+							</AntDesign.Column>
+							<ActionColumn>
+								<Button Type="primary">编辑分数构成</Button>
+								<Button Danger OnClick="() => SubmissionLimits.Remove(item)">删除</Button>
+							</ActionColumn>
+						</ChildContent>
+					</Table>
+					<Button OnClick="() => SubmissionLimits.Add(new ProblemSubmissionLimit())">添加</Button>
+				</Panel>
+			</Collapse>
+		</Form>
+		</Body>
+	</Card>
+</div>
+
+
+@code {
+
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	protected MessageService MessageService { get; init; }
+
+	[Inject]
+	protected NavigationManager NavigationManager { get; init; }
+
+	[Parameter]
+	public int? Id { get; init; }
+
+	private Assignment Assignment { get; set; }
+
+	private IEnumerable<string> AllGroups { get; set; }
+
+	private IList<BriefProblem> AllProblems { get; set; }
+
+	private IList<ProblemSubmissionLimit> SubmissionLimits { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			Assignment = Id is null ? new Assignment() : (await Api.GetAssignmentAsync((int)Id)).Result;
+			AllProblems = (await Api.GetBriefProblemsAsync()).Result.ToList();
+			AllGroups = (await Api.GetUsersAsync()).Result.SelectMany(u => u.Groups).Distinct().ToList();
+			SubmissionLimits = Assignment.Problems;
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private async Task SaveAssignment()
+	{
+		try
+		{
+			if (Id == null)
+			{
+				var assignmentId = (await Api.CreateAssignmentAsync(Assignment)).Result.Id;
+				await MessageService.Success("创建成功");
+				NavigationManager.NavigateTo($"/admin/assignment/edit/{assignmentId}");
+			}
+			else
+			{
+				await Api.ModifyAssignmentAsync((int)Id, Assignment);
+
+				await MessageService.Success("修改成功");
+			}
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+}

@@ -1,0 +1,126 @@
+﻿@namespace Client.Pages
+@page "/admin/assignment"
+@using TrueMogician.Extensions.Enumerable
+
+<div class="assignment-list">
+	<Card Title="作业管理" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<Extra>
+			<div class="extra-content" style="display: flex">
+				<Button Type="primary" OnClick="@(() => NavigationManager.NavigateTo("/admin/assignment/edit"))">添加作业</Button>
+				<SimpleSelect Mode="multiple"
+				              Placeholder="请选择用户组"
+				              EnableSearch
+				              AllowClear
+				              Class="extra-content-select"
+				              OnSelectedItemsChanged="@OnSearchedGroupsChanged">
+					<SelectOptions>
+						@if (Tags is not null)
+						{
+							@foreach (var group in Tags)
+							{
+								<SimpleSelectOption Label="@group" Value="@group"/>
+							}
+						}
+					</SelectOptions>
+				</SimpleSelect>
+			</div>
+		</Extra>
+		<ChildContent>
+			<Table TItem="Assignment" DataSource="DisplayedAssignments">
+				<AntDesign.Column TData="int" @bind-Field="context.Id" Title="作业ID" Align="@ColumnAlign.Center" Sortable Filterable/>
+				<AntDesign.Column TData="string" @bind-Field="context.Description" Title="作业描述" Align="ColumnAlign.Center" Sortable Filterable/>
+				<AntDesign.Column TData="string" Field="context.Group" Title="用户组" Align="ColumnAlign.Center">
+					<div>
+						<Tag>@context.Group</Tag>
+					</div>
+				</AntDesign.Column>
+				<AntDesign.ActionColumn Align="ColumnAlign.Center">
+					<Button Type="primary" OnClick="@(() => NavigationManager.NavigateTo($"/admin/assignment/edit/{context.Id}"))">修改作业</Button>
+					<Popconfirm Placement="@Placement.Top"
+					            Title="@($"确认要删除作业{context.Id} {context.Description}吗？")"
+					            OkText="确认" CancelText="取消" OnConfirm="async () => await DeleteAssigment(context.Id)">
+						<Button Danger>删除作业</Button>
+					</Popconfirm>
+				</AntDesign.ActionColumn>
+
+			</Table>
+		</ChildContent>
+	</Card>
+</div>
+
+<style lang="css" scoped>
+	.extra-content-select {
+		margin-left: 16px;
+		width: 272px;
+		min-width: 200px;
+	}
+
+	@@media screen and (max-width: 576px) {
+		.extra-content-select {
+			margin-left: 0;
+			width: 100%;
+		}
+	}
+</style>
+
+@code {
+
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	protected NavigationManager NavigationManager { get; init; }
+
+	[Inject]
+	protected MessageService MessageService { get; init; }
+
+	private ICollection<Assignment> Assignments { get; set; }
+
+	private ICollection<Assignment> DisplayedAssignments { get; set; }
+
+	private List<string>? Tags { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			DisplayedAssignments = Assignments = (await Api.GetAssignmentsAsync()).Result.AsList();
+			Tags = Assignments.Select(s => s.Group).Distinct().ToList();
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private void OnSearchedGroupsChanged(IEnumerable<string>? groups)
+	{
+		DisplayedAssignments = Assignments;
+		var g = groups?.ToArray();
+		if (g is { Length: > 0 })
+			DisplayedAssignments = DisplayedAssignments.Where(p => g.Contains(p.Group)).ToArray();
+		StateHasChanged();
+	}
+
+	private async Task DeleteAssigment(int assigmentId)
+	{
+		try
+		{
+			await Api.DeleteAssignmentAsync(assigmentId);
+
+			await MessageService.Success("删除成功");
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+}

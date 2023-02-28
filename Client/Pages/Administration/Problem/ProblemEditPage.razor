@@ -1,0 +1,185 @@
+﻿@namespace Client.Pages
+@page "/admin/problem/edit/{Id:int?}"
+@using TrueMogician.Extensions.Enumerable
+@using Microsoft.AspNetCore.Components
+
+<div class="assignment-list">
+	<Card Title="@(Id is null ? "创建题目" : $"{Id} {Problem.Title}")" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<Extra>
+			<div class="extra-content" style="display: flex">
+				<Button Type="primary" OnClick="SaveProblem">保存</Button>
+				@if (Id is not null)
+				{
+					<Button OnClick="@(() => NavigationManager.NavigateTo($"/admin/problem/{Id}/testcase"))">测试集管理</Button>
+				}
+			</div>
+		</Extra>
+		<Body>
+		<Form Model="Problem"
+		      LabelColSpan="4"
+		      WrapperColSpan="16">
+			<Collapse DefaultActiveKey="@(new[] { "1" })" Bordered="false">
+				<Panel Header="题目基本信息" Key="1">
+					@if (Id is not null)
+					{
+						<FormItem Label="题目ID">
+							<Input TValue="int" @bind-Value="context.Id"/>
+						</FormItem>
+					}
+					<FormItem Label="题目标题">
+						<Input TValue="string" @bind-Value="context.Title"/>
+					</FormItem>
+					<FormItem Label="标签">
+						<Select TItem="string" TItemValue="string"
+						        Mode="tags"
+						        @bind-Values="Tags"
+						        EnableSearch>
+							<SelectOptions>
+								@foreach (var tag in AllTags)
+								{
+									<SelectOption TItem="string" TItemValue="string" Label="@tag" Value="@tag"/>
+								}
+							</SelectOptions>
+						</Select>
+					</FormItem>
+					<FormItem Label="是否为人工批阅">
+						<Checkbox @bind-Value="context.Manual"/>
+					</FormItem>
+					<FormItem Label="输入格式">
+						<Input TValue="string" @bind-Value="context.Format!.Input"/>
+					</FormItem>
+					<FormItem Label="输出格式">
+						<Input TValue="string" @bind-Value="context.Format!.Output"/>
+					</FormItem>
+					<FormItem Label="题目描述">
+						<TextArea Rows="8" @bind-Value="context.Description.Content"></TextArea>
+					</FormItem>
+					<FormItem Label="代码限制">
+						<Input TValue="string?" @bind-Value="context.Restriction"></Input>
+					</FormItem>
+				</Panel>
+				<Panel Header="题目限制" Key="2">
+					<FormItem Label="运行时间(ms)">
+						<Input TValue="int?" @bind-Value="context.Limits.Time"/>
+					</FormItem>
+					<FormItem Label="运行内存(B)">
+						<Input TValue="int?" @bind-Value="context.Limits.Memory"/>
+					</FormItem>
+					<FormItem Label="输出大小(B)">
+						<Input TValue="int?" @bind-Value="context.Limits.Output"/>
+					</FormItem>
+					<FormItem Label="栈内存(B)">
+						<Input TValue="int?" @bind-Value="context.Limits.Stack"/>
+					</FormItem>
+					<FormItem Label="线程数量">
+						<Input TValue="int?" @bind-Value="context.Limits.Thread"/>
+					</FormItem>
+					<FormItem Label="文件大小(B)">
+						<Input TValue="int" @bind-Value="context.Limits.FileSize"/>
+					</FormItem>
+				</Panel>
+				<Panel Header="数据范围" Key="3">
+					<Table TItem="ProblemInputRange" DataSource="InputRanges">
+						<ChildContent Context="item">
+							<AntDesign.Column TData="int?" Title="测试点数量">
+								<Input TValue="int?" @bind-Value="item.TestcaseCount"/>
+							</AntDesign.Column>
+							<AntDesign.Column TData="string" Title="范围描述">
+								<Input TValue="string" @bind-Value="item.Description"/>
+							</AntDesign.Column>
+							<ActionColumn>
+								<Button Danger OnClick="() => InputRanges.Remove(item)">删除</Button>
+							</ActionColumn>
+						</ChildContent>
+					</Table>
+
+					<Button OnClick="() => InputRanges.Add(new ProblemInputRange())">添加</Button>
+				</Panel>
+			</Collapse>
+		</Form>
+		</Body>
+	</Card>
+</div>
+
+@code {
+
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	protected MessageService MessageService { get; init; }
+
+	[Inject]
+	protected NavigationManager NavigationManager { get; init; }
+
+	[Parameter]
+	public int? Id { get; init; }
+
+	private Api.Problem Problem { get; set; }
+
+	private IEnumerable<string> Tags { get; set; }
+
+	private List<string> AllTags { get; set; }
+
+	private IList<ProblemInputRange> InputRanges { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			Problem = Id is null ? new Api.Problem
+			{
+				Title = "",
+				Limits = new ProblemLimits(),
+				Description = new RichText
+				{
+					Format = RichTextFormat.Markdown,
+					Content = ""
+				}
+			} : (await Api.GetProblemAsync((int)Id)).Result;
+			AllTags = (await Api.GetBriefProblemsAsync()).Result.SelectMany(p => p.Tags ?? Enumerable.Empty<string>()).Distinct().ToList();
+			Problem.Format ??= new ProblemDataFormat();
+			Tags = Problem.Tags ?? Enumerable.Empty<string>();
+			InputRanges = Problem.InputRange ?? new List<ProblemInputRange>();
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private async Task SaveProblem()
+	{
+		try
+		{
+			Problem.Tags = Tags.ToList();
+			Problem.InputRange = InputRanges;
+			if ((Problem.Format!.Input, Problem.Format.Output) is ({Length: > 0}, {Length: > 0}))
+				Problem.Format = null;
+			if (Id == null)
+			{
+				var ProblemId = (await Api.CreateProblemAsync(Problem)).Result.Id;
+				await MessageService.Success("创建成功");
+				NavigationManager.NavigateTo($"/admin/problem/edit/{ProblemId}");
+			}
+			else
+			{
+				await Api.ModifyProblemAsync((int)Id, Problem);
+
+				await MessageService.Success("修改成功");
+			}
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+}

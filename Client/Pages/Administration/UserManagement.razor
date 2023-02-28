@@ -1,0 +1,275 @@
+﻿@namespace Client.Pages
+@page "/admin/user"
+@using TrueMogician.Extensions.Enumerable
+
+<div class="assignment-list">
+	<Card Title="用户管理" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<Extra>
+			<div class="extra-content" style="display: flex">
+				<Button Type="primary" OnClick="() => CreateUserModalVisible = true">添加用户</Button>
+				<SimpleSelect
+					Mode="multiple"
+					Placeholder="请选择用户组"
+					EnableSearch
+					AllowClear
+					Class="extra-content-select"
+					OnSelectedItemsChanged="OnSearchedGroupsChanged">
+					<SelectOptions>
+						@foreach (var group in Groups)
+						{
+							<SimpleSelectOption Label="@group" Value="@group"/>
+						}
+					</SelectOptions>
+				</SimpleSelect>
+			</div>
+		</Extra>
+		<ChildContent>
+			<Table TItem="User" DataSource="DisplayedUsers">
+				<AntDesign.Column TData="int" @bind-Field="@context.Id" Title="学号" Align="ColumnAlign.Center" Sortable Filterable/>
+				<AntDesign.Column TData="string" @bind-Field="@context.Name" Title="姓名" Align="ColumnAlign.Center" Sortable Filterable/>
+				<AntDesign.Column TData="IList<string>" Field="context.Groups" Title="用户组" Align="ColumnAlign.Center">
+					<div>
+						@foreach (var group in context.Groups)
+						{
+							<Tag>@group</Tag>
+						}
+					</div>
+				</AntDesign.Column>
+				<AntDesign.ActionColumn Align="ColumnAlign.Center">
+					<Button Type="primary" OnClick="() => OpenModifyUserModal(context)">修改信息</Button>
+					<Popconfirm
+						Placement="@Placement.Top"
+						Title="@($"确认要删除用户{context.Id} {context.Name}吗？")"
+						OkText="确认" CancelText="取消" OnConfirm="async () => await DeleteUser(context.Id)">
+						<Button Danger>删除用户</Button>
+					</Popconfirm>
+				</AntDesign.ActionColumn>
+
+			</Table>
+		</ChildContent>
+	</Card>
+
+	<Modal
+		Title="用户信息"
+		Visible="ModifyUserModalVisible"
+		OkText="@("保存")"
+		CancelText="@("取消")"
+		OnOk="ModifyUser"
+		OnCancel="() => ModifyUserModalVisible = false"
+		DestroyOnClose>
+		<Form Model="@SelectedUser"
+		      LabelColSpan="8"
+		      WrapperColSpan="16">
+			<FormItem Label="学号">
+				<Input TValue="int" @bind-Value="context.Id"/>
+			</FormItem>
+			<FormItem Label="姓名">
+				<Input TValue="string" @bind-Value="context.Name"/>
+			</FormItem>
+			<FormItem Label="用户名">
+				<Input TValue="string" @bind-Value="context.Username"/>
+			</FormItem>
+			<FormItem Label="身份">
+				<EnumSelect TEnum="Role" @bind-Value="context.Role"/>
+			</FormItem>
+			<FormItem Label="邮箱">
+				<Input TValue="string" @bind-Value="context.Email"/>
+			</FormItem>
+			<FormItem Label="用户组">
+				<Select TItem="string" TItemValue="string"
+				        Mode="tags"
+				        @bind-Values="SelectedUserGroups"
+				        EnableSearch>
+					<SelectOptions>
+						@foreach (var group in Groups)
+						{
+							<SelectOption TItem="string" TItemValue="string" Label="@group" Value="@group"/>
+						}
+					</SelectOptions>
+				</Select>
+			</FormItem>
+		</Form>
+	</Modal>
+
+	<Modal
+		Title="用户信息"
+		Visible="CreateUserModalVisible"
+		OkText="@("添加")"
+		CancelText="@("取消")"
+		OnOk="CreateUser"
+		OnCancel="() => CreateUserModalVisible = false"
+		DestroyOnClose>
+		<Form Model="NewUser"
+		      LabelColSpan="8"
+		      WrapperColSpan="16">
+			<FormItem Label="学工号">
+				<Input TValue="int" @bind-Value="context.Id"/>
+			</FormItem>
+			<FormItem Label="姓名">
+				<Input TValue="string" @bind-Value="context.Name"/>
+			</FormItem>
+			<FormItem Label="用户名">
+				<Input TValue="string" @bind-Value="context.Username"/>
+			</FormItem>
+			<FormItem Label="密码">
+				<Input TValue="string" @bind-Value="context.Password"/>
+			</FormItem>
+			<FormItem Label="身份">
+				<EnumSelect TEnum="Role" @bind-Value="context.Role"/>
+			</FormItem>
+			<FormItem Label="邮箱">
+				<Input TValue="string" @bind-Value="context.Email"/>
+			</FormItem>
+			<FormItem Label="用户组">
+				<Select TItem="string" TItemValue="string"
+				        Mode="tags"
+				        @bind-Values="NewUserGroups"
+				        EnableSearch>
+					<SelectOptions>
+						@foreach (var group in Groups)
+						{
+							<SelectOption TItem="string" TItemValue="string" Label="@group" Value="@group"/>
+						}
+					</SelectOptions>
+				</Select>
+			</FormItem>
+		</Form>
+	</Modal>
+</div>
+
+<style lang="css" scoped>
+	.extra-content-select {
+		margin-left: 16px;
+		width: 272px;
+		min-width: 200px;
+	}
+
+	@@media screen and (max-width: 576px) {
+		.extra-content-select {
+			margin-left: 0;
+			width: 100%;
+		}
+	}
+</style>
+
+@code {
+
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	protected MessageService MessageService { get; init; }
+
+	private ICollection<User>? Users { get; set; }
+
+	private ICollection<User> DisplayedUsers { get; set; }
+
+	private List<string> Groups { get; set; }
+
+	private bool ModifyUserModalVisible { get; set; }
+
+	private bool CreateUserModalVisible { get; set; }
+
+	private int SelectedUserId { get; set; }
+
+	private User SelectedUser { get; set; } = new();
+
+	private IEnumerable<string> SelectedUserGroups { get; set; }
+
+	private NewUser NewUser { get; set; } = new();
+
+	private IEnumerable<string> NewUserGroups { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			DisplayedUsers = Users = (await Api.GetUsersAsync()).Result.AsList();
+			Groups = Users.SelectMany(s => s.Groups).Distinct().ToList();
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private void OnSearchedGroupsChanged(IEnumerable<string>? groups)
+	{
+		DisplayedUsers = Users!;
+		var g = groups?.ToArray();
+		if (g is {Length: > 0 })
+			DisplayedUsers = DisplayedUsers.Where(p => g.All(group => p.Groups.Contains(group))).ToArray();
+		StateHasChanged();
+	}
+
+	private void OpenModifyUserModal(User user)
+	{
+		SelectedUserId = user.Id;
+		SelectedUser.Id = user.Id;
+		SelectedUser.Name = user.Name;
+		SelectedUser.Username = user.Username;
+		SelectedUser.Email = user.Email;
+		SelectedUser.Role = user.Role;
+		SelectedUserGroups = user.Groups;
+		ModifyUserModalVisible = true;
+	}
+
+	private async Task ModifyUser()
+	{
+		try
+		{
+			ModifyUserModalVisible = false;
+			SelectedUser.Groups = SelectedUserGroups.ToList();
+			await Api.ModifyUserAsync(SelectedUserId, SelectedUser);
+			DisplayedUsers = Users = (await Api.GetUsersAsync()).Result.AsList();
+			Groups = Users.SelectMany(s => s.Groups).Distinct().ToList();
+			await MessageService.Success("修改成功");
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private async Task DeleteUser(int id)
+	{
+		try
+		{
+			await Api.DeleteUserAsync(id);
+			DisplayedUsers = Users = (await Api.GetUsersAsync()).Result.AsList();
+			Groups = Users.SelectMany(s => s.Groups).Distinct().ToList();
+			await MessageService.Success("删除成功");
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private async Task CreateUser()
+	{
+		try
+		{
+			CreateUserModalVisible = false;
+			NewUser.Groups = NewUserGroups.ToList();
+			await Api.CreateUserAsync(NewUser);
+			DisplayedUsers = Users = (await Api.GetUsersAsync()).Result.AsList();
+			Groups = Users.SelectMany(s => s.Groups).Distinct().ToList();
+			await MessageService.Success("添加成功");
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+}

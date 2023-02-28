@@ -7,15 +7,18 @@
 		<Col Lg="24" Md="24" Sm="24" Xl="18" Xs="24" Style="margin-bottom: 24px">
 			<div>
 				<Carousel Autoplay="TimeSpan.FromSeconds(5)" Class="carousel">
-					@if (CarouselUrls is null) {
+					@if (CarouselUrls is null)
+					{
 						<CarouselSlick>
-							<Empty />
+							<Empty/>
 						</CarouselSlick>
 					}
-					else {
-						@foreach (var url in CarouselUrls) {
+					else
+					{
+						@foreach (var url in CarouselUrls)
+						{
 							<CarouselSlick>
-								<Image Src="@url" Preview="false" />
+								<Image Src="@url" Preview="false"/>
 							</CarouselSlick>
 						}
 					}
@@ -25,17 +28,18 @@
 		<Col Lg="24" Md="24" Sm="24" Xl="6" Xs="24" Flex="@(1)">
 			<Row Gutter="@((ResponsiveGutter, ResponsiveGutter))">
 				<Col Flex="@(1)">
-					<Card Title="@("高级语言程序设计（荣）")" Class="extra-card" >
+					<Card Title="高级语言程序设计（荣）" Class="extra-card">
 						夯实基础，掌握基础语法与逻辑<br/>
 						促进应用，解决实际应用问题<br/>
 						对接专业，面向信息大类专业背景
 					</Card>
 				</Col>
 				<Col Flex="@(1)">
-					<Card Title="@("Advanced Language Programming Design")" Class="extra-card" >
-						Laying a solid foundation on programming grammar and logic<br/>
-						Solving practical application problems through programming<br/>
-						Coupling different majors with information related backgrounds
+					<Card Title="课程目标" Class="extra-card">
+						<strong>区别于通识类程序设计课程：</strong> <br/>
+						专：培养学生专业的编程思维能力，使其能够完成专业系统的开发任务；<br/>
+						<strong>区别于信息类程序设计课程：</strong><br/>
+						通：培养学生综合的编程能力，使其能够完成专题背景的综合开发任务。
 					</Card>
 				</Col>
 			</Row>
@@ -50,14 +54,13 @@
 		overflow: hidden;
 	}
 
-	.extra-card {
-		min-width: 20em;
-	}
+	.extra-card { min-width: 20em; }
 </style>
 
 @code {
 
-	private static Dictionary<string, int> ResponsiveGutter { get; } = new() {
+	private static Dictionary<string, int> ResponsiveGutter { get; } = new()
+	{
 		["xs"] = 8,
 		["sm"] = 16,
 		["md"] = 24,
@@ -77,18 +80,11 @@
 
 	private IList<string>? CarouselUrls { get; set; }
 
-	protected override async Task OnInitializedAsync() {
+	protected override async Task OnInitializedAsync()
+	{
 		await base.OnInitializedAsync();
-		try {
-			await LocalStorageManager.Refresh();
-			CarouselUrls = (await Api.GetCarouselImageUrlsAsync()).Result;
-		}
-		catch (ApiException ex) {
-			LocalStorageManager.CurrentUser = null;
-			LocalStorageManager.CurrentUserAvatar = null;
-			if (!ErrorHandler.Handle(ex))
-				throw;
-		}
+		await LocalStorageManager.Refresh();
+		CarouselUrls = Enumerable.Range(1, 5).Select(i => $"https://judge.alpd.online/static/pic/{i}.jpg").ToList();
 	}
 
 }

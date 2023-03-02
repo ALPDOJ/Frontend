@@ -1,0 +1,49 @@
+﻿@namespace Client.Pages
+@page "/file"
+
+<div class="file-list">
+
+	<Card Title="文件列表" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<ChildContent>
+			<Table TItem="StringWrapper" DataSource="@(Files.Select(f => new StringWrapper { name = f }))">
+				<AntDesign.Column TData="string" Field="context.name" Title="文件名" Sortable Filterable/>
+				<ActionColumn>
+					<a href="@($"/static/upload/{context.name}")" download="@context.name">下载</a>
+				</ActionColumn>
+			</Table>
+		</ChildContent>
+	</Card>
+</div>
+
+
+@code {
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	private List<string> Files { get; set; }
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			Files = (await Api.GetFilesAsync()).Result.ToList();
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	class StringWrapper
+	{
+		public string name;
+	}
+
+}

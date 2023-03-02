@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using AntDesign;
+using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text;
@@ -47,4 +48,25 @@ public static class ApiClientExtension {
 			default:                        throw new ApiException($"The HTTP status code of the response was not expected ({status}).", status, await response.Content.ReadAsStringAsync(), headers, null);
 		}
 	}
+
+    public static async Task<ApiResponse> UploadFilesAsync(this ApiClient api, Files files)
+    {
+        var client = api.GetHttpClient();
+        var content = new MultipartFormDataContent();
+        foreach (var (fileName, fileContent) in files)
+        {
+            var streamContent = new StreamContent(new MemoryStream(fileContent));
+            content.Add(streamContent, "files", fileName);
+        }
+        var response = await client.PostAsync($"{api.BaseUrl}/file", content);
+        var status = (int)response.StatusCode;
+        var headers = response.Headers.ToDictionary(h => h.Key, h => h.Value);
+        switch (response.StatusCode)
+        {
+            case HttpStatusCode.Created:
+                return new ApiResponse(status, headers);
+            case HttpStatusCode.BadRequest: throw new ApiException("请求错误，参数或负载非法", status, await response.Content.ReadAsStringAsync(), headers, null);
+            default: throw new ApiException($"The HTTP status code of the response was not expected ({status}).", status, await response.Content.ReadAsStringAsync(), headers, null);
+        }
+    }
 }

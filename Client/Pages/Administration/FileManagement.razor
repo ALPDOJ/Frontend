@@ -1,0 +1,92 @@
+﻿@namespace Client.Pages
+@page "/admin/file"
+@using Client.Pages.Problem
+
+<div>
+	<Card Title="文件管理" Style="margin-top: 24px" BodyStyle="padding: 0 32px 40px 32px">
+		<Extra>
+			<Button OnClick="UploadFile">上传文件</Button>
+		</Extra>
+		<ChildContent>
+			<Table TItem="StringWrapper" DataSource="@(Files.Select(f => new StringWrapper { name = f }))">
+				<AntDesign.Column TData="string" Field="context.name" Title="文件名" Sortable Filterable/>
+				<ActionColumn>
+					<a href="@($"/static/upload/{context.name}")" download="@context.name">下载</a>
+				</ActionColumn>
+			</Table>
+		</ChildContent>
+	</Card>
+</div>
+
+
+@code {
+
+	[Inject]
+	protected ApiClient Api { get; init; }
+
+	[Inject]
+	protected ErrorHandler ErrorHandler { get; init; }
+
+	[Inject]
+	protected ModalService ModalService { get; init; }
+
+	private List<string> Files { get; set; }
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		try
+		{
+			Files = (await Api.GetFilesAsync()).Result.ToList();
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	private async Task UploadFile()
+	{
+		var options = new ModalOptions
+		{
+			Title = "上传文件",
+			OkText = "上传",
+			CancelText = "取消",
+			Draggable = true
+		};
+		var argument = new UploadModalArgument
+		{
+			Accept = "",
+			Multiple = false
+		};
+		var modal = await ModalService.CreateModalAsync<UploadModal, UploadModalArgument, Files?>(options, argument);
+		var taskSource = new TaskCompletionSource<Files?>();
+		modal.OnOk = modal.OnCancel = result =>
+		{
+			taskSource.SetResult(result);
+			return Task.CompletedTask;
+		};
+		var files = await taskSource.Task;
+		if (files is null)
+			return;
+		try
+		{
+			await Api.UploadFilesAsync(files);
+			Files = (await Api.GetFilesAsync()).Result.ToList();
+			StateHasChanged();
+		}
+		catch (ApiException exception)
+		{
+			if (!ErrorHandler.Handle(exception))
+				throw;
+		}
+	}
+
+	class StringWrapper
+	{
+		public string name;
+	}
+
+}

@@ -4,8 +4,9 @@
 <CascadingValue Value="@this" IsFixed>
 	<AntDesign.ProLayout.BasicLayout Logo="@("/assets/logo.png")" MenuData="@(View == Role.Student ? StudentMenu : AdminMenu)">
 		<RightContentRender>
-			@if (User is not null) {
-				<RightContent @ref="@RightContent" User="@User" Avatar="@Avatar" />
+			@if (User is not null)
+			{
+				<RightContent @ref="@RightContent" User="@User" Avatar="@Avatar"/>
 			}
 		</RightContentRender>
 		<ChildContent>
@@ -14,72 +15,94 @@
 			</CascadingValue>
 		</ChildContent>
 		<FooterRender>
-			<FooterView Style="margin-top:24px" Copyright="飞姐" Links="Links" />
+			<FooterView Style="margin-top: 24px" Copyright="飞姐" Links="Links"/>
 		</FooterRender>
 	</AntDesign.ProLayout.BasicLayout>
-	<SettingDrawer />
+	<SettingDrawer/>
 </CascadingValue>
 
 @code{
 
 	private static MenuDataItem[] StudentMenu { get; } = {
-		new MenuDataItem {
+		new()
+		{
 			Path = "/",
 			Name = "主页",
 			Key = "main",
 			Icon = "dashboard"
 		},
-		new MenuDataItem {
+		new()
+		{
 			Path = "/assignment",
 			Name = "作业",
 			Key = "list",
 			Icon = "unordered-list"
+		},
+		new()
+		{
+			Path = "/file",
+			Name = "文件下载",
+			Key = "file",
+			Icon = "file"
 		}
 	};
 
 	private static MenuDataItem[] AdminMenu { get; } = {
-		//new MenuDataItem {
-		//	Path = "/admin",
-		//	Name = "仪表盘",
-		//	Key = "dashboard",
-		//	Icon="dashboard"
-		//},
-		new MenuDataItem {
+	//new MenuDataItem {
+	//	Path = "/admin",
+	//	Name = "仪表盘",
+	//	Key = "dashboard",
+	//	Icon="dashboard"
+	//},
+		new()
+		{
 			Path = "/admin/user",
 			Name = "用户管理",
-			Key="user",
+			Key = "user",
 			Icon = "user"
 		},
-		new MenuDataItem {
+		new()
+		{
 			Path = "/admin/problem",
 			Name = "题目管理",
-			Key="problem",
+			Key = "problem",
 			Icon = "user"
 		},
-		new MenuDataItem {
+		new()
+		{
 			Path = "/admin/assignment",
 			Name = "作业管理",
-			Key="assignment",
+			Key = "assignment",
 			Icon = "user"
+		},
+		new()
+		{
+			Path = "/admin/file",
+			Name = "文件管理",
+			Key = "file",
+			Icon = "file"
 		}
 	};
 
 	private static LinkItem[] Links { get; } = {
-		new() {
+		new()
+		{
 			Key = "Ant Design",
 			Title = "Ant Design",
 			Href = "https://antblazor.com",
 			BlankTarget = true
 		},
-		new() {
+		new()
+		{
 			Key = "Blazor",
 			Title = "Blazor",
 			Href = "https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor",
 			BlankTarget = true
 		},
-		new() {
+		new()
+		{
 			Key = "Author",
-			Title = (RenderFragment)(@<Icon Type="github" />),
+			Title = (RenderFragment)(@<Icon Type="github"/>),
 			Href = "https://github.com/truemogician",
 			BlankTarget = true
 		}
@@ -98,7 +121,8 @@
 
 	public void Refresh() => StateHasChanged();
 
-	protected override async Task OnInitializedAsync() {
+	protected override async Task OnInitializedAsync()
+	{
 		await base.OnInitializedAsync();
 		User = await LocalStorageManager.GetCurrentUser();
 		Avatar = await LocalStorageManager.GetCurrentUserAvatar();

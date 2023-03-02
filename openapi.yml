@@ -1075,6 +1075,8 @@ tags:
     description: 评论相关接口
   - name: Testcase
     description: 测试点相关接口
+  - name: File
+    description: 文件相关接口
   - name: AllowAnonymous
     description: 匿名可用（不需认证）的API
   - name: AdminOnly
@@ -2103,3 +2105,42 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /file:
+    get:
+      description: 获取文件列表
+      operationId: GetFiles
+      tags:
+        - File
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      description: 上传文件
+      operationId: UploadFiles
+      tags:
+        - File
+        - AdminOnly
+      security:
+        - securityCookies: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Files'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'

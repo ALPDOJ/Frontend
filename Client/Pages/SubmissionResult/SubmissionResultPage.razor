@@ -28,7 +28,7 @@
 					}
 				</PrefixTemplate>
 				<SuffixTemplate>
-					<TextOrSpin Value="@SubmissionLimit?.TotalScore.ToString("F1")" />
+					<TextOrSpin Value="@SubmissionLimit?.TotalScore?.ToString("F1")" />
 				</SuffixTemplate>
 			</Statistic>
 			@if (DisplayingCompilerResult is not null && SubmissionLimit is not null) {

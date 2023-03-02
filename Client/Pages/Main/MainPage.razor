@@ -84,7 +84,7 @@
 	{
 		await base.OnInitializedAsync();
 		await LocalStorageManager.Refresh();
-		CarouselUrls = Enumerable.Range(1, 5).Select(i => $"https://judge.alpd.online/static/pic/{i}.jpg").ToList();
+		CarouselUrls = Enumerable.Range(1, 5).Select(i => $"/static/pic/{i}.jpg").ToList();
 	}
 
 }
